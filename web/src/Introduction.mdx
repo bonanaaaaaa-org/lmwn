@@ -1,0 +1,16 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Guide to Hidden Gems — components
+
+Every component in `src/components` and `src/features/*/components` has a
+`ComponentName.stories.tsx` beside it.
+
+- Story `title` mirrors the folder: `Components/Common/Rating`,
+  `Features/Guides/RestaurantCard`.
+- Cover each variant and state: default, loading, empty, error, long content,
+  and phone width (viewport toolbar).
+- Check the **Accessibility** panel for each story.
+
+Run with `pnpm --filter web storybook` (http://localhost:6006).
