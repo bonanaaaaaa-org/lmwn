@@ -6,6 +6,11 @@ import styles from "./TagLink.module.css";
 export interface TagLinkProps {
   /** The Tag text, exactly as the editor wrote it. */
   tag: string;
+  /**
+   * Where the chip goes. Defaults to `tagHref(tag)`; the Guide Index passes its own URL
+   * so a Tag can combine with the current search text and other Tags.
+   */
+  href?: string;
   className?: string;
 }
 
@@ -15,9 +20,12 @@ export function tagHref(tag: string): string {
 }
 
 /** A Tag chip that opens the Guide Index filtered to that Tag. */
-export function TagLink({ tag, className }: TagLinkProps) {
+export function TagLink({ tag, href, className }: TagLinkProps) {
   return (
-    <Link href={tagHref(tag)} className={clsx(styles.TagLink__Root, className)}>
+    <Link
+      href={href ?? tagHref(tag)}
+      className={clsx(styles.TagLink__Root, className)}
+    >
       <span aria-hidden="true" className={styles.TagLink__Hash}>
         #
       </span>

@@ -26,4 +26,13 @@ describe("TagLink", () => {
       tagHref("คาเฟ่"),
     );
   });
+
+  it("uses a caller-built href when given one", () => {
+    render(<TagLink tag="คาเฟ่" href="/?q=coffee&tag=คาเฟ่" />);
+
+    expect(screen.getByRole("link", { name: "คาเฟ่" })).toHaveAttribute(
+      "href",
+      "/?q=coffee&tag=คาเฟ่",
+    );
+  });
 });

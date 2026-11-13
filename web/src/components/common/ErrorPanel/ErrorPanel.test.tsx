@@ -28,7 +28,7 @@ describe("ErrorPanel", () => {
     const onRetry = vi.fn();
     render(<ErrorPanel onRetry={onRetry} isRetrying />);
 
-    await user.click(screen.getByRole("button", { name: "ลองใหม่" }));
+    await user.click(screen.getByRole("button", { name: "กำลังลองใหม่…" }));
 
     expect(onRetry).not.toHaveBeenCalled();
   });

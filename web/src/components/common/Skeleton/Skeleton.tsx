@@ -80,7 +80,7 @@ export function SkeletonGroup({
   children,
 }: SkeletonGroupProps) {
   return (
-    <div className={className} role="status" aria-busy="true">
+    <div className={className} role="status">
       <VisuallyHidden>{label}</VisuallyHidden>
       {children}
     </div>

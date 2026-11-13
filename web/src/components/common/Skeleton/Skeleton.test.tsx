@@ -13,7 +13,6 @@ describe("SkeletonGroup", () => {
 
     const status = screen.getByRole("status");
     expect(status).toHaveTextContent("กำลังโหลดไกด์…");
-    expect(status).toHaveAttribute("aria-busy", "true");
     expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });
 });

@@ -48,7 +48,7 @@ export function ErrorPanel({
           onPress={onRetry}
           isPending={isRetrying}
         >
-          ลองใหม่
+          {isRetrying ? "กำลังลองใหม่…" : "ลองใหม่"}
         </Button>
       )}
     </section>

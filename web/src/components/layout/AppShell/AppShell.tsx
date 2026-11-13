@@ -21,7 +21,7 @@ export function AppShell({ children }: AppShellProps) {
           <Link href="/" className={styles.AppShell__Brand}>
             <span className={styles.AppShell__Mark} aria-hidden="true" />
             <span className={styles.AppShell__BrandText}>
-              Hidden Gems
+              <span lang="en">Hidden Gems</span>
               <span className={styles.AppShell__BrandSub}>ไกด์ร้านลับน่าไป</span>
             </span>
           </Link>
