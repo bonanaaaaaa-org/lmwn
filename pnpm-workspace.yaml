@@ -7,3 +7,9 @@ allowBuilds:
   mongodb-memory-server: true
   msw: false
   sharp: true
+overrides:
+  # Dependabot GHSA (glob AbortSignal bypass): dev-only via typed-css-modules / storybook;
+  # glob 14 also moves their minimatch to the fixed 11.x line
+  'glob@>=9.0.0 <=14.0.1': ^14.0.2
+  # Dependabot GHSA (libvips / libheif / librsvg): runtime, pulled in by lmwn-assignment-2025-server
+  'sharp@<0.35.5': ^0.35.5
