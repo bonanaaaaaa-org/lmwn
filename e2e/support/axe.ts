@@ -5,7 +5,10 @@ type Violation = Awaited<
   ReturnType<AxeBuilder["analyze"]>
 >["violations"][number];
 
-/** The WCAG 2.2 A and AA rule set the spec requires (axe tags are cumulative per version). */
+/**
+ * The WCAG 2.2 A and AA rule set the spec requires (axe tags are cumulative per version).
+ * Keep in sync with `a11y.options.runOnly` in web/.storybook/preview.ts.
+ */
 export const WCAG_22_AA_TAGS = [
   "wcag2a",
   "wcag2aa",

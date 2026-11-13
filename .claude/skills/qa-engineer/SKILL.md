@@ -186,7 +186,8 @@ There is no auth, so there are no login fixtures.
 
 ```
 e2e/
-├── specs/                    # All E2E specs (home.spec.ts: app shell + gateway health)
+├── specs/                    # All E2E specs (home.spec.ts: app shell + gateway health + axe)
+├── support/axe.ts            # expectNoAxeViolations(page): WCAG 2.2 A/AA, any violation fails
 ├── playwright.config.ts
 ├── package.json              # scripts: test:e2e, test:e2e:ui, report, lint, format, format:check, type-check
 ├── tsconfig.json
@@ -196,6 +197,7 @@ e2e/
 ```
 
 - `e2e` is a pnpm workspace package; its `lint`, `format:check` and `type-check` run with the root scripts. `test:e2e` is kept out of the root `test` task so `pnpm test` stays fast — run it with `pnpm test:e2e` from the root
+- Import helpers with the `#support/*` alias (`import { expectNoAxeViolations } from "#support/axe";`) — relative imports are lint-banned. Each page state the spec lists under Accessibility gets `await expectNoAxeViolations(page)` after awaiting a visible locator for that state
 - First run on a machine: `pnpm --filter e2e exec playwright install chromium`
 - CI runs it in the **E2E** job of `ci.yml` (installs Chromium with system deps, starts the stack through `webServer`, uploads `e2e/playwright-report/` on failure)
 
