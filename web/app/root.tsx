@@ -3,6 +3,8 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import "modern-normalize/modern-normalize.css";
 import "@/styles/globals.css";
 
+import { Providers } from "@/lib/Providers";
+
 import styles from "./root.module.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -26,8 +28,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   return (
-    <main className={styles.Main}>
-      <Outlet />
-    </main>
+    <Providers>
+      <main className={styles.Main}>
+        <Outlet />
+      </main>
+    </Providers>
   );
 }

@@ -40,8 +40,8 @@ Then verify the changed journey in a real browser under `pnpm dev` (from the rep
 | Build | Vite 8 (native tsconfig path resolution: `resolve.tsconfigPaths`) |
 | UI primitives | React Aria Components / React Aria hooks (accessible interactions, focus, keyboard, overlays) |
 | Styling | CSS Modules (`.module.css`), CSS custom properties (design tokens), `modern-normalize` |
-| Server state | TanStack Query v5 (add with the first data-fetching feature) |
-| Runtime validation | Zod (parse gateway responses at the API-client boundary) |
+| Server state | TanStack Query v5 — `QueryClient` from `@/lib/queryClient`, provided by `@/lib/Providers` in `app/root.tsx`; devtools in dev only |
+| Runtime validation | Zod 4 — gateway responses are parsed by `fetchJson` in `@/lib/apiClient` |
 | Testing | Vitest, Testing Library (React + user-event), jsdom, msw |
 | Linting & formatting | oxlint (`web/.oxlintrc.json`), Stylelint (stylelint-config-standard + local plugins), oxfmt (`web/.oxfmtrc.json`) |
 | Component dev | Storybook 10 (`@storybook/react-vite`), docs + a11y addons |
@@ -84,7 +84,8 @@ web/
 │   │       ├── lib/        # types.ts, queryKeys.ts, guidesApi.ts
 │   │       └── pages/
 │   ├── hooks/              # Shared hooks
-│   ├── lib/                # App-wide utilities (env.ts, apiClient.ts, ...)
+│   ├── lib/                # App-wide: env.ts, apiClient.ts (fetchJson, ApiError), queryClient.ts, Providers.tsx
+│   ├── test-utils/         # server.ts (shared msw server), queryClient.tsx (createTestQueryClient, renderWithQueryClient)
 │   └── styles/
 │       └── globals.css     # Layers + design tokens
 ├── .storybook/             # main.ts (stories glob, addons), preview.ts (global CSS, viewports, a11y)
@@ -254,8 +255,27 @@ export const guideKeys = {
 ### API client pattern
 
 - Base URL: `env.apiBaseUrl` from `@/lib/env` (`VITE_API_BASE_URL`, default `http://localhost:4000`) — never read `import.meta.env` elsewhere
+- Every request goes through `fetchJson(path, schema, init?)` from `@/lib/apiClient`: it prefixes the base URL, asks for JSON, throws `ApiError` (`status`, `detail` from the gateway's `{"detail": ...}`) for non-2xx, and throws `InvalidResponseError` (with Zod `issues`) when a 2xx body doesn't match the schema
+- Each feature's `lib/{feature}Api.ts` pairs a Zod schema from `lib/types.ts` with `fetchJson`, and derives its TypeScript types with `z.infer` — never hand-write a type that a schema already describes:
+
+  ```ts
+  // lib/types.ts
+  export const guideSchema = z.object({ id: z.string(), title: z.string(), tags: z.array(z.string()) });
+  export type Guide = z.infer<typeof guideSchema>;
+
+  // lib/guidesApi.ts
+  export const guidesApi = {
+    get: (id: string, signal?: AbortSignal) => fetchJson(`/api/guides/${id}`, guideSchema, { signal }),
+  };
+
+  // hooks/useGuide.ts
+  export const useGuide = (id: string) =>
+    useQuery({ queryKey: guideKeys.detail(id), queryFn: ({ signal }) => guidesApi.get(id, signal) });
+  ```
+- Pass TanStack Query's `signal` through so navigating away cancels in-flight requests
+- Query defaults (`@/lib/queryClient`): `staleTime` 60 s, no refetch on window focus, no retry for 4xx `ApiError`, up to 2 retries otherwise. Override per query only with a reason
+- Render errors by type: `ApiError` with status 404 → not-found state; other `ApiError` / network errors → retryable error state; `InvalidResponseError` → generic error (it's a contract bug — log it)
 - All data access goes through the API gateway
-- Parse responses with the feature's Zod schema in the API client so components receive typed, validated data; throw a typed error (with status) for non-2xx
 - **Web standards first**: follow established web standards (RFCs, W3C, WHATWG) over ad-hoc conventions. Multi-value query params use `URLSearchParams.append()` per value (RFC 3986 repeated keys), not comma-separated. Dates in ISO 8601. Phone numbers as `tel:` links; external links with `rel="noopener noreferrer"`.
 
 ---
@@ -375,7 +395,9 @@ Rules: one test at a time. Only enough code to pass the current test. Don't anti
 - Runner: **Vitest** with jsdom environment, `globals: true`
 - Utilities: Testing Library React + `@testing-library/user-event`
 - Matchers: `@testing-library/jest-dom/vitest` (loaded in `vitest.setup.tsx`)
-- Network: **msw** handlers for gateway endpoints
+- Network: **msw** — one shared server (`@/test-utils/server`) started in `vitest.setup.tsx` with `onUnhandledFrame: "error"`, so any request without a handler fails the test; add handlers per test with `server.use(...)` (reset after each test)
+- Query components: `renderWithQueryClient(ui)` from `@/test-utils/queryClient` (fresh client per test, `retry: false`)
+- Storybook: `.storybook/preview.ts` wraps every story in a `QueryClientProvider`; seed data via props or `queryClient.setQueryData`, never the network
 - CSS Modules resolve to their plain local names in tests (`generateScopedName: "[local]"`) — still don't assert on class names
 
 ### Commands

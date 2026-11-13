@@ -4,7 +4,7 @@ LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway
 
 | App | Stack | Port |
 | --- | --- | --- |
-| `web` | React 19, React Router 8 (SPA), TypeScript 7, CSS Modules, React Aria, Storybook, Vitest, oxlint, oxfmt, stylelint | 3000 |
+| `web` | React 19, React Router 8 (SPA), TypeScript 7, TanStack Query, Zod, CSS Modules, React Aria, Storybook, Vitest, oxlint, oxfmt, stylelint | 3000 |
 | `api-gateway` | Python 3.14, FastAPI, Pydantic, uv, ruff, pyrefly, pytest | 4000 |
 
 `pnpm dev` in `api-gateway` also starts the provided data server

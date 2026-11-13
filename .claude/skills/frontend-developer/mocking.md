@@ -35,7 +35,7 @@ server.use(
 );
 ```
 
-Use a fresh `QueryClient` per test with `retry: false` so error states show immediately.
+Render with `renderWithQueryClient` from `@/test-utils/queryClient` — a fresh `QueryClient` per test with `retry: false`, so error states show immediately. The shared msw server lives in `@/test-utils/server`; unhandled requests fail the test.
 
 **2. Don't mock to avoid rendering**
 

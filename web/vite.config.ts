@@ -15,6 +15,19 @@ export default defineConfig({
       generateScopedName: "[local]__[hash:base64:5]",
     },
   },
+  // React Router's SPA entry statically imports only react/react-dom/react-router, so
+  // Vite discovers other deps at runtime and re-optimizes mid-session — which can serve
+  // two copies of React ("Invalid hook call"). Pre-bundle them in the first round.
+  optimizeDeps: {
+    include: [
+      "@tanstack/react-query",
+      "@tanstack/react-query-devtools",
+      "react-aria",
+      "react-aria-components",
+      "zod",
+      "clsx",
+    ],
+  },
   server: {
     port: 3000,
   },
