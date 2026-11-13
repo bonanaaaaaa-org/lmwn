@@ -1,0 +1,15 @@
+@layer reset, base, components;
+
+@layer base {
+  :root {
+    --color-text: #1a1a1a;
+    --color-text-muted: #666;
+    --color-surface: #fff;
+    --color-border: #e0e0e0;
+
+    color: var(--color-text);
+    background: var(--color-surface);
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+    line-height: 1.5;
+  }
+}

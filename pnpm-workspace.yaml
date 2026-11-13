@@ -1,0 +1,8 @@
+packages:
+  - 'api-gateway'
+  - 'web'
+allowBuilds:
+  esbuild: true
+  mongodb-memory-server: true
+  msw: false
+  sharp: true

@@ -1,1 +1,36 @@
-# lmwn
+# Guide to Hidden Gems
+
+LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway.
+
+| App | Stack | Port |
+| --- | --- | --- |
+| `web` | React 19, React Router 7 (SPA), CSS Modules, Vitest, oxlint, stylelint | 3000 |
+| `api-gateway` | Python 3.13, FastAPI, Pydantic, uv, ruff, pyrefly, pytest | 4000 |
+
+`pnpm dev` in `api-gateway` also starts the provided data server
+(guides `:8888`, restaurants `:9999`, images `:7777`).
+
+## Prerequisites
+
+- Node.js ≥ 20 and pnpm
+- [uv](https://docs.astral.sh/uv/) (installs Python 3.13 automatically)
+
+## Getting started
+
+```bash
+pnpm install
+uv sync
+pnpm dev        # turbo: data server + gateway + web
+```
+
+Open http://localhost:3000. Gateway API docs: http://localhost:4000/docs.
+
+## Common tasks
+
+Tasks run through [Turborepo](https://turbo.build/) and are cached:
+
+```bash
+pnpm lint         # oxlint + stylelint (web), ruff (gateway)
+pnpm type-check   # tsc (web), pyrefly (gateway)
+pnpm test         # vitest (web), pytest (gateway)
+```

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "inputs": ["app/**/*.py", "tests/**/*.py", "pyproject.toml"]
+    },
+    "format:check": {
+      "inputs": ["app/**/*.py", "tests/**/*.py", "pyproject.toml"]
+    },
+    "type-check": {
+      "inputs": ["app/**/*.py", "tests/**/*.py", "pyproject.toml"]
+    },
+    "test": {
+      "inputs": ["app/**/*.py", "tests/**/*.py", "pyproject.toml"],
+      "outputs": [".coverage"]
+    }
+  }
+}
