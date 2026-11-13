@@ -115,7 +115,6 @@ def test_a_day_outside_monday_to_sunday_is_invalid(day: int) -> None:
         "09:0",
         "0900",
         "09:00:00",
-        "24:00",
         "23:60",
         "ab:cd",
         " 09:00",
@@ -170,3 +169,40 @@ def test_upstream_week_with_a_closed_day_normalises_as_expected() -> None:
         (6, (OpeningRange(420, 1140),)),
         (7, ()),
     ]
+
+
+def test_the_last_minute_of_the_day_is_a_valid_time() -> None:
+    hours = normalise_working_hours(
+        [WorkingHoursEntry(day=1, open="00:00", close="23:59")]
+    )
+
+    assert hours.on(1) == (OpeningRange(0, 1439),)
+
+
+def test_closing_at_24_00_means_closing_at_midnight() -> None:
+    hours = normalise_working_hours(
+        [WorkingHoursEntry(day=6, open="17:00", close="24:00")]
+    )
+
+    assert hours.on(6) == (OpeningRange(1020, 1440),)
+
+
+def test_opening_at_24_00_is_invalid() -> None:
+    with pytest.raises(InvalidWorkingHours, match="HH:MM"):
+        normalise_working_hours([WorkingHoursEntry(day=6, open="24:00", close="02:00")])
+
+
+@pytest.mark.parametrize(
+    ("opens_at", "closes_at"),
+    [(-1, 60), (1440, 1500), (600, 600), (600, 500), (600, 2041)],
+)
+def test_an_opening_range_must_open_within_the_day_and_close_within_24_hours(
+    opens_at: int, closes_at: int
+) -> None:
+    with pytest.raises(InvalidWorkingHours, match="range"):
+        OpeningRange(opens_at, closes_at)
+
+
+@pytest.mark.parametrize(("opens_at", "closes_at"), [(0, 1), (0, 1440), (1439, 2879)])
+def test_opening_range_boundaries_that_are_valid(opens_at: int, closes_at: int) -> None:
+    assert OpeningRange(opens_at, closes_at).closes_at == closes_at

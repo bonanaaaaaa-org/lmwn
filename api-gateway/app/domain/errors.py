@@ -6,4 +6,8 @@ class DomainError(Exception):
 
 
 class InvalidWorkingHours(DomainError):
-    """Working Hours cannot be normalised: a day outside 1-7 or a time that is not HH:MM."""
+    """Working Hours break a domain rule.
+
+    For example a day outside 1-7, a time that is not HH:MM, an opening range that
+    is empty or longer than 24 hours, or a week that is not exactly 7 days.
+    """
