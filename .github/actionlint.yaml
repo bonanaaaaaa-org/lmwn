@@ -1,0 +1,4 @@
+self-hosted-runner:
+  # The org's ARC scale set (ephemeral linux/arm64 pods).
+  labels:
+    - k8s

@@ -99,11 +99,13 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 
 ## CI/CD Conventions
 
-- Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose (e.g. `ci.yml`)
+- Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose. `ci.yml` (job **Verify**) runs format check, lint, type-check, test and build through turbo on every PR, push to main and by hand
+- Jobs run on the org's self-hosted runners: `runs-on: k8s` (ARC scale set, ephemeral linux/arm64 pods from the minimal actions-runner image — no Node or Python, so every job installs its own with the pinned setup actions). GitHub-hosted runners are not used. Fork PRs never run on them (job-level `if` guard). Custom labels are declared in `.github/actionlint.yaml`
+- Node comes from `.nvmrc`, pnpm from `packageManager`, Python from `.python-version`; `MONGOMS_DISABLE_POSTINSTALL=1` skips the data server's MongoDB download where `pnpm dev` isn't run
 - Pin actions by full commit SHA (with a version comment), never by `@main`
 - Least-privilege `permissions:` (default `contents: read`), `timeout-minutes` on every job, `concurrency` to cancel superseded runs
-- Use `pnpm/action-setup` + `actions/setup-node` (pnpm cache) and `astral-sh/setup-uv` (uv cache)
-- Run `pnpm lint`, `pnpm format:check`, `pnpm type-check`, `pnpm test` and `pnpm build` through turbo on every PR; E2E only where a browser and the data server can run
+- Use `pnpm/action-setup` + `actions/setup-node` (pnpm cache) and `astral-sh/setup-uv` (uv cache, keyed on `uv.lock`)
+- E2E only where a browser and the data server can run
 - Secrets only via `${{ secrets.* }}` — never echo them, never commit them
 
 ---

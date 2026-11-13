@@ -1,0 +1,84 @@
+name: CI
+
+# Every pull request (whatever its base branch, so stacked PRs are checked), every push to main,
+# or by hand (Actions -> CI -> Run workflow). No secrets and no deploy.
+# Runs on the org's self-hosted Kubernetes runners (ARC scale set `k8s`): GitHub-hosted runners
+# are not used.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Turborepo: no anonymous usage telemetry from CI.
+  TURBO_TELEMETRY_DISABLED: "1"
+  # The provided data server's MongoDB binary is only needed by `pnpm dev`, never by these checks.
+  MONGOMS_DISABLE_POSTINSTALL: "1"
+
+# A newer push to the same PR or branch cancels the run it supersedes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify
+    # Defence in depth: never run a fork's code on self-hosted runners.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # An ephemeral linux/arm64 pod from the minimal actions-runner image (git, curl, jq, unzip,
+    # docker CLI; no Node or Python), so the steps below install what they use.
+    runs-on: k8s
+    timeout-minutes: 20
+    steps:
+      # What the pod is: CPU architecture, OS and resources.
+      - name: Runner
+        run: |
+          echo "arch: $(uname -m)"
+          . /etc/os-release && echo "os: $PRETTY_NAME"
+          echo "cpus: $(nproc)"
+          if command -v free > /dev/null; then free -h | head -n 2; fi
+          df -h "$GITHUB_WORKSPACE" | tail -n 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          clean: true
+          persist-credentials: false
+      # pnpm version comes from package.json "packageManager".
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # Node version from .nvmrc; pnpm store cached, keyed on pnpm-lock.yaml.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      # uv for the api-gateway; Python comes from .python-version (uv downloads it). uv's cache is
+      # keyed on uv.lock.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --frozen
+      - name: Tool versions
+        run: |
+          node --version
+          pnpm --version
+          uv --version
+          uv run python --version
+      # Each check below is a root script run through Turborepo (turbo.json), per package
+      # (api-gateway, web).
+      - name: Format (ruff format)
+        run: pnpm run format:check
+      - name: Lint (oxlint, stylelint, ruff)
+        run: pnpm run lint
+      - name: Type check (tsc with typed CSS modules, pyrefly)
+        run: pnpm run type-check
+      - name: Test (Vitest; pytest with 90% coverage minimum and the architecture test)
+        run: pnpm run test
+      - name: Build
+        run: pnpm run build
