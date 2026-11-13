@@ -1,10 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["VITE_*"],
+  "globalEnv": [
+    "VITE_*"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "build/**",
+        "dist/**"
+      ]
     },
     "dev": {
       "cache": false,
@@ -14,7 +21,14 @@
     "format:check": {},
     "type-check": {},
     "test": {
-      "outputs": ["coverage/**"]
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "//#test:scripts": {
+      "inputs": [
+        "scripts/**"
+      ]
     }
   }
 }

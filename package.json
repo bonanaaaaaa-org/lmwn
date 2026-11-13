@@ -10,7 +10,8 @@
     "lint": "turbo run lint",
     "format:check": "turbo run format:check",
     "type-check": "turbo run type-check",
-    "test": "turbo run test"
+    "test": "turbo run test test:scripts",
+    "test:scripts": "node --test scripts/"
   },
   "engines": {
     "node": ">=26"
