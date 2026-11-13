@@ -86,7 +86,7 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 ### uv
 
 - Root `pyproject.toml` declares the uv workspace (`members = ["api-gateway"]`); there is one `.venv` and one `uv.lock` at the repo root
-- `.python-version` pins 3.13; pyrefly points at `../.venv/bin/python3`
+- `.python-version` pins 3.14; pyrefly points at `../.venv/bin/python3`
 - Add Python deps with `uv add --package api-gateway <pkg>` (dev deps: `--group dev`) — never edit `uv.lock` by hand
 
 ### Dependencies

@@ -173,7 +173,7 @@ async def test_get_guide_returns_guide_with_restaurants(client: AsyncClient, ups
 |---|---|
 | API tests | pytest, pytest-asyncio, httpx `ASGITransport`, respx (in `api-gateway/`) |
 | E2E framework | Playwright (in `e2e/`, added with the first spec) |
-| Language | TypeScript (strict) for E2E; Python 3.13 for API tests |
+| Language | TypeScript (strict) for E2E; Python 3.14 for API tests |
 | Unit testing | Vitest + Testing Library (in `web/`, developer-owned) |
 | Browser | Chromium, desktop + mobile (Pixel / iPhone device descriptors) projects |
 

@@ -34,7 +34,7 @@ From the repo root, `pnpm lint`, `pnpm format:check`, `pnpm type-check` and `pnp
 | Layer | Technology |
 |---|---|
 | Framework | FastAPI (async) — inbound adapter only |
-| Language | Python 3.13, type-annotated |
+| Language | Python 3.14, type-annotated |
 | Package manager | uv — root uv workspace (`pyproject.toml` + `uv.lock` at the repo root) |
 | Validation | Pydantic v2 at the adapter seams (upstream payloads, HTTP responses), pydantic-settings for config |
 | HTTP client | httpx `AsyncClient` (one pooled client, built in the composition root) — outbound adapters only |
@@ -366,7 +366,7 @@ Config in `api-gateway/pyproject.toml`: extended rules `I`, `ANN401`, `E`, `TID`
 cd api-gateway && uv run pyrefly check
 ```
 
-Config in `[tool.pyrefly]`: Python 3.13, `python-interpreter-path = "../.venv/bin/python3"` (the root uv workspace venv).
+Config in `[tool.pyrefly]`: Python 3.14, `python-interpreter-path = "../.venv/bin/python3"` (the root uv workspace venv).
 
 ---
 
