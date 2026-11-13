@@ -1,6 +1,6 @@
 ---
 github_project: ""
-parent_issue: ""
+parent_issue: "https://github.com/bonanaaaaaa-org/lmwn/issues/3"
 related_adrs: []
 context_terms:
   - Guide
@@ -14,7 +14,21 @@ context_terms:
   - Working Hours
   - Open Now
   - Unavailable Restaurant
-issues: []
+issues:
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/4"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/5"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/6"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/7"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/8"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/9"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/10"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/11"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/12"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/13"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/14"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/15"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/16"
+  - "https://github.com/bonanaaaaaa-org/lmwn/issues/17"
 ---
 
 # Guide to Hidden Gems
