@@ -1,5 +1,5 @@
 ---
-github_project: ""
+github_project: "https://github.com/orgs/bonanaaaaaa-org/projects/7"
 parent_issue: "https://github.com/bonanaaaaaa-org/lmwn/issues/3"
 related_adrs: []
 context_terms:
