@@ -106,7 +106,7 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 - `auto-assign.yml` assigns new issues and PRs to the maintainer when nobody is assigned; it uses `pull_request_target` so fork PRs work too, and must never check out or run PR code
 - Jobs run on GitHub-hosted runners (`runs-on: ubuntu-24.04`); setup actions install Node, pnpm and uv on top of the image
 - Node comes from `.nvmrc`, pnpm from `packageManager`, Python from `.python-version`; `MONGOMS_DISABLE_POSTINSTALL=1` skips the data server's MongoDB download where `pnpm dev` isn't run
-- Pin actions by full commit SHA (with a version comment), never by `@main`
+- Reference actions by their latest release tag (e.g. `actions/checkout@v7.0.1`) — not commit hashes, never `@main`
 - Least-privilege `permissions:` (default `contents: read`), `timeout-minutes` on every job, `concurrency` to cancel superseded runs
 - Use `pnpm/action-setup` + `actions/setup-node` (pnpm cache) and `astral-sh/setup-uv` (uv cache, keyed on `uv.lock`)
 - E2E only where a browser and the data server can run
@@ -155,6 +155,6 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 ## Adding a New Workflow
 
 1. Create `.github/workflows/<name>.yml`
-2. Pin all actions by SHA, set `permissions`, `timeout-minutes` and `concurrency`
+2. Use each action's latest release tag, set `permissions`, `timeout-minutes` and `concurrency`
 3. Run the same root scripts developers run — no CI-only commands
 4. Validate with `actionlint` before pushing

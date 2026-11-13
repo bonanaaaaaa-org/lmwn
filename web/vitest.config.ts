@@ -1,11 +1,13 @@
 import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 // Separate from vite.config.ts: the React Router plugin is for the dev server
 // and build only — tests render components directly with plugin-react.
 export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
+  plugins: [react()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   css: {
     modules: {
       generateScopedName: "[local]",

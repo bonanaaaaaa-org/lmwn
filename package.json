@@ -11,15 +11,16 @@
     "format:check": "turbo run format:check",
     "type-check": "turbo run type-check",
     "test": "turbo run test test:scripts",
-    "test:scripts": "node --test scripts/"
+    "test:scripts": "node --test scripts/",
+    "build-storybook": "turbo run build-storybook"
   },
   "engines": {
     "node": ">=26"
   },
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@12.18.0",
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
-    "turbo": "^2.10.5"
+    "turbo": "^2.11.11"
   }
 }

@@ -25,6 +25,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", ".react-router/types/**/*"],
+  "include": [
+    ".storybook/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    ".react-router/types/**/*"
+  ],
   "exclude": ["node_modules", "build", "coverage"]
 }

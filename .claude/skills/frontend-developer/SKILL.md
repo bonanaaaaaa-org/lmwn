@@ -18,6 +18,7 @@ pnpm lint:css                                  # Stylelint — zero errors
 pnpm format:check                              # oxfmt — run `pnpm format` to fix
 pnpm gen:css-types && pnpm type-check          # CSS module types + react-router typegen + tsc --noEmit
 pnpm exec vitest run <paths covering your change>  # Scoped unit tests — all must pass
+pnpm build-storybook                           # Stories compile (also run in CI)
 ```
 
 From the repo root, `pnpm lint`, `pnpm type-check` and `pnpm test` run the same checks across the workspace through Turborepo (turbo runs `gen:css-types` before `type-check` for you).
@@ -34,14 +35,16 @@ Then verify the changed journey in a real browser under `pnpm dev` (from the rep
 
 | Layer | Technology |
 |---|---|
-| Framework | React 19, React Router 7 (file-based routing, SPA mode — `ssr: false`) |
-| Language | TypeScript (strict mode + `noUncheckedIndexedAccess`, `any` FORBIDDEN) |
-| Build | Vite 7, `vite-tsconfig-paths` |
+| Framework | React 19, React Router 8 (file-based routing, SPA mode — `ssr: false`) |
+| Language | TypeScript 7 (strict mode + `noUncheckedIndexedAccess`, `any` FORBIDDEN) |
+| Build | Vite 8 (native tsconfig path resolution: `resolve.tsconfigPaths`) |
+| UI primitives | React Aria Components / React Aria hooks (accessible interactions, focus, keyboard, overlays) |
 | Styling | CSS Modules (`.module.css`), CSS custom properties (design tokens), `modern-normalize` |
 | Server state | TanStack Query v5 (add with the first data-fetching feature) |
 | Runtime validation | Zod (parse gateway responses at the API-client boundary) |
 | Testing | Vitest, Testing Library (React + user-event), jsdom, msw |
 | Linting & formatting | oxlint (`web/.oxlintrc.json`), Stylelint (stylelint-config-standard + local plugins), oxfmt (`web/.oxfmtrc.json`) |
+| Component dev | Storybook 10 (`@storybook/react-vite`), docs + a11y addons |
 | Class merging | `clsx` |
 | Monorepo | pnpm workspace + Turborepo |
 
@@ -49,6 +52,8 @@ Then verify the changed journey in a real browser under `pnpm dev` (from the rep
 
 - Redux, Zustand, MobX, Jotai, or any external state manager
 - String concatenation for classnames — use `clsx`
+- Hand-rolled interactive widgets (custom buttons, menus, dialogs, listboxes, tabs, toggles) — use React Aria Components or React Aria hooks
+- A new component without a `.stories.tsx` file
 - `z-index` and `!important` in CSS — Stylelint rejects them (and rejects disabling the rule)
 - `any` type in TypeScript
 - Relative parent imports (`../`) and explicit `/index` imports — oxlint rejects them; use `@/`
@@ -82,6 +87,7 @@ web/
 │   ├── lib/                # App-wide utilities (env.ts, apiClient.ts, ...)
 │   └── styles/
 │       └── globals.css     # Layers + design tokens
+├── .storybook/             # main.ts (stories glob, addons), preview.ts (global CSS, viewports, a11y)
 ├── stylelint-plugins/      # enforce-rem-unit, enforce-component-class-pattern
 ├── .oxlintrc.json
 ├── stylelint.config.mjs
@@ -111,6 +117,7 @@ Every component directory follows this pattern:
 ComponentName/
 ├── ComponentName.tsx          # Component implementation
 ├── ComponentName.module.css   # CSS Module styles
+├── ComponentName.stories.tsx  # Storybook stories (REQUIRED)
 ├── ComponentName.test.tsx     # Unit tests
 └── index.ts                   # Barrel export (import the directory: "@/components/common/Rating")
 ```
@@ -123,9 +130,13 @@ ComponentName/
 - CSS targets data attributes: `&[data-variant="primary"] { ... }`
 - Use `clsx` for conditional/merged classnames
 - Accept `className` prop for composition
-- Use semantic elements first (`<button>`, `<a>`, `<ul>`, `<h2>`, `<figure>`); add ARIA only where semantics fall short
+- Static content uses semantic elements (`<a>`, `<ul>`, `<h2>`, `<figure>`, `<article>`)
+- Anything interactive is built on **React Aria Components** (`Button`, `Link`, `ToggleButton`, `TagGroup`, `SearchField`, `Dialog`/`Modal`, `Menu`, ...) or, for custom markup, React Aria hooks (`useButton`, `useFocusRing`, ...). They handle keyboard, focus, press/hover and screen-reader semantics consistently across mouse, touch and keyboard
+- Style React Aria state through the data attributes it renders (`[data-hovered]`, `[data-pressed]`, `[data-focus-visible]`, `[data-selected]`, `[data-disabled]`) instead of `:hover`/`:focus`
 
-### Example component
+### Example components
+
+Static:
 
 ```tsx
 import clsx from "clsx";
@@ -143,6 +154,33 @@ export function Tag({ variant = "default", className, children }: TagProps) {
       {children}
     </span>
   );
+}
+```
+
+Interactive, on React Aria Components:
+
+```tsx
+import clsx from "clsx";
+import { ToggleButton, type ToggleButtonProps } from "react-aria-components";
+import styles from "./FilterChip.module.css";
+
+export interface FilterChipProps extends Omit<ToggleButtonProps, "className"> {
+  className?: string;
+}
+
+export function FilterChip({ className, ...props }: FilterChipProps) {
+  return <ToggleButton {...props} className={clsx(styles.FilterChip__Root, className)} />;
+}
+```
+
+```css
+@layer components {
+  .FilterChip__Root {
+    border: 1px solid var(--color-border);
+
+    &[data-selected] { background: var(--color-text); color: var(--color-surface); }
+    &[data-focus-visible] { outline: 0.125rem solid var(--color-text); outline-offset: 0.125rem; }
+  }
 }
 ```
 
@@ -224,7 +262,7 @@ export const guideKeys = {
 
 ## Routing
 
-- React Router 7 with **file-based flat routing** via `@react-router/fs-routes`
+- React Router 8 with **file-based flat routing** via `@react-router/fs-routes`
 - SPA mode (`ssr: false`)
 - Routes in `app/routes/` using flat naming: `_index.tsx`, `guides.$guideId.tsx`
 - **Route files are thin adapters only** — no business logic, no `useState`/`useQuery`. Each route imports its page component from `src/features/{domain}/pages/{XxxPage}/`, extracts URL params via `useParams`, narrows nullable types with a simple guard (`if (!id) return null`), and passes them as typed props
@@ -419,6 +457,54 @@ describe("CategoryFilter", () => {
 
 ---
 
+## Storybook
+
+### Config
+
+- Framework: `@storybook/react-vite` (Storybook 10), reusing `vite.config.ts` — the scripts set `STORYBOOK=true`, which drops the React Router plugin there
+- Addons: docs (autodocs, MDX) and a11y (Accessibility panel per story)
+- Stories: `src/**/*.stories.@(ts|tsx)` and `src/**/*.mdx`; `.storybook/preview.ts` loads `modern-normalize` + `globals.css` and offers device viewports
+
+### Commands
+
+```bash
+pnpm storybook             # Dev server on http://localhost:6006
+pnpm build-storybook       # Static build (CI runs it from the root through turbo)
+```
+
+### Story conventions
+
+**Every new component MUST have a `.stories.tsx` file.**
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { fn } from "storybook/test";
+import { FilterChip } from "./FilterChip";
+
+const meta = {
+  title: "Features/Guides/FilterChip",
+  component: FilterChip,
+  parameters: { layout: "centered" },
+  tags: ["autodocs"],
+  args: { onChange: fn(), children: "Cafe" },
+} satisfies Meta<typeof FilterChip>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+export const Selected: Story = { args: { defaultSelected: true } };
+export const Disabled: Story = { args: { isDisabled: true } };
+```
+
+- `title` mirrors the folder: `Components/Common/Rating`, `Features/Guides/RestaurantCard`
+- `tags: ["autodocs"]`; `fn()` for callbacks
+- Cover variants, sizes and states: default, loading, empty, error, disabled, long content; check phone width with the viewport toolbar
+- Feed stories plain props or fixtures — never call the gateway from a story
+- Check the Accessibility panel; fix violations rather than disabling rules
+
+---
+
 ## Linting & Formatting
 
 ```bash
@@ -455,6 +541,7 @@ Frontend env vars use the `VITE_` prefix (Vite convention). See `web/.env.exampl
    1. Write ONE test (RED) — describe the behavior, not the implementation
    2. Write minimal code to pass (GREEN) — types, API client, hook, component, whatever the test needs
    3. Refactor — only when GREEN; re-run the slice's tests after each change
+   4. Add or update `.stories.tsx` for any component created or changed in this slice
 4. **Wire up** — create page in `src/features/{name}/pages/{XxxPage}/` and route in `app/routes/`
 5. **Run verification (MANDATORY — do NOT skip)**:
     ```bash

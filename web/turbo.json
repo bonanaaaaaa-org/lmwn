@@ -18,6 +18,10 @@
     },
     "test": {
       "outputs": []
+    },
+    "build-storybook": {
+      "outputs": ["storybook-static/**"],
+      "env": ["VITE_*"]
     }
   }
 }

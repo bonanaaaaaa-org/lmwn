@@ -20,3 +20,4 @@ coverage.xml
 .claude/worktrees/
 *.egg-info/
 .turbo/
+storybook-static/
