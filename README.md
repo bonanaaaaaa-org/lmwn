@@ -5,6 +5,7 @@ LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway
 | App | Stack | Port |
 | --- | --- | --- |
 | `web` | React 19, React Router 8 (SPA), TypeScript 7, TanStack Query, Zod, CSS Modules, React Aria, Storybook, Vitest, oxlint, oxfmt, stylelint | 3000 |
+| `e2e` | Playwright (Chromium desktop + mobile) against the running stack | — |
 | `api-gateway` | Python 3.14, FastAPI, Pydantic, uv, ruff, pyrefly, pytest | 4000 |
 
 `pnpm dev` in `api-gateway` also starts the provided data server
@@ -36,6 +37,7 @@ pnpm format:check # oxfmt (web), ruff format (gateway)
 pnpm lint         # oxlint + stylelint (web), ruff (gateway)
 pnpm type-check   # tsc (web), pyrefly (gateway)
 pnpm test         # vitest (web), pytest (gateway)
+pnpm test:e2e         # Playwright, desktop + mobile (starts the stack; first run: pnpm --filter e2e exec playwright install chromium)
 pnpm build-storybook   # static Storybook build (web)
 pnpm --filter web storybook   # Storybook dev server on :6006
 ```

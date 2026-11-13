@@ -22,12 +22,13 @@ uv run ruff format --check tests/
 uv run pytest tests/contract/<files covering your change>
 ```
 
-If adding or updating **E2E tests** in `e2e/` (see *E2E setup* below — the package is created with the first spec):
+If adding or updating **E2E tests** in `e2e/` (see *E2E setup* below):
 
 ```bash
 cd e2e
 pnpm lint                                   # oxlint
-pnpm exec tsc --noEmit
+pnpm format:check                           # oxfmt
+pnpm type-check                             # tsc --noEmit
 pnpm test:e2e <spec paths covering your change>   # starts or reuses `pnpm dev` from the repo root
 ```
 
@@ -172,28 +173,31 @@ async def test_get_guide_returns_guide_with_restaurants(client: AsyncClient, ups
 | Layer | Technology |
 |---|---|
 | API tests | pytest, pytest-asyncio, httpx `ASGITransport`, respx (in `api-gateway/`) |
-| E2E framework | Playwright (in `e2e/`, added with the first spec) |
+| E2E framework | Playwright (`e2e/` workspace package) |
 | Language | TypeScript (strict) for E2E; Python 3.14 for API tests |
 | Unit testing | Vitest + Testing Library (in `web/`, developer-owned) |
-| Browser | Chromium, desktop + mobile (Pixel / iPhone device descriptors) projects |
+| Browser | Chromium, `chromium-desktop` (Desktop Chrome) + `chromium-mobile` (Pixel 7) projects |
 
 ---
 
 ## E2E setup
 
-There is no auth, so there are no login fixtures. Create the package with the first spec:
+There is no auth, so there are no login fixtures.
 
 ```
 e2e/
-├── specs/                    # All E2E specs
-│   └── guide.spec.ts
+├── specs/                    # All E2E specs (home.spec.ts: app shell + gateway health)
 ├── playwright.config.ts
-├── package.json              # name "e2e"; scripts: test:e2e, test:e2e:ui, lint (oxlint)
+├── package.json              # scripts: test:e2e, test:e2e:ui, report, lint, format, format:check, type-check
 ├── tsconfig.json
-└── .oxlintrc.json            # extend/copy web's rules
+├── .oxlintrc.json            # web's rules minus React/JSX
+├── .oxfmtrc.json
+└── turbo.json                # test:e2e, uncached
 ```
 
-Add `e2e` to `pnpm-workspace.yaml` and give it a `test:e2e` task in its `turbo.json` (uncached) — keep it out of the root `test` task so `pnpm test` stays fast.
+- `e2e` is a pnpm workspace package; its `lint`, `format:check` and `type-check` run with the root scripts. `test:e2e` is kept out of the root `test` task so `pnpm test` stays fast — run it with `pnpm test:e2e` from the root
+- First run on a machine: `pnpm --filter e2e exec playwright install chromium`
+- CI runs it in the **E2E** job of `ci.yml` (installs Chromium with system deps, starts the stack through `webServer`, uploads `e2e/playwright-report/` on failure)
 
 ### Playwright configuration
 
@@ -205,7 +209,8 @@ Add `e2e` to `pnpm-workspace.yaml` and give it a `test:e2e` task in its `turbo.j
 | `trace` | Retain on failure |
 | `screenshot` | Only on failure |
 | `retries` | 2 in CI, 0 locally |
-| `webServer` | `pnpm dev` from the repo root (data server + gateway + web), `reuseExistingServer: !process.env.CI`, waits on `http://localhost:3000` |
+| `webServer` | `pnpm dev` from the repo root (data server + gateway + web), `reuseExistingServer: !process.env.CI`, waits on `http://localhost:3000`, stopped with `SIGINT` so turbo shuts every child down; skipped when `PLAYWRIGHT_BASE_URL` is set |
+| `reporter` | `list` + HTML locally; `github` annotations + HTML in CI |
 
 ### Environment Variables
 

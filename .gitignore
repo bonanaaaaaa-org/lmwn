@@ -21,3 +21,6 @@ coverage.xml
 *.egg-info/
 .turbo/
 storybook-static/
+playwright-report/
+test-results/
+blob-report/

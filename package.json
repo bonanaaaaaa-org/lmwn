@@ -12,7 +12,8 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test test:scripts",
     "test:scripts": "node --test scripts/",
-    "build-storybook": "turbo run build-storybook"
+    "build-storybook": "turbo run build-storybook",
+    "test:e2e": "turbo run test:e2e"
   },
   "engines": {
     "node": ">=26"

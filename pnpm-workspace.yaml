@@ -1,6 +1,7 @@
 packages:
   - 'api-gateway'
   - 'web'
+  - 'e2e'
 allowBuilds:
   esbuild: true
   mongodb-memory-server: true

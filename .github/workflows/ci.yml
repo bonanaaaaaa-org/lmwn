@@ -70,3 +70,41 @@ jobs:
         run: pnpm run build
       - name: Build Storybook
         run: pnpm run build-storybook
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # This job runs the provided data server, so it needs its MongoDB binary.
+      MONGOMS_DISABLE_POSTINSTALL: "0"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          uv sync --frozen
+      - name: Install Playwright Chromium
+        run: pnpm --filter e2e exec playwright install --with-deps chromium
+      # Playwright's webServer starts the whole stack (`pnpm dev`: data server, gateway, web).
+      - name: E2E (Playwright, desktop + mobile)
+        run: pnpm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
