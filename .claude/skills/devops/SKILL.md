@@ -100,7 +100,7 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 ## CI/CD Conventions
 
 - Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose. `ci.yml` (job **Verify**) runs format check, lint, type-check, test and build through turbo on every PR, push to main and by hand
-- Jobs run on the org's self-hosted runners: `runs-on: k8s` (ARC scale set, ephemeral linux/arm64 pods from the minimal actions-runner image — no Node or Python, so every job installs its own with the pinned setup actions). GitHub-hosted runners are not used. Fork PRs never run on them (job-level `if` guard). Custom labels are declared in `.github/actionlint.yaml`
+- Jobs run on GitHub-hosted runners (`runs-on: ubuntu-24.04`); setup actions install Node, pnpm and uv on top of the image
 - Node comes from `.nvmrc`, pnpm from `packageManager`, Python from `.python-version`; `MONGOMS_DISABLE_POSTINSTALL=1` skips the data server's MongoDB download where `pnpm dev` isn't run
 - Pin actions by full commit SHA (with a version comment), never by `@main`
 - Least-privilege `permissions:` (default `contents: read`), `timeout-minutes` on every job, `concurrency` to cancel superseded runs

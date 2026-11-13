@@ -1,9 +1,7 @@
 name: CI
 
 # Every pull request (whatever its base branch, so stacked PRs are checked), every push to main,
-# or by hand (Actions -> CI -> Run workflow). No secrets and no deploy.
-# Runs on the org's self-hosted Kubernetes runners (ARC scale set `k8s`): GitHub-hosted runners
-# are not used.
+# or by hand (Actions -> CI -> Run workflow). No secrets and no deploy. Runs on GitHub-hosted runners.
 on:
   pull_request:
   push:
@@ -27,21 +25,9 @@ concurrency:
 jobs:
   verify:
     name: Verify
-    # Defence in depth: never run a fork's code on self-hosted runners.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    # An ephemeral linux/arm64 pod from the minimal actions-runner image (git, curl, jq, unzip,
-    # docker CLI; no Node or Python), so the steps below install what they use.
-    runs-on: k8s
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      # What the pod is: CPU architecture, OS and resources.
-      - name: Runner
-        run: |
-          echo "arch: $(uname -m)"
-          . /etc/os-release && echo "os: $PRETTY_NAME"
-          echo "cpus: $(nproc)"
-          if command -v free > /dev/null; then free -h | head -n 2; fi
-          df -h "$GITHUB_WORKSPACE" | tail -n 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           clean: true
