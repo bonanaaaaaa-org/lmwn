@@ -9,7 +9,12 @@
 
     color: var(--color-text);
     background: var(--color-surface);
-    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      "Noto Sans Thai",
+      sans-serif;
     line-height: 1.5;
   }
 }

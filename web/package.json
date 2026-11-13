@@ -7,6 +7,8 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "preview": "vite preview",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "lint": "oxlint && stylelint \"{app,src}/**/*.css\"",
     "lint:js": "oxlint",
     "lint:js:fix": "oxlint --fix",
@@ -21,11 +23,11 @@
   "dependencies": {
     "@react-router/node": "^7.18.1",
     "clsx": "^2.1.1",
+    "isbot": "^5",
     "modern-normalize": "^3.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router": "^7.18.1",
-    "isbot": "^5"
+    "react-router": "^7.18.1"
   },
   "devDependencies": {
     "@react-router/dev": "^7.18.1",
@@ -40,6 +42,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^29.0.0",
     "msw": "^2.12.10",
+    "oxfmt": "0.59.0",
     "oxlint": "1.74.0",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",

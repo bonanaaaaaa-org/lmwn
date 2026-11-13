@@ -27,9 +27,12 @@ Open http://localhost:3000. Gateway API docs: http://localhost:4000/docs.
 
 ## Common tasks
 
+A husky pre-commit hook (lint-staged) lints with auto-fix and then formats the staged files, and blocks the commit on anything it can't fix.
+
 Tasks run through [Turborepo](https://turbo.build/) and are cached:
 
 ```bash
+pnpm format:check # oxfmt (web), ruff format (gateway)
 pnpm lint         # oxlint + stylelint (web), ruff (gateway)
 pnpm type-check   # tsc (web), pyrefly (gateway)
 pnpm test         # vitest (web), pytest (gateway)

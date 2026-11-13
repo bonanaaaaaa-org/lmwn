@@ -1,10 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "typescript",
-    "unicorn",
-    "react"
-  ],
+  "plugins": ["typescript", "unicorn", "react"],
   "categories": {
     "correctness": "off"
   },
@@ -95,15 +91,11 @@
       {
         "patterns": [
           {
-            "group": [
-              "../**"
-            ],
+            "group": ["../**"],
             "message": "Relative imports are not allowed."
           },
           {
-            "group": [
-              "**/*/index"
-            ],
+            "group": ["**/*/index"],
             "message": "index imports are not allowed."
           }
         ]
@@ -146,12 +138,7 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
+      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
         "constructor-super": "off",
         "getter-return": "off",
@@ -176,9 +163,7 @@
       }
     },
     {
-      "files": [
-        "**/*.{jsx,tsx}"
-      ],
+      "files": ["**/*.{jsx,tsx}"],
       "rules": {
         "jsx-a11y/alt-text": "error",
         "jsx-a11y/anchor-ambiguous-text": "off",
@@ -219,13 +204,8 @@
         "jsx-a11y/no-interactive-element-to-noninteractive-role": [
           "error",
           {
-            "tr": [
-              "none",
-              "presentation"
-            ],
-            "canvas": [
-              "img"
-            ]
+            "tr": ["none", "presentation"],
+            "canvas": ["img"]
           }
         ],
         "jsx-a11y/no-noninteractive-element-interactions": [
@@ -241,28 +221,11 @@
               "onKeyDown",
               "onKeyUp"
             ],
-            "alert": [
-              "onKeyUp",
-              "onKeyDown",
-              "onKeyPress"
-            ],
-            "body": [
-              "onError",
-              "onLoad"
-            ],
-            "dialog": [
-              "onKeyUp",
-              "onKeyDown",
-              "onKeyPress"
-            ],
-            "iframe": [
-              "onError",
-              "onLoad"
-            ],
-            "img": [
-              "onError",
-              "onLoad"
-            ]
+            "alert": ["onKeyUp", "onKeyDown", "onKeyPress"],
+            "body": ["onError", "onLoad"],
+            "dialog": ["onKeyUp", "onKeyDown", "onKeyPress"],
+            "iframe": ["onError", "onLoad"],
+            "img": ["onError", "onLoad"]
           }
         ],
         "jsx-a11y/no-noninteractive-element-to-interactive-role": [
@@ -295,25 +258,16 @@
               "tab",
               "treeitem"
             ],
-            "table": [
-              "grid"
-            ],
-            "td": [
-              "gridcell"
-            ],
-            "fieldset": [
-              "radiogroup",
-              "presentation"
-            ]
+            "table": ["grid"],
+            "td": ["gridcell"],
+            "fieldset": ["radiogroup", "presentation"]
           }
         ],
         "jsx-a11y/no-noninteractive-tabindex": [
           "error",
           {
             "tags": [],
-            "roles": [
-              "tabpanel"
-            ],
+            "roles": ["tabpanel"],
             "allowExpressionValues": true
           }
         ],
@@ -337,15 +291,10 @@
         "jsx-a11y/scope": "error",
         "jsx-a11y/tabindex-no-positive": "error"
       },
-      "plugins": [
-        "jsx-a11y"
-      ]
+      "plugins": ["jsx-a11y"]
     },
     {
-      "files": [
-        "**/*.mjs",
-        "**/*.config.*"
-      ],
+      "files": ["**/*.mjs", "**/*.config.*"],
       "env": {
         "node": true
       }

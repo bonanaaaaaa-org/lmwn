@@ -15,6 +15,7 @@ Use this skill when implementing web features, creating React components, writin
 cd web
 pnpm lint:js                                   # oxlint — zero errors
 pnpm lint:css                                  # Stylelint — zero errors
+pnpm format:check                              # oxfmt — run `pnpm format` to fix
 pnpm gen:css-types && pnpm type-check          # CSS module types + react-router typegen + tsc --noEmit
 pnpm exec vitest run <paths covering your change>  # Scoped unit tests — all must pass
 ```
@@ -40,7 +41,7 @@ Then verify the changed journey in a real browser under `pnpm dev` (from the rep
 | Server state | TanStack Query v5 (add with the first data-fetching feature) |
 | Runtime validation | Zod (parse gateway responses at the API-client boundary) |
 | Testing | Vitest, Testing Library (React + user-event), jsdom, msw |
-| Linting | oxlint (`web/.oxlintrc.json`), Stylelint (stylelint-config-standard + local plugins) |
+| Linting & formatting | oxlint (`web/.oxlintrc.json`), Stylelint (stylelint-config-standard + local plugins), oxfmt (`web/.oxfmtrc.json`) |
 | Class merging | `clsx` |
 | Monorepo | pnpm workspace + Turborepo |
 

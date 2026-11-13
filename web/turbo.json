@@ -1,36 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "extends": [
-    "//"
-  ],
+  "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": [
-        "build/**"
-      ],
-      "env": [
-        "VITE_*"
-      ]
+      "outputs": ["build/**"],
+      "env": ["VITE_*"]
     },
     "type-check": {
-      "dependsOn": [
-        "gen:css-types"
-      ]
+      "dependsOn": ["gen:css-types"]
     },
     "gen:css-types": {
-      "inputs": [
-        "app/**/*.module.css",
-        "src/**/*.module.css"
-      ],
-      "outputs": [
-        "app/**/*.module.css.d.ts",
-        "src/**/*.module.css.d.ts"
-      ]
+      "inputs": ["app/**/*.module.css", "src/**/*.module.css"],
+      "outputs": ["app/**/*.module.css.d.ts", "src/**/*.module.css.d.ts"]
     },
     "test:coverage": {
-      "outputs": [
-        "coverage/**"
-      ]
+      "outputs": ["coverage/**"]
     },
     "test": {
       "outputs": []

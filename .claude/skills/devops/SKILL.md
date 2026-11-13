@@ -20,6 +20,7 @@ Use this skill when changing workspace or tooling configuration, editing root sc
 | **Local dev** | Root `pnpm dev` (turbo) → `api-gateway` dev (uvicorn :4000 + the provided data server :8888/:9999/:7777) and `web` dev (:3000); `.claude/launch.json` |
 | **CI/CD** | `.github/workflows/*.yml` (if added) |
 | **Runtime** | Dockerfiles next to their app (if added) |
+| **Git hooks** | `.husky/pre-commit` → `lint-staged.config.mjs` (lint with auto-fix, then format, staged files only); installed by the root `prepare` script |
 | **Repo hygiene** | `.gitignore`, `.env.example` files, README "Getting started" / "Common tasks" |
 
 ---
