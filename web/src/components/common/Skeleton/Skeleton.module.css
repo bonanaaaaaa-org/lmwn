@@ -1,0 +1,63 @@
+@layer components {
+  .Skeleton__Root {
+    display: block;
+    width: var(--skeleton-width, 100%);
+    height: var(--skeleton-height, 1rem);
+    aspect-ratio: var(--skeleton-aspect-ratio, auto);
+    border-radius: var(--radius-200);
+    background-color: var(--color-skeleton);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 55%) 50%,
+      transparent 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 50% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+
+    &[data-shape="text"] {
+      width: 100%;
+      height: 0.875em;
+      border-radius: var(--radius-100);
+    }
+
+    &[data-shape="circle"] {
+      width: var(--skeleton-width, 2.5rem);
+      height: auto;
+      aspect-ratio: 1;
+      border-radius: 50%;
+    }
+
+    &[data-fixed-ratio] {
+      height: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      background-image: none;
+      animation: none;
+    }
+  }
+
+  .Skeleton__Lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    width: var(--skeleton-width, 100%);
+    padding-block: 0.4em;
+
+    & > :last-child:not(:first-child) {
+      width: 60%;
+    }
+  }
+
+  @keyframes skeleton-shimmer {
+    from {
+      background-position: -100% 0;
+    }
+
+    to {
+      background-position: 200% 0;
+    }
+  }
+}

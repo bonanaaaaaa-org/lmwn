@@ -1,16 +1,128 @@
 @layer reset, base, components;
 
+/*
+ * The reset must live in its own layer: unlayered CSS beats every layer, so an
+ * unlayered modern-normalize would override base tokens (body font) and component
+ * styles (button line-height). Import this file only; never modern-normalize directly.
+ */
+@import url("modern-normalize/modern-normalize.css") layer(reset);
+
+/*
+ * IBM Plex Sans Thai, self-hosted through Fontsource: Vite bundles the woff2 files, so
+ * the font is served from the app's own origin. Only the Thai and Latin subsets are
+ * loaded; `unicode-range` means a page downloads just the subsets it actually uses.
+ */
+@import url("@fontsource/ibm-plex-sans-thai/thai-400.css");
+@import url("@fontsource/ibm-plex-sans-thai/latin-400.css");
+@import url("@fontsource/ibm-plex-sans-thai/thai-600.css");
+@import url("@fontsource/ibm-plex-sans-thai/latin-600.css");
+
 @layer base {
   :root {
-    --color-text: #1a1a1a;
-    --color-text-muted: #666;
+    /*
+     * Colour: warm neutrals with one warm accent (terracotta). Contrast against
+     * --color-surface (#fff) and --color-surface-subtle (#f8f5f1), WCAG 2.2:
+     *   text 17.3 / 15.9 · text-muted 7.9 / 7.2 · accent 5.7 / 5.2
+     *   accent-strong (focus ring) 8.1 / 7.5 · border-strong (controls) 3.8 / 3.5
+     *   text-on-accent on accent 5.7 · danger 7.0 / 6.5 (6.3 on danger-subtle)
+     * --color-border is decorative only (dividers, card edges), never the only cue.
+     */
+    --color-text: #1f1a15;
+    --color-text-muted: #5a5047;
     --color-surface: #fff;
-    --color-border: #e0e0e0;
+    --color-surface-subtle: #f8f5f1;
+    --color-surface-sunken: #efe9e2;
+    --color-border: #e3dcd3;
+    --color-border-strong: #8c8177;
+    --color-accent: #b0451f;
+    --color-accent-strong: #8a3415;
+    --color-accent-subtle: #fbeee8;
+    --color-text-on-accent: #fff;
+    --color-danger: #a8281f;
+    --color-danger-subtle: #fdf0ee;
+    --color-focus: var(--color-accent-strong);
+    --color-skeleton: #ebe4dc;
+    --color-placeholder: #efe9e2;
+
+    /* Spacing: a 0.25rem (4px) base scale. */
+    --space-50: 0.25rem;
+    --space-100: 0.5rem;
+    --space-150: 0.75rem;
+    --space-200: 1rem;
+    --space-300: 1.5rem;
+    --space-400: 2rem;
+    --space-600: 3rem;
+    --space-800: 4rem;
+
+    /* Type scale: about 1.125–1.25 steps; display sizes grow with the viewport. */
+    --font-family-base: "IBM Plex Sans Thai", system-ui, sans-serif;
+    --font-size-75: 0.8125rem;
+    --font-size-100: 0.875rem;
+    --font-size-200: 1rem;
+    --font-size-300: 1.125rem;
+    --font-size-400: 1.25rem;
+    --font-size-500: clamp(1.375rem, 1.2rem + 0.8vw, 1.625rem);
+    --font-size-600: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+    --font-weight-regular: 400;
+    --font-weight-bold: 600;
+
+    /* Thai stacks tone marks above and vowels below, so it needs roomier leading. */
+    --line-height-tight: 1.35;
+    --line-height-base: 1.65;
+    --radius-100: 0.25rem;
+    --radius-200: 0.5rem;
+    --radius-300: 0.75rem;
+    --radius-pill: 62.5rem;
+    --shadow-100: 0 0.0625rem 0.125rem rgb(31 26 21 / 8%);
+    --shadow-200: 0 0.25rem 0.75rem rgb(31 26 21 / 10%);
+    --focus-ring-width: 0.1875rem;
+    --focus-ring-offset: 0.125rem;
+    --focus-ring: var(--focus-ring-width) solid var(--color-focus);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --layout-max-width: 72rem;
+    --layout-gutter: var(--space-200);
 
     color: var(--color-text);
     background: var(--color-surface);
-    font-family:
-      system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
-    line-height: 1.5;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-200);
+    line-height: var(--line-height-base);
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (width >= 48rem) {
+    :root {
+      --layout-gutter: var(--space-400);
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    line-height: var(--line-height-tight);
+    font-weight: var(--font-weight-bold);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  /*
+   * Every keyboard-focused element gets the same high-contrast ring (3:1+ against
+   * every surface token). React Aria components repeat it on [data-focus-visible].
+   */
+  :focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
   }
 }

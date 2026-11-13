@@ -1,11 +1,18 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { RouterProvider } from "react-aria-components";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useHref,
+  useNavigate,
+} from "react-router";
 
-import "modern-normalize/modern-normalize.css";
 import "@/styles/globals.css";
 
+import { AppShell } from "@/components/layout/AppShell";
 import { Providers } from "@/lib/Providers";
-
-import styles from "./root.module.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,11 +34,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
+  const navigate = useNavigate();
   return (
-    <Providers>
-      <main className={styles.Main}>
-        <Outlet />
-      </main>
-    </Providers>
+    // React Aria links (Link, ButtonLink, TagLink) navigate client-side through React Router.
+    <RouterProvider navigate={(to) => void navigate(to)} useHref={useHref}>
+      <Providers>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </Providers>
+    </RouterProvider>
   );
 }
