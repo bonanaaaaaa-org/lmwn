@@ -34,6 +34,15 @@ pnpm dev        # turbo: data server + gateway + web
 
 Open http://localhost:3000. Gateway API docs: http://localhost:4000/docs.
 
+Or with the scripts (macOS and Linux):
+
+```bash
+./setup.sh   # checks prerequisites (prints a fix for each), installs deps, Playwright Chromium, hooks, web/.env, the Data Server's MongoDB; safe to re-run
+./dev.sh     # checks setup and free ports, starts the stack, prints the URLs; Ctrl-C stops it (--storybook, --e2e)
+```
+
+Or in a container: [`.devcontainer/`](.devcontainer/devcontainer.json) works in VS Code Dev Containers and GitHub Codespaces (linux/amd64, since the Data Server's MongoDB has no Linux arm64 build). It runs `./setup.sh` on creation and forwards the ports; run `./dev.sh` in its terminal. The app calls the gateway at `localhost:4000`, so in Codespaces use VS Code desktop rather than the browser editor.
+
 ## Common tasks
 
 A husky pre-commit hook (lint-staged) lints with auto-fix and then formats the staged files, and blocks the commit on anything it can't fix.
