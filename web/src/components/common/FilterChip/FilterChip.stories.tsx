@@ -29,9 +29,21 @@ export const Default: Story = {};
 export const Hovered: Story = {
   play: async ({ canvasElement }) => {
     const chip = within(canvasElement).getByRole("button");
-    await userEvent.hover(chip);
-    // React Aria sets data-hovered on the next render, which can land after hover() resolves.
-    await waitFor(() => expect(chip).toHaveAttribute("data-hovered"));
+    // React Aria sets data-hovered on a later render, which can land after hover() resolves.
+    // On a busy CI runner that took over waitFor's 1 s default, or the synthetic hover was
+    // dropped, so wait longer and hover again (up to 3 times) before failing.
+    for (let attempt = 1; ; attempt++) {
+      await userEvent.hover(chip);
+      try {
+        await waitFor(() => expect(chip).toHaveAttribute("data-hovered"), {
+          timeout: 2000,
+        });
+        return;
+      } catch (error) {
+        if (attempt === 3) throw error;
+        await userEvent.unhover(chip);
+      }
+    }
   },
 };
 

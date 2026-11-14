@@ -69,6 +69,6 @@
     width: var(--control-height);
     padding: 0;
     border-radius: var(--radius-pill);
-    box-shadow: 0 0.125rem 0.5rem rgb(17 17 17 / 18%);
+    box-shadow: var(--shadow-300);
   }
 }

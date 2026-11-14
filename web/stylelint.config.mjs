@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
  * - z-index and !important are forbidden
  * - units must be rem (1px allowed for borders)
  * - CSS Module classes follow {ComponentName}__{ElementName} (PascalCase)
+ * - colours come from tokens: colour literals only in src/styles/globals.css, so every colour
+ *   has a light and a dark value (dark mode, #47)
  */
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,8 +36,32 @@ export default {
     "selector-class-pattern": null,
     "custom/enforce-component-class-pattern": true,
     "at-rule-no-unknown": [true, { ignoreAtRules: ["value"] }],
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "hwb",
+      "lab",
+      "lch",
+      "oklab",
+      "oklch",
+      "color",
+      "light-dark",
+    ],
   },
   overrides: [
+    {
+      // The design tokens: the one place colour values are written.
+      files: ["src/styles/globals.css"],
+      rules: {
+        "color-no-hex": null,
+        "color-named": null,
+        "function-disallowed-list": null,
+      },
+    },
     {
       // app/ holds framework-owned files (lowercase root.tsx), so the
       // PascalCase component naming convention can't apply there.

@@ -7,7 +7,11 @@
  * already be running (`pnpm --filter api-gateway dev`); the Guide page audited is the first
  * Guide the gateway returns.
  *
- * Every page × preset runs `--runs` times (default 5) in a fresh headless Chrome, and the
+ * Each page and preset is audited in both colour themes (dark mode, #47): Chrome runs with
+ * `--force-dark-mode` for the dark audit, which makes `prefers-color-scheme: dark` match.
+ * `--theme light` or `--theme dark` audits one only.
+ *
+ * Every page × preset × theme runs `--runs` times (default 5) in a fresh headless Chrome, and the
  * median run by Performance is kept. Reports (HTML and JSON) go to web/lighthouse-reports/.
  * It prints a Markdown table and exits 1 if any score misses its target (TARGETS below;
  * `--min <score>` replaces every target with one score).
@@ -16,6 +20,7 @@
  *   pnpm lighthouse                                   # pnpm build, then audit the local preview
  *   node scripts/lighthouse.mjs                       # audit an existing build
  *   node scripts/lighthouse.mjs --runs 3 --min 100
+ *   node scripts/lighthouse.mjs --theme dark
  *   node scripts/lighthouse.mjs --base-url https://hidden-gems.bonanaaaaaa.dev \
  *     --api-url https://api-hidden-gems.bonanaaaaaa.dev   # audit a deployed site, no preview
  *
@@ -34,6 +39,7 @@ const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PREVIEW_PORT = 3000;
 const CATEGORIES = ["performance", "accessibility", "best-practices", "seo"];
 const PRESETS = ["mobile", "desktop"];
+const THEMES = ["light", "dark"];
 
 /**
  * The targets agreed for #16 (see the spec's Measurable success criteria): 100 everywhere,
@@ -62,6 +68,7 @@ const { values: args } = parseArgs({
     "api-url": { type: "string" },
     runs: { type: "string", default: "5" },
     min: { type: "string" },
+    theme: { type: "string", default: "both" },
     out: { type: "string", default: join(WEB_ROOT, "lighthouse-reports") },
   },
 });
@@ -78,6 +85,10 @@ if (
 ) {
   throw new Error(`--min must be a score from 0 to 100, not "${args.min}"`);
 }
+if (!["both", ...THEMES].includes(args.theme)) {
+  throw new Error(`--theme must be light, dark or both, not "${args.theme}"`);
+}
+const themes = args.theme === "both" ? THEMES : [args.theme];
 const targetFor = (preset, category) =>
   args.min === undefined ? TARGETS[preset][category] : Number(args.min);
 const apiUrl = (
@@ -149,7 +160,7 @@ async function chromePath() {
   return chromium.executablePath();
 }
 
-async function audit(url, preset, executable) {
+async function audit(url, preset, theme, executable) {
   const { default: lighthouse } = await import("lighthouse");
   const { launch } = await import("chrome-launcher");
   const config =
@@ -158,7 +169,11 @@ async function audit(url, preset, executable) {
       : undefined;
   const chrome = await launch({
     chromePath: executable,
-    chromeFlags: ["--headless=new", "--no-first-run"],
+    chromeFlags: [
+      "--headless=new",
+      "--no-first-run",
+      ...(theme === "dark" ? ["--force-dark-mode"] : []),
+    ],
   });
   try {
     const result = await lighthouse(
@@ -216,48 +231,51 @@ async function main() {
     const rows = [];
     for (const page of pages) {
       for (const preset of PRESETS) {
-        const url = `${baseUrl}${page.path}`;
-        const results = [];
-        for (let run = 1; run <= runs; run += 1) {
-          const result = await audit(url, preset, executable);
-          const scores = scoresOf(result.lhr);
-          log(
-            `${page.label} · ${preset} · run ${run}/${runs}: ${CATEGORIES.map((c) => `${c} ${scores[c]}`).join(", ")}`,
+        for (const theme of themes) {
+          const url = `${baseUrl}${page.path}`;
+          const results = [];
+          for (let run = 1; run <= runs; run += 1) {
+            const result = await audit(url, preset, theme, executable);
+            const scores = scoresOf(result.lhr);
+            log(
+              `${page.label} · ${preset} · ${theme} · run ${run}/${runs}: ${CATEGORIES.map((c) => `${c} ${scores[c]}`).join(", ")}`,
+            );
+            results.push(result);
+          }
+          results.sort(
+            (a, b) =>
+              (a.lhr.categories.performance.score ?? 0) -
+              (b.lhr.categories.performance.score ?? 0),
           );
-          results.push(result);
+          const median = results[Math.floor((results.length - 1) / 2)];
+          const base = join(args.out, `${page.name}-${preset}-${theme}`);
+          writeFileSync(`${base}.html`, median.report[0]);
+          writeFileSync(`${base}.json`, median.report[1]);
+          const metrics = median.lhr.audits;
+          rows.push({
+            page: page.label,
+            preset,
+            theme,
+            ...scoresOf(median.lhr),
+            lcp: metrics["largest-contentful-paint"].displayValue,
+            cls: metrics["cumulative-layout-shift"].displayValue,
+          });
         }
-        results.sort(
-          (a, b) =>
-            (a.lhr.categories.performance.score ?? 0) -
-            (b.lhr.categories.performance.score ?? 0),
-        );
-        const median = results[Math.floor((results.length - 1) / 2)];
-        const base = join(args.out, `${page.name}-${preset}`);
-        writeFileSync(`${base}.html`, median.report[0]);
-        writeFileSync(`${base}.json`, median.report[1]);
-        const metrics = median.lhr.audits;
-        rows.push({
-          page: page.label,
-          preset,
-          ...scoresOf(median.lhr),
-          lcp: metrics["largest-contentful-paint"].displayValue,
-          cls: metrics["cumulative-layout-shift"].displayValue,
-        });
       }
     }
 
-    const header = `| Page | Preset | Performance | Accessibility | Best Practices | SEO | LCP | CLS |`;
+    const header = `| Page | Preset | Theme | Performance | Accessibility | Best Practices | SEO | LCP | CLS |`;
     const lines = rows.map(
       (r) =>
-        `| ${r.page} | ${r.preset} | ${r.performance} | ${r.accessibility} | ${r["best-practices"]} | ${r.seo} | ${r.lcp} | ${r.cls} |`,
+        `| ${r.page} | ${r.preset} | ${r.theme} | ${r.performance} | ${r.accessibility} | ${r["best-practices"]} | ${r.seo} | ${r.lcp} | ${r.cls} |`,
     );
     log(
-      `\nLighthouse (median of ${runs}) — ${baseUrl}\n\n${header}\n|---|---|---|---|---|---|---|---|\n${lines.join("\n")}\n\nReports: ${args.out}`,
+      `\nLighthouse (median of ${runs}) — ${baseUrl}\n\n${header}\n|---|---|---|---|---|---|---|---|---|\n${lines.join("\n")}\n\nReports: ${args.out}`,
     );
     const misses = rows.flatMap((r) =>
       CATEGORIES.filter((c) => r[c] < targetFor(r.preset, c)).map(
         (c) =>
-          `${r.page} · ${r.preset} · ${c}: ${r[c]} (target ${targetFor(r.preset, c)})`,
+          `${r.page} · ${r.preset} · ${r.theme} · ${c}: ${r[c]} (target ${targetFor(r.preset, c)})`,
       ),
     );
     if (misses.length > 0) {

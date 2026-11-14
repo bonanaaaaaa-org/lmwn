@@ -26,6 +26,7 @@ import {
 } from "@/lib/preloadPageData";
 import { Providers } from "@/lib/Providers";
 import { useRouterHref } from "@/lib/routerHref";
+import { themeScript } from "@/lib/theme";
 import { CSS_LAYER_ORDER } from "@/styles/layers";
 import { m } from "@/paraglide/messages.js";
 
@@ -35,9 +36,6 @@ declare module "react-aria-components" {
     routerOptions: NavigateOptions;
   }
 }
-
-/** The browser UI colour: the saffron accent (--color-accent), as in the web app manifest. */
-const THEME_COLOR = "#f2b705";
 
 /**
  * The installable PWA, in production builds, once the page has settled (whenPageSettled): links
@@ -97,7 +95,8 @@ function usePreloadPageAssets(): PreloadPageAssets {
 export function Layout({ children }: { children: React.ReactNode }) {
   const preloadAssets = usePreloadPageAssets();
   return (
-    <html lang={appLocale}>
+    // The head script sets `data-theme` on <html> before React hydrates (see `@/lib/theme`).
+    <html lang={appLocale} suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
         {/* Before any stylesheet: fixes the cascade layer order (see CSS_LAYER_ORDER). */}
@@ -106,8 +105,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <title>{m.app_title()}</title>
         <meta name="description" content={m.app_description()} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        {/* Installable PWA (#43). The manifest link is added after load (usePwa). */}
-        <meta name="theme-color" content={THEME_COLOR} />
+        {/*
+          Installable PWA (#43). The manifest link is added after load (usePwa); the
+          `theme-color` metas come from the head script below (dark mode, #47).
+        */}
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -120,12 +121,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />
         <link rel="preconnect" href={env.apiBaseUrl} />
         <script
-          // Starts the page's gateway request and route code while the entry JavaScript
-          // downloads. Built from function source, which differs between the build-time
-          // render and the client bundle; React never re-runs or patches an inline script.
+          // Applies a saved theme before first paint (no flash of the other theme) and adds the
+          // `theme-color` metas (see `applyTheme` for why React doesn't render them), then starts
+          // the page's gateway request and route code while the entry JavaScript downloads.
+          // Built from function source, which differs between the build-time render and the
+          // client bundle; React never re-runs or patches an inline script.
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: preloadPageScript(env.apiBaseUrl, preloadAssets),
+            __html:
+              themeScript() + preloadPageScript(env.apiBaseUrl, preloadAssets),
           }}
         />
         <Meta />

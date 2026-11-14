@@ -153,11 +153,15 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 4;
       line-clamp: 4;
+
+      /* A mask reads only alpha: black here means "fully shown", not a colour. */
+      /* stylelint-disable color-no-hex */
       mask-image: linear-gradient(
         to bottom,
         #000 calc(100% - 1.75em),
         transparent
       );
+      /* stylelint-enable color-no-hex */
     }
   }
 
