@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Plan and apply infra/, then export the outputs the later deploy steps need
-# to $GITHUB_ENV (API_URL, WEB_URL, HOSTING_URL, HOSTING_SITE_ID, SERVICE_URL),
+# to $GITHUB_ENV (API_URL, WEB_URL, HOSTING_URL, HOSTING_SITE_ID, SERVICE_URL,
+# STORYBOOK_URL, STORYBOOK_HOSTING_URL, STORYBOOK_SITE_ID,
+# STORYBOOK_DOMAIN_READY, STORYBOOK_DOMAIN_CREATED),
 # so they need no state access themselves. None of them is secret.
 #
 # Usage: apply.sh <terraform-dir> <var-file relative to it>
@@ -55,9 +57,14 @@ terraform -chdir="$tf_dir" output -json | jq -r '
     WEB_URL: .web_url.value,
     HOSTING_URL: .hosting_url.value,
     HOSTING_SITE_ID: .hosting_site_id.value,
-    SERVICE_URL: .service_url.value
+    SERVICE_URL: .service_url.value,
+    STORYBOOK_URL: .storybook_url.value,
+    STORYBOOK_HOSTING_URL: .storybook_hosting_url.value,
+    STORYBOOK_SITE_ID: .storybook_site_id.value,
+    STORYBOOK_DOMAIN_READY: .storybook_domain_ready.value,
+    STORYBOOK_DOMAIN_CREATED: .storybook_domain_created.value
   }
   | to_entries[]
-  | (.value // "" | tostring | gsub("[\r\n]"; "")) as $v
+  | (if .value == null then "" else .value end | tostring | gsub("[\r\n]"; "")) as $v
   | "\(.key)=\($v)"
 ' >>"$out"

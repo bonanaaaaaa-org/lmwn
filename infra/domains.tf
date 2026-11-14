@@ -1,10 +1,11 @@
-# Custom domains: the web app on a Firebase Hosting custom domain (web_domain)
-# and the gateway on a Cloud Run domain mapping (api_domain), as in
+# Custom domains: the web app on a Firebase Hosting custom domain (web_domain),
+# the Storybook on one of its own site (storybook_domain) and the gateway on a
+# Cloud Run domain mapping (api_domain), as in
 # bonanaaaaaa-org/personal-finance's infra/domains.tf. The web.app and run.app
 # URLs keep working beside them.
 #
 # With dns_zone set (prod: bonanaaaaaa.dev in Cloudflare), Terraform keeps the
-# records both domains need there, all DNS only (not proxied: Google issues the
+# records the domains need there, all DNS only (not proxied: Google issues the
 # certificates and must see its own servers), and verifies the zone in Google
 # Search Console for the deploy identity, which Cloud Run requires before it
 # maps a domain.
@@ -17,6 +18,15 @@ resource "google_firebase_hosting_custom_domain" "web" {
   custom_domain = var.web_domain
   # Its records are made beside it (or by hand without dns_zone): do not wait
   # for them here.
+  wait_dns_verification = false
+}
+
+resource "google_firebase_hosting_custom_domain" "storybook" {
+  provider = google-beta
+  count    = var.storybook_domain != "" ? 1 : 0
+
+  site_id               = google_firebase_hosting_site.storybook.site_id
+  custom_domain         = var.storybook_domain
   wait_dns_verification = false
 }
 
@@ -86,8 +96,8 @@ resource "google_site_verification_web_resource" "zone" {
 }
 
 locals {
-  # What Firebase Hosting and Cloud Run ask for: the site's A record and
-  # ownership TXT on the web domain, a CNAME to Google's front end for the API
+  # What Firebase Hosting and Cloud Run ask for: each site's A record and
+  # ownership TXT on its domain (web, Storybook), a CNAME to Google's front end for the API
   # domain. Fixed rather than read from the resources, whose lists are unknown
   # until they exist; the output custom_domain_dns_records shows what they ask
   # for, to compare.
@@ -95,6 +105,10 @@ locals {
     var.web_domain == "" ? {} : {
       web_a   = { name = var.web_domain, type = "A", content = "199.36.158.100" }
       web_txt = { name = var.web_domain, type = "TXT", content = "\"hosting-site=${google_firebase_hosting_site.default.site_id}\"" }
+    },
+    var.storybook_domain == "" ? {} : {
+      storybook_a   = { name = var.storybook_domain, type = "A", content = "199.36.158.100" }
+      storybook_txt = { name = var.storybook_domain, type = "TXT", content = "\"hosting-site=${google_firebase_hosting_site.storybook.site_id}\"" }
     },
     var.api_domain == "" ? {} : {
       api_cname = { name = var.api_domain, type = "CNAME", content = "ghs.googlehosted.com" }
@@ -120,6 +134,13 @@ locals {
   # web.app origin, so the app can be tried there.
   web_domain_ready = anytrue([
     for d in google_firebase_hosting_custom_domain.web :
+    d.host_state == "HOST_ACTIVE" && anytrue([for c in coalesce(d.cert, []) : c.state == "CERT_ACTIVE"])
+  ])
+
+  # The same for the Storybook's domain. Until then the deploy job smoke-tests
+  # the Storybook on its web.app URL.
+  storybook_domain_ready = anytrue([
+    for d in google_firebase_hosting_custom_domain.storybook :
     d.host_state == "HOST_ACTIVE" && anytrue([for c in coalesce(d.cert, []) : c.state == "CERT_ACTIVE"])
   ])
 

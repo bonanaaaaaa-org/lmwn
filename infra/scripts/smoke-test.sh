@@ -5,19 +5,27 @@
 #     data server's localhost:7777), and the first one is served as an image; CORS allows the web origin and no other;
 #     The same for the first Guide's Guide Item photos;
 #   - the web app: / and a deep link serve the SPA with Cache-Control:
-#     no-cache, a hashed /assets/ file is immutable, and a missing one is 404.
+#     no-cache, a hashed /assets/ file is immutable, and a missing one is 404;
+#   - the Storybook (when given): / and iframe.html are served with
+#     Cache-Control: no-cache and X-Robots-Tag: noindex, index.json lists
+#     stories, a hashed /assets/ file is immutable, and a missing one is 404.
 # Each check retries for about two minutes (a new revision, a cold start, or a
 # Hosting release propagating).
 #
-# Usage: smoke-test.sh <api-url> <web-url>
+# Usage: smoke-test.sh <api-url> <web-url> [<storybook-url>]
 set -euo pipefail
 
-if [[ $# -ne 2 ]]; then
-  echo "usage: $0 <api-url> <web-url>" >&2
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+  echo "usage: $0 <api-url> <web-url> [<storybook-url>]" >&2
   exit 2
 fi
 api=${1%/}
 web=${2%/}
+if [[ $# -eq 3 && -z $3 ]]; then
+  echo "usage: $0 <api-url> <web-url> [<storybook-url>]: the Storybook URL is empty" >&2
+  exit 2
+fi
+storybook=${3:+${3%/}}
 
 fail() {
   echo "::error title=Smoke test failed::$*"
@@ -98,3 +106,26 @@ echo "ok: $web$asset is immutable"
 missing=$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' "$web/assets/missing-00000000.js")
 [[ $missing == 404 ]] || fail "a missing /assets/ file answers $missing, not 404 (it must not get index.html)."
 echo "ok: a missing /assets/ file is 404"
+
+[[ -n $storybook ]] || exit 0
+
+sb_page_ok() {
+  [[ $(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' "$1") == 200 ]] &&
+    [[ $(header "$1" Cache-Control) == no-cache ]] &&
+    [[ $(header "$1" X-Robots-Tag) == *noindex* ]]
+}
+retry sb_page_ok "$storybook/" || fail "GET $storybook/ is not 200 with Cache-Control: no-cache and X-Robots-Tag: noindex."
+retry sb_page_ok "$storybook/iframe.html" || fail "GET $storybook/iframe.html is not 200 with Cache-Control: no-cache and X-Robots-Tag: noindex."
+echo "ok: $storybook/ and iframe.html are served, not cached, not indexed"
+
+stories=$(curl -sS --fail --max-time 15 "$storybook/index.json" | jq '[.entries[] | select(.type == "story")] | length' || echo 0)
+[[ $stories -gt 0 ]] || fail "$storybook/index.json lists no stories."
+echo "ok: $storybook/index.json lists $stories stories"
+
+sb_asset=$(curl -sS --max-time 15 "$storybook/iframe.html" | grep -oE '/assets/[A-Za-z0-9._-]+\.js' | head -1 || true)
+[[ -n $sb_asset ]] || fail "$storybook/iframe.html names no /assets/*.js file."
+[[ $(header "$storybook$sb_asset" Cache-Control) == *immutable* ]] || fail "$storybook$sb_asset is not cached as immutable."
+echo "ok: $storybook$sb_asset is immutable"
+missing=$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' "$storybook/assets/missing-00000000.js")
+[[ $missing == 404 ]] || fail "a missing Storybook /assets/ file answers $missing, not 404."
+echo "ok: a missing Storybook /assets/ file is 404"

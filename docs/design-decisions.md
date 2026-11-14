@@ -100,8 +100,14 @@ Settled in #22; the details are in [infra/README.md](../infra/README.md).
 - **Domains on `bonanaaaaaa.dev`.**
   - The web app is `hidden-gems.bonanaaaaaa.dev` (a Hosting custom domain) and the gateway is `api-hidden-gems.bonanaaaaaa.dev` (a Cloud Run domain mapping).
   - Their Cloudflare records are DNS only, so Google issues the certificates. The deploy identity verifies the zone with its own TXT record.
+- **The Storybook is deployed next to the app** (#35), so reviewers can browse the components and their states without cloning the repo.
+  - It is a second Firebase Hosting site (`<project>-storybook`) on `storybook-hidden-gems.bonanaaaaaa.dev`, with the same kind of DNS-only Cloudflare records as the web domain.
+  - One `web/firebase.json` deploys both, as the hosting targets `web` (`build/client`) and `storybook` (`storybook-static`). The deploy script maps the targets to Terraform's site IDs.
+  - The Storybook's hashed `/assets/**` are cached as immutable and everything else is `no-cache`. Every response sends `X-Robots-Tag: noindex, nofollow`, so search engines leave it out.
+  - Stories use fixtures only. The deployed Storybook never calls the gateway or the Data Server, and the gateway's CORS doesn't allow it. The deploy job checks that its bundle doesn't contain the API host, and the post-deploy Playwright run renders every story and fails on any request off the Storybook's origin.
+  - Only `main` deploys it. Per-PR previews are out of scope, because the `pr` project isn't billed.
 - **CORS allows only the web domain.** While its certificate is pending, the gateway also allows the site's `web.app` origin.
-- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app, then runs a smoke test and the Playwright suite against the live site. Re-running it for the same commit plans no changes (apart from the one-off CORS change once the web domain is ready).
+- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app and the Storybook, then runs a smoke test and the Playwright suite against the live site. Until the Storybook domain's certificate is active, those checks use the Storybook's `web.app` URL and the job warns, for at most a day after the domain was created. Re-running it for the same commit plans no changes (apart from the one-off CORS change once the web domain is ready).
 
 ## Non-goals
 

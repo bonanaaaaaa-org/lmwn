@@ -40,6 +40,7 @@ variables {
   data_server_image = "asia-southeast1-docker.pkg.dev/lmwn-prod-df7136/lmwn/data-server:0123abc"
   web_domain        = "hidden-gems.bonanaaaaaa.dev"
   api_domain        = "api-hidden-gems.bonanaaaaaa.dev"
+  storybook_domain  = "storybook-hidden-gems.bonanaaaaaa.dev"
   dns_zone          = "bonanaaaaaa.dev"
 }
 
@@ -127,11 +128,13 @@ run "prod_keeps_the_domains_and_their_dns_records" {
     condition = {
       for k, r in cloudflare_dns_record.domains : k => "${r.name} ${r.type} ${r.content}"
       } == {
-      web_a     = "hidden-gems.bonanaaaaaa.dev A 199.36.158.100"
-      web_txt   = "hidden-gems.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136\""
-      api_cname = "api-hidden-gems.bonanaaaaaa.dev CNAME ghs.googlehosted.com"
+      web_a         = "hidden-gems.bonanaaaaaa.dev A 199.36.158.100"
+      web_txt       = "hidden-gems.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136\""
+      storybook_a   = "storybook-hidden-gems.bonanaaaaaa.dev A 199.36.158.100"
+      storybook_txt = "storybook-hidden-gems.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136-storybook\""
+      api_cname     = "api-hidden-gems.bonanaaaaaa.dev CNAME ghs.googlehosted.com"
     }
-    error_message = "Hosting's A and hosting-site TXT on the web domain, Cloud Run's CNAME on the API domain."
+    error_message = "Hosting's A and hosting-site TXT on the web and Storybook domains, Cloud Run's CNAME on the API domain."
   }
   assert {
     condition     = alltrue([for r in cloudflare_dns_record.domains : r.proxied == false])
@@ -146,8 +149,58 @@ run "prod_keeps_the_domains_and_their_dns_records" {
     error_message = "the deploy identity verifies the zone with its own TXT record at the apex."
   }
   assert {
-    condition     = !output.web_domain_ready && !output.api_domain_ready
+    condition     = !output.web_domain_ready && !output.storybook_domain_ready && !output.api_domain_ready
     error_message = "nothing is ready before Google reports it."
+  }
+}
+
+run "prod_serves_the_storybook_on_its_own_site_and_domain" {
+  command = apply
+
+  assert {
+    condition = (
+      google_firebase_hosting_site.storybook.site_id == "lmwn-prod-df7136-storybook" &&
+      google_firebase_hosting_site.storybook.site_id != google_firebase_hosting_site.default.site_id
+    )
+    error_message = "the Storybook has its own Hosting site beside the app's."
+  }
+  assert {
+    condition = (
+      google_firebase_hosting_custom_domain.storybook[0].site_id == "lmwn-prod-df7136-storybook" &&
+      google_firebase_hosting_custom_domain.storybook[0].custom_domain == "storybook-hidden-gems.bonanaaaaaa.dev" &&
+      !google_firebase_hosting_custom_domain.storybook[0].wait_dns_verification
+    )
+    error_message = "the Storybook domain is a custom domain of the Storybook site, created without waiting for DNS."
+  }
+  assert {
+    condition = (
+      output.storybook_url == "https://storybook-hidden-gems.bonanaaaaaa.dev" &&
+      output.storybook_hosting_url == "https://lmwn-prod-df7136-storybook.web.app" &&
+      output.storybook_site_id == "lmwn-prod-df7136-storybook"
+    )
+    error_message = "the Storybook lives on its domain, with its web.app URL beside it."
+  }
+  assert {
+    condition     = !contains(output.cors_allowed_origins, output.storybook_url) && !contains(output.cors_allowed_origins, output.storybook_hosting_url)
+    error_message = "the gateway does not allow the Storybook: stories never call it."
+  }
+}
+
+run "the_storybook_domain_is_ready_once_its_certificate_is_active" {
+  command   = apply
+  state_key = "storybook_domain_ready"
+
+  override_resource {
+    target = google_firebase_hosting_custom_domain.storybook[0]
+    values = {
+      host_state = "HOST_ACTIVE"
+      cert       = [{ state = "CERT_ACTIVE", type = "GROUPED", verification = [] }]
+    }
+  }
+
+  assert {
+    condition     = output.storybook_domain_ready && !output.web_domain_ready
+    error_message = "an active host and certificate make the Storybook domain ready, independently of the web domain."
   }
 }
 
@@ -178,14 +231,16 @@ run "without_domains_everything_stays_on_google_urls" {
   command = plan
 
   variables {
-    web_domain = ""
-    api_domain = ""
-    dns_zone   = ""
+    web_domain       = ""
+    api_domain       = ""
+    storybook_domain = ""
+    dns_zone         = ""
   }
 
   assert {
     condition = (
       length(google_firebase_hosting_custom_domain.web) == 0 &&
+      length(google_firebase_hosting_custom_domain.storybook) == 0 &&
       length(google_cloud_run_domain_mapping.api) == 0 &&
       length(cloudflare_dns_record.domains) == 0 &&
       length(cloudflare_dns_record.site_verification) == 0 &&
@@ -196,9 +251,11 @@ run "without_domains_everything_stays_on_google_urls" {
   assert {
     condition = (
       output.api_url == "https://api-gateway-123456789012.asia-southeast1.run.app" &&
-      output.cors_allowed_origins == tolist(["https://lmwn-prod-df7136.web.app"])
+      output.cors_allowed_origins == tolist(["https://lmwn-prod-df7136.web.app"]) &&
+      output.storybook_url == "https://lmwn-prod-df7136-storybook.web.app" &&
+      output.storybook_domain_created == ""
     )
-    error_message = "the gateway's public URL is its run.app URL, and it allows the web.app origin."
+    error_message = "the gateway's public URL is its run.app URL, it allows the web.app origin, and the Storybook is on its web.app URL."
   }
 }
 
@@ -207,6 +264,16 @@ run "rejects_a_domain_outside_the_zone" {
 
   variables {
     api_domain = "api.example.com"
+  }
+
+  expect_failures = [var.dns_zone]
+}
+
+run "rejects_a_storybook_domain_outside_the_zone" {
+  command = plan
+
+  variables {
+    storybook_domain = "storybook.example.com"
   }
 
   expect_failures = [var.dns_zone]
