@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import { Button } from "@/components/common/Button";
+import { useIsOffline } from "@/hooks/useIsOffline";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
 
@@ -9,8 +10,13 @@ import styles from "./ErrorPanel.module.css";
 export interface ErrorPanelProps {
   /** Defaults to `m.errorPanel_title()`. */
   title?: string;
-  /** Defaults to `m.errorPanel_body()`. */
+  /**
+   * Defaults to `m.errorPanel_body()`, or `m.errorPanel_offlineBody()` while the browser is
+   * offline: the page wasn't saved for offline use, so the diner knows to reconnect.
+   */
   description?: string;
+  /** Overrides the browser's online state for the default description (stories and tests). */
+  isOffline?: boolean;
   /** Shows the retry button (`m.errorPanel_retry_label()`). Typically TanStack Query's `refetch`. */
   onRetry?: () => void;
   /** While a retry is in flight the button shows as pending and ignores repeat presses. */
@@ -31,6 +37,7 @@ export interface ErrorPanelProps {
 export function ErrorPanel({
   title,
   description,
+  isOffline,
   onRetry,
   isRetrying = false,
   variant = "block",
@@ -38,6 +45,8 @@ export function ErrorPanel({
   className,
   parentTestId,
 }: ErrorPanelProps) {
+  const browserOffline = useIsOffline();
+  const offline = isOffline ?? browserOffline;
   const Heading = `h${headingLevel}` as const;
   const testId = joinTestId(parentTestId, "error-panel");
   return (
@@ -52,7 +61,8 @@ export function ErrorPanel({
           {title ?? m.errorPanel_title()}
         </Heading>
         <p className={styles.ErrorPanel__Description}>
-          {description ?? m.errorPanel_body()}
+          {description ??
+            (offline ? m.errorPanel_offlineBody() : m.errorPanel_body())}
         </p>
       </div>
       {onRetry && (

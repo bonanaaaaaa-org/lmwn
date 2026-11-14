@@ -95,4 +95,48 @@ describe("ToastRegion", () => {
       "error",
     );
   });
+
+  it("runs its action, then closes", async () => {
+    const user = userEvent.setup();
+    const queue = setup();
+    const onAction = vi.fn();
+    act(() =>
+      showToast(
+        {
+          message: m.app_updateToast_body(),
+          action: { label: m.app_updateToast_label(), onAction },
+        },
+        queue,
+      ),
+    );
+
+    await user.click(screen.getByTestId("app/toast/action"));
+
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("app/toast")).not.toBeInTheDocument();
+  });
+
+  it("keeps a toast with an action until it is used or closed", () => {
+    vi.useFakeTimers();
+    try {
+      const queue = setup();
+      act(() =>
+        showToast(
+          {
+            message: m.app_updateToast_body(),
+            action: { label: m.app_updateToast_label(), onAction: vi.fn() },
+          },
+          queue,
+        ),
+      );
+
+      act(() => vi.advanceTimersByTime(TOAST_TIMEOUT_MS * 10));
+
+      expect(screen.getByTestId("app/toast/action")).toHaveAccessibleName(
+        m.app_updateToast_label(),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
