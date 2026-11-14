@@ -10,6 +10,7 @@ import {
 } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { Rating } from "@/components/common/Rating";
+import { ShareButton } from "@/components/common/ShareButton";
 import { PhotoStrip } from "@/features/guides/components/PhotoStrip";
 import { WorkingHours } from "@/features/guides/components/WorkingHours";
 import {
@@ -25,6 +26,7 @@ import {
   type GuideItem,
   type Restaurant,
 } from "@/features/guides/lib/types";
+import type { ShareTarget } from "@/hooks/useShare";
 import { formatPhoneNumber } from "@/lib/format";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
@@ -46,8 +48,12 @@ export interface RestaurantCardProps {
   unavailable?: boolean;
   /** Start with the write-up cut to about 4 lines, with `m.restaurantCard_readMore_label()` to expand it. */
   clamp?: boolean;
+  /** Sharing this card: an icon button beside the name. Not shown for an Unavailable Restaurant. */
+  share?: ShareTarget;
+  /** Opened from a shared link: a saffron ring that doesn't move the card. */
+  highlighted?: boolean;
   className?: string;
-  /** The page's test ID; the card is `{parent}/restaurant-card`. */
+  /** The page's test ID; the card is `{parent}/restaurant-card`, its share button `…/share`. */
   parentTestId?: string;
 }
 
@@ -187,6 +193,8 @@ export function RestaurantCard({
   timeZone = THAILAND_TIME_ZONE,
   unavailable = item.restaurant === null,
   clamp = false,
+  share,
+  highlighted = false,
   className,
   parentTestId,
 }: RestaurantCardProps) {
@@ -206,6 +214,7 @@ export function RestaurantCard({
       className={clsx(styles.RestaurantCard__Root, className)}
       data-layout={layout}
       data-state={restaurant ? undefined : "unavailable"}
+      data-highlighted={highlighted ? "" : undefined}
       data-testid={testId}
       aria-labelledby={restaurant ? nameId : undefined}
       aria-label={
@@ -251,6 +260,17 @@ export function RestaurantCard({
               {isDesktop && <Badges restaurant={restaurant} />}
             </div>
           </div>
+          {share && (
+            <ShareButton
+              target={share}
+              label={m.restaurantCard_share_ariaLabel({
+                restaurant: restaurant.name,
+              })}
+              variant="ghost"
+              iconOnly
+              testId={`${testId}/share`}
+            />
+          )}
         </div>
       )}
       {restaurant && !isDesktop && (

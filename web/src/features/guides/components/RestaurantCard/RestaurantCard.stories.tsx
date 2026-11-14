@@ -2,11 +2,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
   LONG_WRITE_UP,
+  makeGuide,
   makeGuideItem,
   makePhoto,
   makeRestaurant,
 } from "@/test-utils/fixtures/guides";
 import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
+import { guideItemShareTarget } from "@/features/guides/lib/share";
 
 import { RestaurantCard } from "./RestaurantCard";
 
@@ -20,6 +22,7 @@ const meta = {
     item: makeGuideItem(),
     index: 1,
     layout: "desktop",
+    share: guideItemShareTarget(makeGuide(), makeGuideItem()),
     parentTestId: "guide",
   },
   decorators: [
@@ -35,6 +38,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Desktop: Story = {};
+
+/** Opened from a shared `#item-` link: a saffron ring that doesn't move the card. */
+export const Highlighted: Story = { args: { highlighted: true } };
+
+export const PhoneHighlighted: Story = {
+  args: { layout: "phone", highlighted: true },
+  globals: phone,
+};
 
 export const DesktopLongWriteUp: Story = {
   args: { item: makeGuideItem({ description: LONG_WRITE_UP }), clamp: true },

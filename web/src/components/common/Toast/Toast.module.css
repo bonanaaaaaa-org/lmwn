@@ -1,0 +1,92 @@
+@layer components {
+  /* Fixed to the bottom of the viewport. React Aria portals it to the end of <body>, so it paints over the page. */
+  .Toast__Region {
+    position: fixed;
+    right: var(--layout-gutter);
+    bottom: var(--space-300);
+    left: var(--layout-gutter);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-100);
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    outline: none;
+  }
+
+  .Toast__Root {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-150);
+    max-width: min(100%, 30rem);
+    padding: var(--space-100) var(--space-100) var(--space-100) var(--space-200);
+    border-radius: var(--radius-300);
+    background: var(--color-text);
+    box-shadow: 0 0.5rem 1.5rem rgb(17 17 17 / 25%);
+    color: var(--color-surface);
+    font-size: var(--font-size-200);
+    line-height: var(--line-height-tight);
+    pointer-events: auto;
+    animation: toast-enter var(--duration-base) var(--easing-standard);
+
+    &[data-focus-visible] {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .Toast__Content {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--space-150);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .Toast__Icon {
+    flex: none;
+    color: var(--color-accent);
+
+    [data-tone="error"] & {
+      color: var(--color-danger-subtle);
+    }
+  }
+
+  .Toast__Close {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-height-compact);
+    height: var(--control-height-compact);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-200);
+    background: transparent;
+    color: var(--color-surface);
+    cursor: pointer;
+
+    &[data-hovered],
+    &[data-pressed] {
+      background: rgb(255 255 255 / 14%);
+    }
+
+    &[data-focus-visible] {
+      outline: 0.125rem solid var(--color-surface);
+      outline-offset: -0.125rem;
+    }
+  }
+
+  @keyframes toast-enter {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+}

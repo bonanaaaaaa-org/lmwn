@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-import { Header, type HeaderLayout } from "@/components/layout/Header";
+import { ToastRegion } from "@/components/common/Toast";
+import {
+  Header,
+  type HeaderLayout,
+  HeaderSlotProvider,
+} from "@/components/layout/Header";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
@@ -45,44 +50,51 @@ export interface AppShellProps {
 
 /**
  * The frame around every page: a skip link, the Header linking to the Guide Index, `<main>`
- * and a footer. Its root is `app`, the header `app/header`, and their links `app/skip-link` and
- * `app/header/logo`. Its own copy is the `app_*` messages; the Header's is `header_*`.
+ * and a footer, plus the toasts. Its root is `app`, the header `app/header`, their links
+ * `app/skip-link` and `app/header/logo`, and each toast `app/toast`. A page can put one action
+ * in the header with `HeaderSlotPortal`. Its own copy is the `app_*` messages; the Header's is
+ * `header_*`.
  */
 export function AppShell({ guidePageTestId, children }: AppShellProps) {
   const isPhone = useIsPhone();
   let headerLayout: HeaderLayout = "desktop";
   if (isPhone) headerLayout = guidePageTestId ? "phone-guide" : "phone-index";
   return (
-    <div className={styles.AppShell__Root} data-testid={APP_TEST_ID}>
-      <a
-        className={styles.AppShell__SkipLink}
-        href={`#${MAIN_CONTENT_ID}`}
-        data-testid={joinTestId(APP_TEST_ID, "skip-link")}
-      >
-        {m.app_skipLink_label()}
-      </a>
-      <Header
-        layout={headerLayout}
-        parentTestId={APP_TEST_ID}
-        backLinkTestId={
-          guidePageTestId ? joinTestId(guidePageTestId, "back-link") : undefined
-        }
-      />
-      <main
-        id={MAIN_CONTENT_ID}
-        className={styles.AppShell__Main}
-        tabIndex={-1}
-      >
-        {children}
-      </main>
-      <footer className={styles.AppShell__Footer}>
-        <div className={styles.AppShell__Bar}>
-          <p>
-            <span lang="en">{m.app_footer_brand_label()}</span> ·{" "}
-            {m.app_footer_body()}
-          </p>
-        </div>
-      </footer>
-    </div>
+    <HeaderSlotProvider>
+      <div className={styles.AppShell__Root} data-testid={APP_TEST_ID}>
+        <a
+          className={styles.AppShell__SkipLink}
+          href={`#${MAIN_CONTENT_ID}`}
+          data-testid={joinTestId(APP_TEST_ID, "skip-link")}
+        >
+          {m.app_skipLink_label()}
+        </a>
+        <Header
+          layout={headerLayout}
+          parentTestId={APP_TEST_ID}
+          backLinkTestId={
+            guidePageTestId
+              ? joinTestId(guidePageTestId, "back-link")
+              : undefined
+          }
+        />
+        <main
+          id={MAIN_CONTENT_ID}
+          className={styles.AppShell__Main}
+          tabIndex={-1}
+        >
+          {children}
+        </main>
+        <footer className={styles.AppShell__Footer}>
+          <div className={styles.AppShell__Bar}>
+            <p>
+              <span lang="en">{m.app_footer_brand_label()}</span> ·{" "}
+              {m.app_footer_body()}
+            </p>
+          </div>
+        </footer>
+        <ToastRegion parentTestId={APP_TEST_ID} />
+      </div>
+    </HeaderSlotProvider>
   );
 }

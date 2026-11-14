@@ -19,14 +19,28 @@
     }
   }
 
-  .GuideHeader__Body {
+  /* The text beside the share button; the button wraps under the text when space runs out. */
+  .GuideHeader__Intro {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-150);
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-300) var(--space-400);
 
     [data-layout="phone"] > & {
       padding-top: var(--space-300);
     }
+  }
+
+  .GuideHeader__Body {
+    display: flex;
+    flex: 999 1 35rem;
+    flex-direction: column;
+    gap: var(--space-150);
+    min-width: 0;
+  }
+
+  .GuideHeader__Share {
+    flex: none;
   }
 
   .GuideHeader__Tags {

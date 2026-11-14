@@ -101,5 +101,13 @@
   "restaurantCard_workingHours_thursday_label": "พฤหัสบดี",
   "restaurantCard_workingHours_friday_label": "ศุกร์",
   "restaurantCard_workingHours_saturday_label": "เสาร์",
-  "restaurantCard_workingHours_sunday_label": "อาทิตย์"
+  "restaurantCard_workingHours_sunday_label": "อาทิตย์",
+  "toast_region_ariaLabel": "การแจ้งเตือน",
+  "toast_close_ariaLabel": "ปิดการแจ้งเตือน",
+  "shareButton_copyFailed_body": "คัดลอกลิงก์ไม่สำเร็จ",
+  "guideHeader_share_label": "แชร์ไกด์",
+  "guideHeader_share_copiedBody": "คัดลอกลิงก์แล้ว",
+  "restaurantCard_share_ariaLabel": "แชร์ร้าน {restaurant}",
+  "restaurantCard_share_text": "ร้าน {restaurant} จากไกด์ {guide}",
+  "restaurantCard_share_copiedBody": "คัดลอกลิงก์ร้าน {restaurant} แล้ว"
 }

@@ -33,7 +33,9 @@ type MessageKey =
   | "restaurantCard_workingHours_thursday_label"
   | "restaurantCard_workingHours_friday_label"
   | "restaurantCard_workingHours_saturday_label"
-  | "restaurantCard_workingHours_sunday_label";
+  | "restaurantCard_workingHours_sunday_label"
+  | "guideHeader_share_label"
+  | "guideHeader_share_copiedBody";
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
@@ -55,6 +57,8 @@ interface FormatParams {
   restaurantCard_workingHours_today_body: { hours: string };
   restaurantCard_workingHours_toggle_closedDaysLabel: { days: string };
   restaurantCard_workingHours_week_todayLabel: { day: string };
+  restaurantCard_share_ariaLabel: { restaurant: string };
+  restaurantCard_share_copiedBody: { restaurant: string };
   lightbox_counter_body: { position: number; total: number };
 }
 
