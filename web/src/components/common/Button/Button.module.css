@@ -76,6 +76,24 @@
       }
     }
 
+    /* Round on a dark surface; icon-only content makes it a 48px circle. */
+    &[data-variant="overlay"] {
+      min-width: var(--control-height);
+      padding-inline: var(--space-150);
+      background: var(--color-overlay);
+      border-radius: var(--radius-pill);
+      color: var(--color-text-inverse);
+
+      &[data-hovered],
+      &[data-pressed] {
+        background: var(--color-overlay-hover);
+      }
+
+      &[data-focus-visible] {
+        outline-color: var(--color-focus-inverse);
+      }
+    }
+
     &[data-size="compact"]:not([data-variant="text"]) {
       min-height: var(--control-height-compact);
       padding-inline: var(--space-200);

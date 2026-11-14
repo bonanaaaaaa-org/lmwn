@@ -30,6 +30,7 @@ interface FormatParams {
     position: number;
     total: number;
   };
+  lightbox_counter_body: { position: number; total: number };
 }
 
 const catalog = JSON.parse(

@@ -21,11 +21,6 @@
       display: none;
     }
 
-    &:focus-visible {
-      outline: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-
     [data-layout="phone"] > & {
       grid-auto-columns: 78%;
       gap: var(--space-100);
@@ -39,8 +34,32 @@
     scroll-snap-align: start;
   }
 
+  .PhotoStrip__PhotoButton {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-300);
+    background: none;
+    cursor: zoom-in;
+
+    &[data-focus-visible] {
+      outline: var(--focus-ring);
+      outline-offset: calc(-1 * var(--focus-ring-width));
+    }
+  }
+
   .PhotoStrip__Photo {
     border-radius: var(--radius-300);
+    transition: filter var(--duration-fast) var(--easing-standard);
+
+    [data-hovered] > & {
+      filter: brightness(0.92);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 
   .PhotoStrip__Next {

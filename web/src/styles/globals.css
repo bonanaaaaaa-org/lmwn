@@ -57,6 +57,15 @@
     --color-placeholder: #ebebe9;
     --color-placeholder-icon: #8a8a87;
 
+    /* The lightbox: white on ink. text-inverse-muted on surface-inverse is 11.6:1. */
+    --color-surface-inverse: #111;
+    --color-scrim: rgb(17 17 17 / 72%);
+    --color-text-inverse: #fff;
+    --color-text-inverse-muted: #c9c9c6;
+    --color-overlay: rgb(255 255 255 / 16%);
+    --color-overlay-hover: rgb(255 255 255 / 28%);
+    --color-focus-inverse: #fff;
+
     /*
      * 8-point grid: spacing, control heights and radii are multiples of 8px (0.5rem), with
      * 4px and 12px as the only half steps. Type sizes and Thai line heights are not snapped.
