@@ -11,6 +11,13 @@ LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway
 `pnpm dev` in `api-gateway` also starts the provided data server
 (guides `:8888`, restaurants `:9999`, images `:7777`).
 
+## Deployed
+
+- Web app: https://hidden-gems.bonanaaaaaa.dev
+- API gateway: https://api-hidden-gems.bonanaaaaaa.dev (`/health`, `/docs`)
+
+Every push to `main` deploys to Google Cloud (Cloud Run and Firebase Hosting) through Terraform in [`infra/`](infra/README.md).
+
 ## Prerequisites
 
 - Node.js ≥ 26 and pnpm

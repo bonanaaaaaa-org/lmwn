@@ -1,0 +1,28 @@
+# Build context is the repository root (api-gateway/Dockerfile, api-gateway/data-server.Dockerfile).
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.turbo
+**/coverage
+**/build
+**/dist
+**/storybook-static
+**/.env
+**/.env.*
+# google-github-actions/auth writes its credentials file into the workspace.
+gha-creds-*.json
+.git
+.claude
+.loop
+.husky
+.github
+infra
+docs
+api-gateway/tests
+web/src
+web/app
+web/.storybook
+e2e/specs
+e2e/support

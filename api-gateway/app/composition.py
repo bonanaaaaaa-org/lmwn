@@ -13,10 +13,13 @@ from app.adapters.outbound.cache.caching_sources import (
     cache_restaurant_source,
 )
 from app.adapters.outbound.cache.ttl_cache import Clock
+from app.adapters.outbound.data_server import photo_client
 from app.adapters.outbound.data_server.guide_client import create_guide_source
+from app.adapters.outbound.data_server.photo_urls import create_photo_url
 from app.adapters.outbound.data_server.restaurant_client import create_restaurant_source
 from app.application.get_guide_detail import GetGuideDetail, create_get_guide_detail
 from app.application.list_guides import ListGuides, create_list_guides
+from app.application.ports.photo_source import PhotoSource
 from app.settings import Settings
 
 
@@ -37,8 +40,12 @@ def create_use_cases(
     """Use cases over the data server, with upstream reads cached in memory for
     `settings.cache_ttl_seconds` (measured on `clock`) and shared between them.
     """
+    photo_url = create_photo_url(
+        str(settings.photo_service_url),
+        str(settings.public_base_url) if settings.public_base_url else None,
+    )
     guide_source = cache_guide_source(
-        create_guide_source(client, str(settings.guide_service_url)),
+        create_guide_source(client, str(settings.guide_service_url), photo_url),
         ttl_seconds=settings.cache_ttl_seconds,
         clock=clock,
     )
@@ -53,3 +60,7 @@ def create_use_cases(
         ),
         list_guides=create_list_guides(guide_source=guide_source),
     )
+
+
+def create_photo_source(settings: Settings, client: httpx.AsyncClient) -> PhotoSource:
+    return photo_client.create_photo_source(client, str(settings.photo_service_url))
