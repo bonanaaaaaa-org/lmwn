@@ -80,7 +80,9 @@ export function Header({
             className={styles.Header__Brand}
             data-testid={logoTestId}
           >
-            <span lang="en">{m.header_logo_label()}</span>
+            <span lang="en" className={styles.Header__BrandText}>
+              {m.header_logo_label()}
+            </span>
           </Link>
           <div className={styles.Header__Actions}>
             {themeToggle}
@@ -105,7 +107,9 @@ export function Header({
           data-testid={logoTestId}
         >
           <Mark />
-          <span lang="en">{m.header_logo_label()}</span>
+          <span lang="en" className={styles.Header__BrandText}>
+            {m.header_logo_label()}
+          </span>
         </Link>
         <div className={styles.Header__Actions}>
           <p className={styles.Header__Tagline}>{m.header_tagline_body()}</p>

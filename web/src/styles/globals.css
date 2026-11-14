@@ -106,6 +106,8 @@
     --color-shadow-strong: rgb(17 17 17 / 25%);
     --color-shadow-subtle: rgb(17 17 17 / 8%);
     --color-shadow-control: rgb(17 17 17 / 18%);
+    --color-shadow-popover: rgb(0 0 0 / 16%);
+    --color-shadow-tooltip: rgb(0 0 0 / 20%);
 
     /*
      * 8-point grid: spacing, control heights and radii are multiples of 8px (0.5rem), with
@@ -151,6 +153,10 @@
     --shadow-200: 0 0.25rem 0.75rem var(--color-shadow);
     --shadow-300: 0 0.125rem 0.5rem var(--color-shadow-control);
     --shadow-400: 0 0.5rem 1.5rem var(--color-shadow-strong);
+
+    /* The theme toggle's menu and tooltip (design canvas, "Theme toggle" board). */
+    --shadow-popover: 0 0.5rem 1.5rem var(--color-shadow-popover);
+    --shadow-tooltip: 0 0.25rem 0.75rem var(--color-shadow-tooltip);
     --focus-ring-width: 0.1875rem;
     --focus-ring-offset: 0.125rem;
     --focus-ring: var(--focus-ring-width) solid var(--color-focus);

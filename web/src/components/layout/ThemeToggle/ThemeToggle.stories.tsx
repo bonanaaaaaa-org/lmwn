@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import type { ThemeChoice } from "@/lib/theme";
 import { m } from "@/paraglide/messages.js";
@@ -11,11 +11,20 @@ const meta = {
   title: "Components/Layout/ThemeToggle",
   component: ThemeToggle,
   tags: ["autodocs"],
-  args: { value: "system", onChange: () => {}, parentTestId: "app/header" },
+  args: { value: "system", onChange: fn(), parentTestId: "app/header" },
   // The switch here only reports the choice; the toolbar's theme sets the colours.
   render: function Render(args) {
     const [value, setValue] = useState<ThemeChoice>(args.value);
-    return <ThemeToggle {...args} value={value} onChange={setValue} />;
+    return (
+      <ThemeToggle
+        {...args}
+        value={value}
+        onChange={(choice) => {
+          setValue(choice);
+          args.onChange(choice);
+        }}
+      />
+    );
   },
 } satisfies Meta<typeof ThemeToggle>;
 
@@ -37,7 +46,9 @@ export const MenuOpen: Story = {
     await expect(menu).toBeVisible();
     await expect(
       canvas.getByRole("button", {
-        name: m.themeToggle_ariaLabel({ theme: m.themeToggle_system_label() }),
+        name: m.themeToggle_trigger_ariaLabel({
+          theme: m.themeToggle_option_systemLabel(),
+        }),
       }),
     ).toHaveAttribute("aria-expanded", "true");
   },

@@ -8,6 +8,11 @@ import { m } from "@/paraglide/messages.js";
 import { Header } from "./Header";
 
 describe("Header", () => {
+  afterEach(() => {
+    setThemeChoice("system");
+    localStorage.clear();
+  });
+
   it("links the brand to the Guide Index", () => {
     render(<Header parentTestId="app" />);
     expect(screen.getByTestId("app/header")).toBe(screen.getByRole("banner"));
@@ -40,16 +45,19 @@ describe("Header", () => {
       render(<Header parentTestId="app" layout={layout} />);
       await user.click(screen.getByTestId("app/header/theme-toggle/trigger"));
       await user.click(
-        screen.getByRole("menuitemradio", { name: m.themeToggle_dark_label() }),
+        screen.getByRole("menuitemradio", {
+          name: m.themeToggle_option_darkLabel(),
+        }),
       );
       expect(document.documentElement.dataset.theme).toBe("dark");
       expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
       expect(
         screen.getByRole("button", {
-          name: m.themeToggle_ariaLabel({ theme: m.themeToggle_dark_label() }),
+          name: m.themeToggle_trigger_ariaLabel({
+            theme: m.themeToggle_option_darkLabel(),
+          }),
         }),
       ).toBeInTheDocument();
-      setThemeChoice("system");
     },
   );
 });

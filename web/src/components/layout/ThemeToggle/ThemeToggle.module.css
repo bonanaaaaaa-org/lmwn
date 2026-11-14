@@ -32,24 +32,25 @@
   }
 
   .ThemeToggle__Tooltip {
-    max-width: 15rem;
-    padding: var(--space-50) var(--space-100);
-    border-radius: var(--radius-100);
+    padding: var(--space-50) var(--space-150);
+    border-radius: var(--radius-200);
     background: var(--color-surface-inverse);
+    box-shadow: var(--shadow-tooltip);
     color: var(--color-text-inverse);
     font-size: var(--font-size-75);
-    line-height: var(--line-height-tight);
+    line-height: 1.6;
+    white-space: nowrap;
     pointer-events: none;
   }
 
   .ThemeToggle__Popover {
-    min-width: 10rem;
+    min-width: 12.5rem;
     padding: var(--space-50);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-300);
     background: var(--color-surface);
-    box-shadow: var(--shadow-200);
-    font-size: var(--font-size-100);
+    box-shadow: var(--shadow-popover);
+    font-size: var(--font-size-200);
   }
 
   .ThemeToggle__Menu {
@@ -62,7 +63,7 @@
   .ThemeToggle__Option {
     display: flex;
     align-items: center;
-    gap: var(--space-100);
+    gap: var(--space-150);
     height: var(--control-height);
     padding: 0 var(--space-150);
     border-radius: var(--radius-200);
@@ -90,5 +91,9 @@
 
   .ThemeToggle__OptionLabel {
     flex: 1 1 auto;
+  }
+
+  .ThemeToggle__Check {
+    color: var(--color-accent-text);
   }
 }

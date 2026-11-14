@@ -16,7 +16,9 @@ describe("ThemeToggle", () => {
       />,
     );
     const button = screen.getByRole("button", {
-      name: m.themeToggle_ariaLabel({ theme: m.themeToggle_dark_label() }),
+      name: m.themeToggle_trigger_ariaLabel({
+        theme: m.themeToggle_option_darkLabel(),
+      }),
     });
     expect(button).toBe(screen.getByTestId("app/header/theme-toggle/trigger"));
     expect(screen.getByTestId("app/header/theme-toggle")).toContainElement(
@@ -39,7 +41,9 @@ describe("ThemeToggle", () => {
     await user.click(screen.getByTestId("app/header/theme-toggle/trigger"));
     // React Aria names the menu after its trigger.
     const menu = screen.getByRole("menu", {
-      name: m.themeToggle_ariaLabel({ theme: m.themeToggle_system_label() }),
+      name: m.themeToggle_trigger_ariaLabel({
+        theme: m.themeToggle_option_systemLabel(),
+      }),
     });
     expect(menu).toBe(screen.getByTestId("app/header/theme-toggle/menu"));
     const items = screen.getAllByRole("menuitemradio");
@@ -47,14 +51,16 @@ describe("ThemeToggle", () => {
       items,
     );
     expect(items.map((item) => item.textContent)).toEqual([
-      m.themeToggle_system_label(),
-      m.themeToggle_light_label(),
-      m.themeToggle_dark_label(),
+      m.themeToggle_option_systemLabel(),
+      m.themeToggle_option_lightLabel(),
+      m.themeToggle_option_darkLabel(),
     ]);
     expect(items[0]).toHaveAttribute("aria-checked", "true");
 
     await user.click(
-      screen.getByRole("menuitemradio", { name: m.themeToggle_dark_label() }),
+      screen.getByRole("menuitemradio", {
+        name: m.themeToggle_option_darkLabel(),
+      }),
     );
     expect(onChange).toHaveBeenCalledWith("dark");
   });

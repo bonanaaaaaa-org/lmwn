@@ -64,9 +64,14 @@ export function applyTheme(
   }
 }
 
-/** The head script: applies the saved choice before the body paints. A few hundred bytes. */
+/**
+ * The head script: applies the saved choice before the body paints. The server build keeps the
+ * function's indentation, so runs of whitespace are collapsed (the function has no template
+ * literals or whitespace-sensitive regexes), which keeps it under 700 bytes.
+ */
 export function themeScript(): string {
-  return `(function(){var c;try{c=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch(e){}(${applyTheme.toString()})(c,${JSON.stringify(THEME_COLORS)})})();`;
+  const apply = applyTheme.toString().replace(/\s+/g, " ");
+  return `(function(){var c;try{c=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch(e){}(${apply})(c,${JSON.stringify(THEME_COLORS)})})();`;
 }
 
 function parseChoice(value: string | null | undefined): ThemeChoice {
@@ -105,12 +110,18 @@ export function setThemeChoice(choice: ThemeChoice): void {
  * `globals.css`). Otherwise text colours flip at once while backgrounds fade, and a chip shows
  * light text on a light fill for a moment.
  */
+let pendingSwitches = 0;
+
 function switchWithoutTransitions(change: () => void): void {
   const root = document.documentElement;
   root.dataset.themeSwitching = "";
+  pendingSwitches += 1;
   change();
   requestAnimationFrame(() =>
-    requestAnimationFrame(() => delete root.dataset.themeSwitching),
+    requestAnimationFrame(() => {
+      pendingSwitches -= 1;
+      if (pendingSwitches === 0) delete root.dataset.themeSwitching;
+    }),
   );
 }
 

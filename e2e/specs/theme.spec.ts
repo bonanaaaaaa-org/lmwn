@@ -43,9 +43,9 @@ const THEME_COLOR: Record<Theme, string> = {
 };
 
 const LABEL: Record<Choice, string> = {
-  system: message("themeToggle_system_label"),
-  light: message("themeToggle_light_label"),
-  dark: message("themeToggle_dark_label"),
+  system: message("themeToggle_option_systemLabel"),
+  light: message("themeToggle_option_lightLabel"),
+  dark: message("themeToggle_option_darkLabel"),
 };
 
 function isPhone(testInfo: TestInfo): boolean {
@@ -66,7 +66,9 @@ async function screenshot(
 const themeToggle = (page: Page, current?: Choice) =>
   current
     ? page.getByRole("button", {
-        name: format("themeToggle_ariaLabel", { theme: LABEL[current] }),
+        name: format("themeToggle_trigger_ariaLabel", {
+          theme: LABEL[current],
+        }),
         exact: true,
       })
     : page.getByTestId("app/header/theme-toggle/trigger");
@@ -514,4 +516,46 @@ test.describe("Theme - Accessibility in dark mode", () => {
 
     await expectNoAxeViolations(page);
   });
+});
+
+test.describe("Theme - Narrow phones", () => {
+  // The toggle adds a 48px target to both phone headers; they must stay one 56px row with the
+  // whole brand visible on the narrowest phones too.
+  for (const width of [320, 360]) {
+    test(`both phone headers stay one row at ${width}px`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(!isPhone(testInfo), "Phone header layouts only");
+      await page.setViewportSize({ width, height: 720 });
+      for (const path of ["/", GUIDE_PATH]) {
+        await page.goto(path);
+        const header = page.getByTestId("app/header");
+        const brand = page.getByTestId("app/header/logo");
+        const trigger = page.getByTestId("app/header/theme-toggle/trigger");
+        await expect(trigger).toBeVisible();
+        await expect(brand).toBeVisible();
+        const box = async (locator: Locator) => {
+          const value = await locator.boundingBox();
+          if (!value) throw new Error("no bounding box");
+          return value;
+        };
+        const headerBox = await box(header);
+        const brandBox = await box(brand);
+        const triggerBox = await box(trigger);
+        expect(headerBox.height).toBeLessThanOrEqual(57);
+        expect(brandBox.x + brandBox.width).toBeLessThanOrEqual(
+          triggerBox.x + 0.5,
+        );
+        const truncated = await brand
+          .locator("span")
+          .evaluate((span) => span.scrollWidth > span.clientWidth);
+        expect(truncated, `brand truncated on ${path}`).toBe(false);
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBe(true);
+      }
+    });
+  }
 });
