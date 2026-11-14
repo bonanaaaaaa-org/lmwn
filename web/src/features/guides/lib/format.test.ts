@@ -3,6 +3,7 @@ import {
   formatRating,
   formatThaiDate,
   photoAlt,
+  photoRatio,
   photoSources,
   toIsoDate,
 } from "./format";
@@ -69,5 +70,18 @@ describe("photoSources", () => {
         (source) => source.width,
       ),
     ).toEqual([480, 1080]);
+  });
+});
+
+describe("photoRatio", () => {
+  it("reads width over height from the image server URL", () => {
+    expect(photoRatio("http://localhost:7777/r/1080/1920/a.jpg")).toBe(0.5625);
+    expect(photoRatio("http://localhost:7777/r/1080/1350/a.jpg")).toBe(0.8);
+  });
+
+  it("falls back to a 9:16 portrait for other or empty URLs", () => {
+    expect(photoRatio("b.jpg")).toBe(0.5625);
+    expect(photoRatio("")).toBe(0.5625);
+    expect(photoRatio("http://localhost:7777/r/0/0/a.jpg")).toBe(0.5625);
   });
 });

@@ -10,14 +10,16 @@ import styles from "./Button.module.css";
 
 /**
  * `primary` saffron fill · `secondary` white with a strong edge · `ghost` white with a light
- * edge (contact links) · `inverse` ink fill (the phone call action) · `text` a gold text link.
+ * edge (contact links) · `inverse` ink fill (the phone call action) · `text` a gold text link ·
+ * `overlay` a round, translucent white control on dark surfaces (the lightbox).
  */
 export type ButtonVariant =
   | "primary"
   | "secondary"
   | "ghost"
   | "inverse"
-  | "text";
+  | "text"
+  | "overlay";
 /** `default` is 48px tall, `compact` 40px. */
 export type ButtonSize = "default" | "compact";
 

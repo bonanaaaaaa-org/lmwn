@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { makePhoto } from "@/features/guides/lib/fixtures";
 
@@ -91,5 +92,63 @@ describe("PhotoStrip", () => {
     expect(screen.getAllByRole("img")).toHaveLength(2);
     expect(consoleError).not.toHaveBeenCalled();
     consoleError.mockRestore();
+  });
+
+  it("opens the lightbox on the photo pressed, with the large image and the same alt text", async () => {
+    const user = userEvent.setup();
+    render(
+      <PhotoStrip
+        photos={[1, 2, 3, 4].map((n) =>
+          makePhoto(n, {
+            smallUrl: `http://localhost:7777/r/480/854/${n}.jpg`,
+            largeUrl: `http://localhost:7777/r/1080/1920/${n}.jpg`,
+          }),
+        )}
+        restaurantName="ONIBUS COFFEE"
+        parentTestId="guide/restaurant-card"
+        lightboxParentTestId="guide"
+      />,
+    );
+
+    const photos = screen.getAllByTestId(
+      "guide/restaurant-card/photo-strip/photo",
+    );
+    expect(photos[2]).toHaveAccessibleName("รูปที่ 3 จาก 4 ของ ONIBUS COFFEE");
+    await user.click(photos[2] as HTMLElement);
+
+    const dialog = screen.getByRole("dialog", {
+      name: "ONIBUS COFFEE · รูปที่ 3 จาก 4",
+    });
+    expect(dialog).toHaveAttribute("data-testid", "guide/lightbox");
+    expect(
+      within(dialog).getByRole("img", {
+        name: "รูปที่ 3 จาก 4 ของ ONIBUS COFFEE",
+      }),
+    ).toHaveAttribute("src", "http://localhost:7777/r/1080/1920/3.jpg");
+  });
+
+  it("returns focus to the photo that opened the lightbox when it closes", async () => {
+    const user = userEvent.setup();
+    render(
+      <PhotoStrip
+        photos={[1, 2, 3].map((n) => makePhoto(n))}
+        restaurantName="RISE"
+        parentTestId="card"
+      />,
+    );
+
+    await user.tab();
+    await user.tab();
+    const second = screen.getAllByTestId("card/photo-strip/photo")[1];
+    expect(second).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    // Moving to another photo doesn't change where focus goes back to.
+    await user.keyboard("{ArrowRight}");
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // React Aria restores focus on the next frame.
+    await waitFor(() => expect(second).toHaveFocus());
   });
 });

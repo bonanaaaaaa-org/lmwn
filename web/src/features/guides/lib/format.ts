@@ -62,7 +62,7 @@ export function photoAlt(
 }
 
 // The image server's URLs carry the rendered size: /r/{width}/{height}/{file}.
-const SIZE_IN_URL = /\/r\/(\d+)\/\d+\//;
+const SIZE_IN_URL = /\/r\/(\d+)\/(\d+)\//;
 const FALLBACK_WIDTH = { small: 480, large: 1080 } as const;
 
 function widthOf(url: string, fallback: number): number {
@@ -82,4 +82,15 @@ export function photoSources(photo: Photo): ImageSource[] {
       width: widthOf(photo.largeUrl, FALLBACK_WIDTH.large),
     },
   ];
+}
+
+/** The image server renders Guide Item photos as 9:16 portraits. */
+const FALLBACK_PHOTO_RATIO = 9 / 16;
+
+/** A photo's width-to-height ratio, read from its image server URL: /r/1080/1920/… → 0.5625. */
+export function photoRatio(url: string): number {
+  const match = SIZE_IN_URL.exec(url);
+  const width = Number(match?.[1]);
+  const height = Number(match?.[2]);
+  return width > 0 && height > 0 ? width / height : FALLBACK_PHOTO_RATIO;
 }

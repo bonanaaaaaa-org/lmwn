@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, within } from "storybook/test";
 
 import { makePhoto } from "@/features/guides/lib/fixtures";
 
@@ -13,6 +14,7 @@ const meta = {
     restaurantName: "ONIBUS COFFEE",
     layout: "desktop",
     parentTestId: "guide/restaurant-card",
+    lightboxParentTestId: "guide",
   },
   decorators: [
     (Story) => (
@@ -47,3 +49,16 @@ export const MissingPhoto: Story = {
   },
 };
 export const SinglePhoto: Story = { args: { photos: [makePhoto(1)] } };
+
+/** Each photo is a button: pressing one opens the lightbox on it. */
+export const OpensLightbox: Story = {
+  play: async ({ canvas, canvasElement }) => {
+    await userEvent.click(
+      canvas.getByRole("button", { name: "รูปที่ 2 จาก 5 ของ ONIBUS COFFEE" }),
+    );
+    const body = within(canvasElement.ownerDocument.body);
+    await expect(
+      await body.findByRole("dialog", { name: "ONIBUS COFFEE · รูปที่ 2 จาก 5" }),
+    ).toBeInTheDocument();
+  },
+};
