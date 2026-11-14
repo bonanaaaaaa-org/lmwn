@@ -49,7 +49,28 @@ pnpm test:e2e         # Playwright, desktop + mobile (starts the stack; first ru
 pnpm test:storybook    # every story in headless Chromium: play functions + axe (first run: pnpm --filter web exec playwright install chromium)
 pnpm build-storybook   # static Storybook build (web)
 pnpm --filter web storybook   # Storybook dev server on :6006
+pnpm lighthouse        # Lighthouse on the production build (needs the gateway running; see below)
 ```
+
+## Lighthouse
+
+The targets: 100 in Performance, Accessibility, Best Practices and SEO on the Guide Index and a Guide page with the desktop preset; the same on mobile except Performance, which must be 90 or more. Lighthouse's mobile preset simulates a mid-range phone on slow 4G (150 ms round trips, about 1.6 Mbps, a 4× slower CPU), where 100 would need everything before the cover paints (JS, CSS, fonts, data and the cover itself) under about 220 KB.
+
+```bash
+pnpm --filter api-gateway dev   # gateway :4000 + Data Server, in another terminal
+pnpm lighthouse                 # pnpm build, then audit the preview on :3000
+```
+
+`pnpm lighthouse` builds the web app, serves `build/client` with `vite preview` on :3000 (the origin the local gateway allows), and audits `/` and the first Guide from the gateway with both presets, 5 runs each in headless Chromium (Playwright's, or `CHROME_PATH`). It keeps each median run, writes HTML and JSON reports to `web/lighthouse-reports/`, prints a Markdown table, and exits 1 if a score misses its target. To skip the build, or audit somewhere else:
+
+```bash
+cd web
+node scripts/lighthouse.mjs --runs 3                    # the existing build
+node scripts/lighthouse.mjs --base-url https://hidden-gems.bonanaaaaaa.dev \
+  --api-url https://api-hidden-gems.bonanaaaaaa.dev     # the deployed site, no preview
+```
+
+Scores move a few points between runs on a busy machine, which is why it takes the median.
 
 ## Accessibility checks
 

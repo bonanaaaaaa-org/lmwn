@@ -20,6 +20,12 @@ export interface ResponsiveImageProps {
   sizes?: string;
   /** For the above-the-fold hero (LCP): load eagerly at high priority instead of lazily. */
   priority?: boolean;
+  /**
+   * Hold the box (and the alt text) without requesting the image yet; the caller clears it
+   * once the image is near the viewport. Keeps below-the-fold photos from competing with
+   * the hero for bandwidth.
+   */
+  deferred?: boolean;
   className?: string;
 }
 
@@ -38,6 +44,7 @@ export function ResponsiveImage({
   aspectRatio,
   sizes = "100vw",
   priority = false,
+  deferred = false,
   className,
 }: ResponsiveImageProps) {
   const usable = sources.filter(({ url }) => url.trim() !== "");
@@ -46,6 +53,20 @@ export function ResponsiveImage({
   const [failedSrcSet, setFailedSrcSet] = useState<string | null>(null);
   const showPlaceholder = usable.length === 0 || failedSrcSet === srcSet;
   const style = { "--image-aspect-ratio": aspectRatio } as CSSProperties;
+  const name = alt
+    ? ({ role: "img", "aria-label": alt } as const)
+    : ({ "aria-hidden": true } as const);
+
+  if (deferred && !showPlaceholder) {
+    return (
+      <span
+        className={clsx(styles.ResponsiveImage__Root, className)}
+        style={style}
+        data-state="deferred"
+        {...name}
+      />
+    );
+  }
 
   if (showPlaceholder) {
     return (
@@ -53,9 +74,7 @@ export function ResponsiveImage({
         className={clsx(styles.ResponsiveImage__Root, className)}
         style={style}
         data-state="placeholder"
-        {...(alt
-          ? { role: "img", "aria-label": alt }
-          : { "aria-hidden": true })}
+        {...name}
       >
         <svg
           className={styles.ResponsiveImage__Icon}

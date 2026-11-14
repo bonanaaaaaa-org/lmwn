@@ -55,6 +55,24 @@
     font-weight: var(--font-weight-semibold);
   }
 
+  /* Same height as one row of FilterTags, including the phone row's scroll padding. */
+  .GuideIndexView__TagSkeletonRow {
+    display: flex;
+    gap: var(--space-100);
+    box-sizing: content-box;
+    height: var(--control-height-compact);
+    overflow: hidden;
+
+    &[data-layout="phone"] {
+      padding-block: var(--space-50);
+    }
+  }
+
+  .GuideIndexView__TagSkeletonRow .GuideIndexView__TagSkeleton {
+    flex: none;
+    border-radius: var(--radius-pill);
+  }
+
   .GuideIndexView__Results {
     display: flex;
     flex-direction: column;

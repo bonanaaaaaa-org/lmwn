@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { m } from "@/paraglide/messages.js";
@@ -51,6 +51,91 @@ describe("PhotoStrip", () => {
     expect(
       screen.getByTestId("guide/restaurant-card/photo-strip"),
     ).toContainElement(strip);
+  });
+
+  it("offers phones the small photo only", () => {
+    render(
+      <PhotoStrip
+        photos={[
+          makePhoto(1, {
+            smallUrl: "http://localhost:7777/r/480/854/a.jpg",
+            largeUrl: "http://localhost:7777/r/1080/1920/a.jpg",
+          }),
+        ]}
+        restaurantName="ONIBUS COFFEE"
+        layout="phone"
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", {
+        name: m.restaurantCard_photoStrip_photo_alt({
+          position: 1,
+          total: 1,
+          restaurant: "ONIBUS COFFEE",
+        }),
+      }),
+    ).toHaveAttribute("srcset", "http://localhost:7777/r/480/854/a.jpg 480w");
+  });
+
+  it("falls back to the large photo on phones when the small one is missing", () => {
+    const { container } = render(
+      <PhotoStrip
+        photos={[
+          makePhoto(1, {
+            smallUrl: "",
+            largeUrl: "http://localhost:7777/r/1080/1920/a.jpg",
+          }),
+        ]}
+        layout="phone"
+      />,
+    );
+    expect(container.querySelector("img")).toHaveAttribute(
+      "srcset",
+      "http://localhost:7777/r/1080/1920/a.jpg 1080w",
+    );
+  });
+
+  it("holds its photos, still named, until the strip nears the viewport", () => {
+    let report: IntersectionObserverCallback = () => {};
+    const observe = vi.fn();
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          report = callback;
+        }
+        observe = observe;
+        disconnect = vi.fn();
+      },
+    );
+    try {
+      const { container } = render(
+        <PhotoStrip photos={[makePhoto(1)]} restaurantName="ONIBUS COFFEE" />,
+      );
+      const name = m.restaurantCard_photoStrip_photo_alt({
+        position: 1,
+        total: 1,
+        restaurant: "ONIBUS COFFEE",
+      });
+      expect(screen.getByRole("img", { name })).toHaveAttribute(
+        "data-state",
+        "deferred",
+      );
+      expect(container.querySelector("img")).toBeNull();
+      expect(observe).toHaveBeenCalled();
+
+      act(() =>
+        report(
+          [{ isIntersecting: true } as IntersectionObserverEntry],
+          {} as IntersectionObserver,
+        ),
+      );
+
+      expect(container.querySelector("img")).toHaveAttribute("src");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("keeps a missing photo's box as a described placeholder", () => {

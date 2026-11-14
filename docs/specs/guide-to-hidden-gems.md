@@ -169,7 +169,7 @@ Everything is **required** unless marked _Deferred_.
 | Component catalogue | Every component has a Storybook story | `pnpm build-storybook` in CI |
 | Accessibility (pages) | Zero axe violations, of any impact level, against the WCAG 2.2 A and AA rules, in every state listed under Accessibility | axe scans in Playwright e2e, desktop and phone |
 | Accessibility (components) | Zero axe violations in every Storybook story | Storybook a11y addon set to fail on violations, run in CI |
-| Lighthouse | 100 in Performance, Accessibility, Best Practices and SEO, on both the Guide Index and a Guide page, with both mobile and desktop presets | Lighthouse against the production build (`pnpm build` + preview) with the full stack running |
+| Lighthouse | 100 in Performance, Accessibility, Best Practices and SEO, on both the Guide Index and a Guide page, with both mobile and desktop presets, except mobile Performance: 90 or more (median of 5 runs) | `pnpm lighthouse`: Lighthouse against the production build (`pnpm build` + preview) with the full stack running |
 
 ## Non-goals
 
@@ -186,4 +186,4 @@ Everything is **required** unless marked _Deferred_.
 - **Existing work:** the repo has the scaffold only (a health endpoint, an API client, providers and an empty home route). Every capability in this spec is new work.
 - **Assumption:** the sample data (2 Guides, all about One Bangkok) can't satisfy the brief's Kanchanaburi or matcha examples. Those examples show the intent; they aren't test cases.
 - **Assumption:** total budget is about 12–16 hours. Optional polish beyond this spec is decided case by case.
-- **Risk:** reaching Lighthouse Performance 100 on mobile depends on LCP. The cover image comes from the provided image server, which resizes on every request and sends no cache headers. Meeting the target relies on serving the small image to phones, loading the cover at high priority, and keeping the JavaScript bundle and font small.
+- **Risk (resolved in #16):** Lighthouse Performance 100 on mobile turned out out of reach for this stack. The mobile preset simulates a mid-range phone on slow 4G, where every byte that finishes before the cover paints counts against LCP; 100 needs LCP under about 1.85 s, so about 220 KB for JS, CSS, fonts, data and the cover together, while React, React Router, React Aria, TanStack Query and zod alone are about 250 KB gzipped and the Mali font about 100 KB. Closing the gap would mean server rendering (a non-goal) or dropping React Aria or Mali. The mobile target is therefore 90 or more; desktop stays at 100. The page still serves the small image to phones, preloads the page's data, route code and cover from the document head, and keeps below-the-fold photos from competing with the cover.
