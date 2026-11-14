@@ -13,6 +13,7 @@
     "test": "turbo run test test:scripts",
     "test:scripts": "node --test scripts/",
     "build-storybook": "turbo run build-storybook",
+    "test:storybook": "turbo run test:storybook",
     "test:e2e": "turbo run test:e2e"
   },
   "engines": {

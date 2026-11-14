@@ -100,7 +100,7 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 
 ## CI/CD Conventions
 
-- Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose. `ci.yml` (job **Verify**) runs format check, lint, type-check, test and build through turbo on every PR, push to main and by hand
+- Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose. `ci.yml` (job **Verify**) runs format check, lint, type-check, test, build, `build-storybook` and `test:storybook` (story tests with axe, after installing Playwright Chromium) through turbo; job **E2E** runs Playwright with axe page scans on every PR, push to main and by hand
 - `pr-title.yml` requires Conventional Commit PR titles (`<type>(scope)!: description`; types feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert) via `.github/actions/pr-title` → `scripts/validate-pr-title.mjs`, whose `node:test` suite runs as the root turbo task `//#test:scripts` inside `pnpm test`
 - `actionlint.yml` lints workflow and composite-action files on PRs that touch them; run it locally with `uvx --from actionlint-py actionlint`
 - `auto-assign.yml` assigns new issues and PRs to the maintainer when nobody is assigned; it uses `pull_request_target` so fork PRs work too, and must never check out or run PR code
