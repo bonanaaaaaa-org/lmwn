@@ -156,6 +156,7 @@ export function GuideIndexPage() {
       filters={filters}
       results={results}
       tags={tagUniverse(all.data, filters.tags)}
+      tagsLoading={all.isPending}
       searchText={searchText}
       isSearchTooLong={isSearchTooLong}
       onSearchTextChange={(text) => {

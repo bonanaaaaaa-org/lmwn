@@ -33,6 +33,37 @@ function renderView(props: Partial<GuideIndexViewProps> = {}) {
 }
 
 describe("GuideIndexView", () => {
+  it("holds the Tag filter's place while the Tags load, hidden from assistive tech", () => {
+    renderView({ results: { status: "loading" }, tags: [], tagsLoading: true });
+    const placeholder = screen.getByText(m.guideIndex_tagFilter_title());
+    expect(placeholder.closest("[aria-hidden='true']")).not.toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: m.guideIndex_tagFilter_title() }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("holds the place on a first load with a Tag in the URL, until every Tag arrives", () => {
+    renderView({
+      filters: { q: "", tags: [t.coffee] },
+      results: { status: "loading" },
+      tags: [t.coffee],
+      tagsLoading: true,
+    });
+    expect(
+      screen.queryByRole("heading", { name: m.guideIndex_tagFilter_title() }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(m.guideIndex_tagFilter_title()),
+    ).toBeInTheDocument();
+  });
+
+  it("drops the placeholder once the Tags have loaded", () => {
+    renderView({ tagsLoading: false });
+    expect(
+      screen.getByRole("heading", { name: m.guideIndex_tagFilter_title() }),
+    ).toBeInTheDocument();
+  });
+
   it("offers clear all only when a search or Tag is applied", () => {
     renderView();
     expect(

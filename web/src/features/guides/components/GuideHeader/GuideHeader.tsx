@@ -6,6 +6,7 @@ import { TagLink } from "@/components/common/TagLink";
 import { HeaderSlotPortal } from "@/components/layout/Header";
 import { photoSources } from "@/features/guides/lib/photos";
 import type { Guide } from "@/features/guides/lib/types";
+import { GUIDE_COVER_SIZES } from "@/lib/coverSizes";
 import { formatDate, toIsoDate } from "@/lib/format";
 import type { ShareTarget } from "@/hooks/useShare";
 import { joinTestId } from "@/lib/testIds";
@@ -63,7 +64,7 @@ export function GuideHeader({
         sources={photoSources(guide.coverPhoto)}
         alt={guide.title}
         aspectRatio={layout === "desktop" ? "21 / 9" : "4 / 3"}
-        sizes="(min-width: 75rem) 70rem, 100vw"
+        sizes={GUIDE_COVER_SIZES}
         priority
       />
       <div className={styles.GuideHeader__Intro}>

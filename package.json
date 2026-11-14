@@ -15,6 +15,7 @@
     "build-storybook": "turbo run build-storybook",
     "test:storybook": "turbo run test:storybook",
     "test:e2e": "turbo run test:e2e",
+    "lighthouse": "pnpm --filter web lighthouse",
     "allure": "allure generate --clean --open"
   },
   "engines": {

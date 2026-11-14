@@ -100,7 +100,7 @@ test.describe("Guide - Default", () => {
   test("each card has a call link, a Wongnai link and lazily loaded, named photos", async ({
     page,
     request,
-  }) => {
+  }, testInfo) => {
     const guide = await fetchGuide(request, CAFE_GUIDE_ID);
     await page.goto(`/guides/${CAFE_GUIDE_ID}`);
 
@@ -128,24 +128,32 @@ test.describe("Guide - Default", () => {
         restaurant: name,
       }),
     });
-    await expect(firstPhoto).toHaveAttribute("srcset", /\d+w, .+\d+w/);
-
-    // The last card is far below the fold on both layouts: its photos wait to be scrolled to.
-    const lastPhotos = cards(page)
-      .last()
-      .getByTestId("guide/restaurant-card/photo-strip")
-      .getByRole("img");
-    await expect(lastPhotos.first()).toBeAttached();
-    expect(
-      await lastPhotos.evaluateAll((images) =>
-        images.map((image) => image.getAttribute("loading")),
-      ),
-    ).toEqual(
-      Array.from(
-        { length: guide.items.at(-1)?.photos.length ?? 0 },
-        () => "lazy",
-      ),
+    // A strip requests its photos once it nears the viewport.
+    await firstPhoto.scrollIntoViewIfNeeded();
+    // Phones get the small photo only; desktop offers small and large.
+    await expect(firstPhoto).toHaveAttribute(
+      "srcset",
+      isPhone(testInfo) ? /^\S+ \d+w$/ : /\d+w, .+\d+w/,
     );
+
+    // The last card is far below the fold on both layouts: its photos keep their box and
+    // name but aren't requested until the strip is scrolled near, then load lazily.
+    const lastStrip = cards(page)
+      .last()
+      .getByTestId("guide/restaurant-card/photo-strip");
+    const lastPhotos = lastStrip.getByRole("img");
+    const lastCount = guide.items.at(-1)?.photos.length ?? 0;
+    await expect(lastPhotos).toHaveCount(lastCount);
+    await expect(lastStrip.locator("img")).toHaveCount(0);
+    await lastStrip.scrollIntoViewIfNeeded();
+    await expect(lastStrip.locator("img")).toHaveCount(lastCount);
+    expect(
+      await lastStrip
+        .locator("img")
+        .evaluateAll((images) =>
+          images.map((image) => image.getAttribute("loading")),
+        ),
+    ).toEqual(Array.from({ length: lastCount }, () => "lazy"));
   });
 
   test("the photo strip snaps, showing ~3 photos on desktop and ~1 plus a peek on a phone", async ({

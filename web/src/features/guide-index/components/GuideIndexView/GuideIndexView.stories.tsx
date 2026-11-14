@@ -80,8 +80,10 @@ export const TagSelected: Story = {
   },
 };
 
-/** First load: skeleton cards, announced once. */
-export const Loading: Story = { args: { results: { status: "loading" } } };
+/** First load: skeleton cards, announced once, and a placeholder row where the Tags will be. */
+export const Loading: Story = {
+  args: { results: { status: "loading" }, tags: [], tagsLoading: true },
+};
 
 /** A newer search is loading: the previous cards stay, dimmed and `aria-busy`. */
 export const Updating: Story = {

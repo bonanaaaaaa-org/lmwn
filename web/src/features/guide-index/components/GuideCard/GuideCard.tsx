@@ -9,6 +9,7 @@ import {
   TagLink,
   tagHref as defaultTagHref,
 } from "@/components/common/TagLink";
+import { GUIDE_CARD_SIZES } from "@/lib/coverSizes";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
 
@@ -25,13 +26,6 @@ export interface GuideCardGuide {
   /** The Guide's page. */
   href: string;
 }
-
-/**
- * How wide a cover renders in the Guide Index grid: one column on phones, two on tablets,
- * three (capped by the 75rem layout) from 64rem.
- */
-export const GUIDE_CARD_SIZES =
-  "(min-width: 64rem) 23rem, (min-width: 48rem) 50vw, 100vw";
 
 export interface GuideCardProps {
   guide: GuideCardGuide;
