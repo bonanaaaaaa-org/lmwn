@@ -127,7 +127,7 @@ export function PhotoStrip({
               <ResponsiveImage
                 className={styles.PhotoStrip__Photo}
                 sources={
-                  // Phones get the small photo only: at 78vw it is about 1.5x the box on a
+                  // Phones get one photo, the small one when it exists: at 78vw it is about 1.5x the box on a
                   // typical phone, and the large one is ~4x the bytes. The lightbox shows the large one.
                   layout === "phone"
                     ? photoSources(photo)
