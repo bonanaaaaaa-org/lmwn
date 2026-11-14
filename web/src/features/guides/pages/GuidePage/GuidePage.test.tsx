@@ -401,6 +401,57 @@ describe("GuidePage", () => {
       expect(names()).toEqual(["ONIBUS", "%"]);
     });
 
+    /** Moves the shared minute clock on: useNow re-reads the time when the tab is shown. */
+    const advanceClockTo = (date: Date) =>
+      act(() => {
+        vi.setSystemTime(date);
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+
+    it("drops a Restaurant from Open Now when it closes while the page is open", async () => {
+      const guide = makeGuide();
+      const kfc = guide.items[1]?.restaurant;
+      if (!kfc) throw new Error("fixture needs KFC");
+      kfc.workingHours = everyDay(480, 750); // 08:00–12:30
+      serveGuide(guide);
+      renderRoutedPage("?openNow=1");
+
+      await screen.findAllByTestId("guide/restaurant-card");
+      expect(names()).toEqual(["ONIBUS", "KFC", "%"]);
+
+      await advanceClockTo(new Date("2026-11-16T12:31:00+07:00"));
+
+      expect(names()).toEqual(["ONIBUS", "%"]);
+      expect(count(2)).toBeInTheDocument();
+    });
+
+    it("follows a shared #item- link once, not again on each minute tick", async () => {
+      const guide = makeGuide();
+      const target = guide.items[1];
+      if (!target) throw new Error("fixture needs 2 items");
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      // Blocked storage: the hook can't remember the link was followed.
+      const getItem = vi
+        .spyOn(Storage.prototype, "getItem")
+        .mockImplementation(() => {
+          throw new Error("blocked");
+        });
+      try {
+        serveGuide(guide);
+        renderRoutedPage(`#item-${target.id}`);
+        await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+
+        await advanceClockTo(new Date("2026-11-16T12:01:00+07:00"));
+        await advanceClockTo(new Date("2026-11-16T12:02:00+07:00"));
+
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      } finally {
+        getItem.mockRestore();
+        Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+      }
+    });
+
     it("offers to clear the filters when nothing matches, keeping the sort", async () => {
       const user = userEvent.setup();
       serveGuide();
@@ -415,7 +466,9 @@ describe("GuidePage", () => {
         }),
       ).toBeInTheDocument();
       expect(
-        within(empty).getByText(m.guide_emptyState_filteredMeta({ total: 4 })),
+        within(empty).getByText(
+          m.guideFilters_count_body({ shown: 0, total: 4 }),
+        ),
       ).toBeInTheDocument();
       expect(count(0)).toBeInTheDocument();
       expect(

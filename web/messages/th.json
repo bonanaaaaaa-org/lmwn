@@ -32,7 +32,6 @@
   "guide_emptyState_body": "บรรณาธิการยังไม่ได้เพิ่มร้านในไกด์นี้ ลองดูไกด์อื่นไปก่อน",
   "guide_emptyState_action_label": "ดูไกด์ทั้งหมด",
   "guide_emptyState_filteredTitle": "ไม่มีร้านที่ตรงกับตัวกรอง",
-  "guide_emptyState_filteredMeta": "0 จาก {total: number} ร้าน",
   "guide_emptyState_action_clearFiltersLabel": "ล้างตัวกรอง",
   "guide_notFound_title": "ไม่พบไกด์นี้",
   "guide_notFound_body": "ไกด์นี้อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง",

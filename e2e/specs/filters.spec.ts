@@ -461,7 +461,7 @@ test.describe("Filters - Empty state", () => {
     ).toBeVisible();
     await expect(
       emptyState(page).getByText(
-        format("guide_emptyState_filteredMeta", { total: TOTAL }),
+        format("guideFilters_count_body", { shown: 0, total: TOTAL }),
       ),
     ).toBeVisible();
     await expectCount(page, 0);

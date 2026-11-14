@@ -69,7 +69,6 @@ interface FormatParams {
   restaurantCard_share_copiedBody: { restaurant: string };
   lightbox_counter_body: { position: number; total: number };
   guideFilters_count_body: { shown: number; total: number };
-  guide_emptyState_filteredMeta: { total: number };
 }
 
 const catalog = JSON.parse(

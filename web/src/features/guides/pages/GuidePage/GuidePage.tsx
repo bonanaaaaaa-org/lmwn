@@ -82,7 +82,13 @@ function useRestaurantFilters(guide: Guide) {
 function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
   const { categories, filters, placed, setFilters } =
     useRestaurantFilters(guide);
-  const shownIds = useMemo(() => placed.map(({ item }) => item.id), [placed]);
+  // `placed` is recomputed every minute (Open Now); the share-link hook reruns on a new
+  // array, so keep the IDs the same array until the cards shown actually change.
+  const shownKey = placed.map(({ item }) => item.id).join("\n");
+  const shownIds = useMemo(
+    () => (shownKey ? shownKey.split("\n") : []),
+    [shownKey],
+  );
   // A shared `#item-{guideItemId}` link scrolls to its card once the cards are on screen.
   const highlightedId = useGuideItemHashTarget(shownIds);
   const total = guide.items.length;
@@ -104,7 +110,7 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
     items = (
       <EmptyState
         icon={false}
-        meta={m.guide_emptyState_filteredMeta({ total })}
+        meta={m.guideFilters_count_body({ shown: 0, total })}
         title={m.guide_emptyState_filteredTitle()}
         actionLabel={m.guide_emptyState_action_clearFiltersLabel()}
         actionVariant="primary"
