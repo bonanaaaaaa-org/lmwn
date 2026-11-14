@@ -134,6 +134,45 @@ test.describe("Share - shared #item- link", () => {
     await expect(page.locator("[data-highlighted]")).toHaveCount(0);
   });
 
+  // Every full page load starts on the same history key, so this once looked "already
+  // followed" and stayed at the top.
+  test("opening the same shared link again in the same tab scrolls to the card again", async ({
+    page,
+    request,
+  }) => {
+    const item = lateItem(await fetchGuide(request));
+    await openGuide(page, `#item-${item.id}`);
+    const card = page.locator(`#item-${item.id}`);
+    await expect(card).toBeInViewport();
+
+    await page.goto("about:blank");
+    await openGuide(page, `#item-${item.id}`);
+
+    await expect(card).toBeInViewport();
+    await expect(card).toHaveAttribute("data-highlighted");
+  });
+
+  test("reloading keeps the diner's place instead of jumping to the card again", async ({
+    page,
+    request,
+  }) => {
+    const item = lateItem(await fetchGuide(request));
+    await openGuide(page, `#item-${item.id}`);
+    const card = page.locator(`#item-${item.id}`);
+    await expect(card).toBeInViewport();
+    await expect(card).not.toHaveAttribute("data-highlighted", {
+      timeout: 5_000,
+    });
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.reload();
+
+    await expect(cards(page).first()).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1_000);
+    await expect(card).not.toBeInViewport();
+    await expect(page.locator("[data-highlighted]")).toHaveCount(0);
+  });
+
   test("an unknown #item- opens the Guide normally, at the top", async ({
     page,
   }) => {

@@ -2,6 +2,8 @@ import { act, render } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router";
 
 import {
+  FOLLOWED_KEY,
+  forgetLinksFollowedInEarlierPageLoads,
   HIGHLIGHT_MS,
   REDUCED_MOTION_QUERY,
   useGuideItemHashTarget,
@@ -67,6 +69,7 @@ function renderAt(initialEntry: string, initialIds?: readonly string[]) {
       ids = next;
       view.rerender(ui());
     },
+    unmount: view.unmount,
   };
 }
 
@@ -142,6 +145,54 @@ describe("useGuideItemHashTarget", () => {
 
     expect(scrolls.get("a")).toHaveBeenCalledTimes(1);
     expect(view.result.current).toBeUndefined();
+  });
+
+  // A full page load always starts on React Router's "default" key, so the followed entry
+  // from an earlier load of the same link looks identical to this one.
+  describe("on a new page load in the same tab", () => {
+    function followInEarlierLoad() {
+      const earlier = addCards(IDS);
+      const view = renderAt("/guides/g1#item-a", IDS);
+      expect(earlier.get("a")).toHaveBeenCalledTimes(1);
+      view.unmount();
+      document.body.replaceChildren();
+    }
+
+    it("follows the same share link again when it is opened again", () => {
+      followInEarlierLoad();
+
+      forgetLinksFollowedInEarlierPageLoads("navigate");
+      const scrolls = addCards(IDS);
+      const view = renderAt("/guides/g1#item-a", IDS);
+
+      expect(scrolls.get("a")).toHaveBeenCalledTimes(1);
+      expect(view.result.current).toBe("a");
+    });
+
+    it.each(["reload", "back_forward"] as const)(
+      "doesn't jump to the card again on %s",
+      (type) => {
+        followInEarlierLoad();
+
+        forgetLinksFollowedInEarlierPageLoads(type);
+        const scrolls = addCards(IDS);
+        renderAt("/guides/g1#item-a", IDS);
+
+        expect(scrolls.get("a")).not.toHaveBeenCalled();
+      },
+    );
+
+    it("keeps links followed in other history entries", () => {
+      const scrolls = addCards(IDS);
+      const view = renderAt("/guides/g1", IDS);
+      view.navigate("/guides/g1#item-c");
+      expect(scrolls.get("c")).toHaveBeenCalledTimes(1);
+      const stored = window.sessionStorage.getItem(FOLLOWED_KEY);
+
+      forgetLinksFollowedInEarlierPageLoads("navigate");
+
+      expect(window.sessionStorage.getItem(FOLLOWED_KEY)).toBe(stored);
+    });
   });
 
   it("follows a new share link opened on the same page", () => {
