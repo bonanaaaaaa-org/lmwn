@@ -9,7 +9,7 @@ export const HIGHLIGHT_MS = 2400;
 
 export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-const FOLLOWED_KEY = "gems:followed-item-links";
+export const FOLLOWED_KEY = "gems:followed-item-links";
 const MAX_FOLLOWED = 50;
 
 /**
@@ -33,15 +33,52 @@ const followedLinks = {
   has(entry: string): boolean {
     return this.read().includes(entry);
   },
-  add(entry: string): void {
+  write(entries: readonly string[]): void {
     try {
-      const entries = [...this.read(), entry].slice(-MAX_FOLLOWED);
       window.sessionStorage.setItem(FOLLOWED_KEY, JSON.stringify(entries));
     } catch {
       // Storage unavailable (private mode, quota): following again on Back is harmless.
     }
   },
+  add(entry: string): void {
+    this.write([...this.read(), entry].slice(-MAX_FOLLOWED));
+  },
 };
+
+/** The first history entry of a page load; React Router gives it this key on every load. */
+const FIRST_ENTRY_KEY = "default";
+
+/** How the browser reached this page: a link opened or pasted, a reload, or Back/Forward. */
+function pageLoadType(): NavigationTimingType | undefined {
+  try {
+    const [entry] = performance.getEntriesByType(
+      "navigation",
+    ) as PerformanceNavigationTiming[];
+    return entry?.type;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Every full page load starts on the same history key, so an entry recorded on an earlier
+ * load of the same share link would look already followed, and opening that link again in
+ * the tab wouldn't scroll. On a fresh `navigate` load (a link opened or pasted) those entries
+ * are from earlier pages: forget them. A reload or Back/Forward keeps them, so it still lands
+ * where the diner left off. Entries for other history keys are left alone.
+ */
+export function forgetLinksFollowedInEarlierPageLoads(
+  type: NavigationTimingType | undefined = pageLoadType(),
+): void {
+  if (type !== "navigate") return;
+  const entries = followedLinks.read();
+  const kept = entries.filter(
+    (entry) => !entry.startsWith(`${FIRST_ENTRY_KEY}#`),
+  );
+  if (kept.length !== entries.length) followedLinks.write(kept);
+}
+
+let pageLoadChecked = false;
 
 /**
  * Follows a shared `#item-{guideItemId}` link: once the Guide's cards have rendered, scrolls
@@ -63,6 +100,10 @@ export function useGuideItemHashTarget(
     if (!guideItemIds) return;
     const id = guideItemIdFromHash(hash);
     if (!id || !guideItemIds.includes(id)) return;
+    if (!pageLoadChecked) {
+      pageLoadChecked = true;
+      forgetLinksFollowedInEarlierPageLoads();
+    }
     const entry = `${key}${hash}`;
     if (followedLinks.has(entry)) return;
     followedLinks.add(entry);
