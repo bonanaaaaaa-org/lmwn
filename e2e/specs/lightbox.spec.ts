@@ -324,6 +324,8 @@ test.describe("Guide - Lightbox", () => {
   test("covers the whole viewport, with the photo as large as fits uncropped", async ({
     page,
   }, testInfo) => {
+    // Scroll the photo into view first, so the baseline is where the press happens.
+    await stripPhotos(page).nth(1).scrollIntoViewIfNeeded();
     const scrollBefore = await page.evaluate(() => window.scrollY);
     await press(stripPhotos(page).nth(1), testInfo);
     const photo = lightbox(page).getByRole("img").first();
