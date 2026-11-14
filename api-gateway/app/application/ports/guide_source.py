@@ -9,6 +9,7 @@ class GuideSource(Protocol):
     """Reads Guides and Guide Items from the guide service.
 
     Contract for implementations:
+    - list_guide_ids returns every Guide's ID in upstream order.
     - get_guide raises GuideNotFound, and get_guide_item GuideItemNotFound, when the
       record does not exist.
     - Technical failures raise SourceUnavailable (connection error or server error),
@@ -17,6 +18,8 @@ class GuideSource(Protocol):
     - Each call makes at most one upstream request and does not cache.
     - Returns domain values; callers treat them as immutable.
     """
+
+    async def list_guide_ids(self) -> list[str]: ...
 
     async def get_guide(self, guide_id: str) -> Guide: ...
 

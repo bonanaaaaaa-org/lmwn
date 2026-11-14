@@ -143,3 +143,46 @@ async def test_ids_are_url_encoded_so_they_cannot_change_the_path(
     assert (
         route.calls.last.request.url.raw_path == b"/guide-items/..%2Fguides%3Fx%3D1%23y"
     )
+
+
+async def test_list_guide_ids_returns_every_guide_id_in_upstream_order(
+    upstream: respx.MockRouter, source
+) -> None:
+    ids = [fx.GUIDE_ID, "34c790dd-123b-499b-ba55-ea2f5befb452"]
+    upstream.get(f"{fx.GUIDE_SERVICE}/guides").respond(json=ids)
+
+    assert await source.list_guide_ids() == ids
+
+
+async def test_list_guide_ids_returns_an_empty_list_when_there_are_no_guides(
+    upstream: respx.MockRouter, source
+) -> None:
+    upstream.get(f"{fx.GUIDE_SERVICE}/guides").respond(json=[])
+
+    assert await source.list_guide_ids() == []
+
+
+@pytest.mark.parametrize(
+    ("side_effect", "error"),
+    [
+        (httpx.ReadTimeout("slow"), SourceTimeout),
+        (httpx.ConnectError("refused"), SourceUnavailable),
+        (httpx.Response(500), SourceUnavailable),
+        # The collection always exists: a 404 is an upstream fault, not a missing Guide.
+        (httpx.Response(404), SourceUnavailable),
+        (httpx.Response(200, content=b"null"), InvalidSourceData),
+        (httpx.Response(200, text="<html>oops</html>"), InvalidSourceData),
+        (httpx.Response(200, json={"items": []}), InvalidSourceData),
+        (httpx.Response(200, json=[fx.GUIDE_ID, 7]), InvalidSourceData),
+    ],
+)
+async def test_list_guide_ids_failures_become_application_errors(
+    upstream: respx.MockRouter,
+    source,
+    side_effect: Exception | httpx.Response,
+    error: type[Exception],
+) -> None:
+    upstream.get(f"{fx.GUIDE_SERVICE}/guides").mock(side_effect=[side_effect])
+
+    with pytest.raises(error):
+        await source.list_guide_ids()

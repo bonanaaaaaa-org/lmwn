@@ -1,6 +1,7 @@
 """Application errors -> HTTP responses with a safe `{detail}` body."""
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.application.errors import (
@@ -12,6 +13,7 @@ from app.application.errors import (
 )
 
 GUIDE_NOT_FOUND = "Guide not found"
+INVALID_REQUEST = "Invalid request parameters"
 
 _RESPONSES: tuple[tuple[type[SourceError], int, str], ...] = (
     (NotFound, 404, GUIDE_NOT_FOUND),
@@ -35,5 +37,11 @@ async def _source_error(_request: Request, error: Exception) -> JSONResponse:
     )
 
 
+async def _invalid_request(_request: Request, _error: Exception) -> JSONResponse:
+    # FastAPI's default 422 body is a list that echoes the rejected input.
+    return JSONResponse(status_code=422, content={"detail": INVALID_REQUEST})
+
+
 def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(SourceError, _source_error)
+    app.add_exception_handler(RequestValidationError, _invalid_request)

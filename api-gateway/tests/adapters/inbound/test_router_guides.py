@@ -1,9 +1,13 @@
+import dataclasses
 from collections.abc import Iterator
 
 import pytest
 from httpx import AsyncClient
 
-from app.adapters.inbound.http.dependencies import get_guide_detail_use_case
+from app.adapters.inbound.http.dependencies import (
+    get_guide_detail_use_case,
+    get_list_guides_use_case,
+)
 from app.application.errors import (
     GuideNotFound,
     InvalidSourceData,
@@ -11,6 +15,7 @@ from app.application.errors import (
     SourceUnavailable,
 )
 from app.application.get_guide_detail import create_get_guide_detail
+from app.application.list_guides import create_list_guides
 from app.main import app
 from tests.builders import a_guide, a_guide_item, a_restaurant
 from tests.fakes import FakeGuideSource, FakeRestaurantSource
@@ -21,6 +26,7 @@ GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb"
 @pytest.fixture
 def guides() -> FakeGuideSource:
     return FakeGuideSource(
+        guide_ids=[GUIDE_ID],
         guides={GUIDE_ID: a_guide(GUIDE_ID, ["item-a", "item-b"])},
         items={
             "item-a": a_guide_item("item-a", "restaurant-a"),
@@ -47,6 +53,9 @@ def use_fakes(
 ) -> Iterator[None]:
     app.dependency_overrides[get_guide_detail_use_case] = lambda: (
         create_get_guide_detail(guide_source=guides, restaurant_source=restaurants)
+    )
+    app.dependency_overrides[get_list_guides_use_case] = lambda: create_list_guides(
+        guide_source=guides
     )
     yield
     app.dependency_overrides.clear()
@@ -190,3 +199,204 @@ async def test_the_endpoint_and_its_models_are_documented(client: AsyncClient) -
     assert restaurant["branch"]["type"] == "string"
     assert "timeZone" in schemas["GuideDetailResponse"]["required"]
     assert "_id" not in str(schemas)
+
+
+# GET /guides
+
+
+def add_guide(
+    guides: FakeGuideSource,
+    guide_id: str,
+    *,
+    title: str = "Guide",
+    short_description: str = "",
+    tags: tuple[str, ...] = (),
+) -> None:
+    guides.guide_ids.append(guide_id)
+    guides.guides[guide_id] = dataclasses.replace(
+        a_guide(guide_id, ["item-a"]),
+        title=title,
+        short_description=short_description,
+        tags=tags,
+    )
+
+
+async def listed_ids(
+    client: AsyncClient, params: dict[str, str | list[str]]
+) -> list[str]:
+    response = await client.get("/guides", params=params)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == len(body["items"])
+    return [item["id"] for item in body["items"]]
+
+
+async def test_lists_guide_summaries_in_camel_case(client: AsyncClient) -> None:
+    response = await client.get("/guides")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "id": GUIDE_ID,
+                "title": "10 คาเฟ่ลับ One Bangkok!",
+                "shortDescription": "รวมคาเฟ่เด็ดที่ One Bangkok",
+                "coverPhoto": {
+                    "id": "cover",
+                    "smallUrl": "http://localhost:7777/r/480/854/cover.jpg",
+                    "largeUrl": "http://localhost:7777/r/1080/1920/cover.jpg",
+                },
+                "tags": ["กาแฟ", "คาเฟ่", "One", "Bangkok"],
+                "itemCount": 2,
+            }
+        ],
+        "total": 1,
+    }
+
+
+async def test_no_guides_is_an_empty_envelope(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.guide_ids.clear()
+
+    response = await client.get("/guides")
+
+    assert response.json() == {"items": [], "total": 0}
+
+
+async def test_q_matches_thai_text_inside_words_of_title_description_or_tags(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.guide_ids.clear()
+    add_guide(guides, "by-title", title="10 คาเฟ่ลับ")
+    add_guide(guides, "by-description", short_description="รวมคาเฟ่ลับ")
+    add_guide(guides, "by-tag", tags=("คาเฟ่ลับ",))
+    add_guide(guides, "no-match", title="บาร์ลับ")
+
+    assert await listed_ids(client, {"q": "คาเฟ่"}) == [
+        "by-title",
+        "by-description",
+        "by-tag",
+    ]
+
+
+async def test_q_is_trimmed_nfc_normalised_and_case_insensitive(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.guide_ids.clear()
+    add_guide(guides, "thai", title="กด\u0e1b\u0e38\u0e48\u0e21")
+    add_guide(guides, "latin", title="Hidden Café")
+
+    # Mai ek typed before sara u: the reverse of the stored order.
+    assert await listed_ids(client, {"q": " \u0e1b\u0e48\u0e38\u0e21 "}) == ["thai"]
+    assert await listed_ids(client, {"q": "hidden cafe\u0301"}) == ["latin"]
+
+
+@pytest.mark.parametrize("q", ["", "   "])
+async def test_empty_or_whitespace_q_lists_every_guide(
+    client: AsyncClient, guides: FakeGuideSource, q: str
+) -> None:
+    add_guide(guides, "second")
+
+    assert await listed_ids(client, {"q": q}) == [GUIDE_ID, "second"]
+
+
+async def test_q_is_plain_text_not_a_regex(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    add_guide(guides, "dots", title="a.*b")
+
+    assert await listed_ids(client, {"q": ".*"}) == ["dots"]
+
+
+async def test_repeated_tags_must_all_match_and_combine_with_q(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.guide_ids.clear()
+    add_guide(guides, "both", title="Hidden", tags=("กาแฟ", "One"))
+    add_guide(guides, "one-tag", title="Hidden", tags=("กาแฟ",))
+    add_guide(guides, "wrong-case", title="Hidden", tags=("กาแฟ", "one"))
+    add_guide(guides, "no-text", title="Open", tags=("กาแฟ", "One"))
+
+    assert await listed_ids(client, {"tag": ["กาแฟ", "One"]}) == ["both", "no-text"]
+    assert await listed_ids(client, {"tag": ["กาแฟ", "One"], "q": "hid"}) == ["both"]
+
+
+async def test_q_of_100_characters_is_accepted_and_101_is_422(
+    client: AsyncClient,
+) -> None:
+    accepted = await client.get("/guides", params={"q": "ก" * 100})
+    rejected = await client.get("/guides", params={"q": "ก" * 101})
+
+    assert accepted.status_code == 200
+    assert accepted.json() == {"items": [], "total": 0}
+    assert rejected.status_code == 422
+    # A fixed, safe detail: never FastAPI's list that echoes the input.
+    assert rejected.json() == {"detail": "Invalid request parameters"}
+
+
+async def test_the_q_limit_applies_before_trimming(client: AsyncClient) -> None:
+    response = await client.get("/guides", params={"q": " " + "ก" * 100})
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("error", "status_code"),
+    [
+        (SourceTimeout("http://internal:8888/guides timed out"), 504),
+        (SourceUnavailable("http://internal:8888/guides answered 500"), 502),
+        (InvalidSourceData("field 'title' missing in {'_id': ...}"), 502),
+    ],
+)
+async def test_list_failures_map_to_safe_error_responses(
+    client: AsyncClient, guides: FakeGuideSource, error: Exception, status_code: int
+) -> None:
+    guides.failures[FakeGuideSource.LIST] = error
+
+    response = await client.get("/guides")
+
+    assert response.status_code == status_code
+    assert list(response.json()) == ["detail"]
+    assert "internal" not in response.text
+
+
+async def test_one_failing_guide_fails_the_list(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    add_guide(guides, "second")
+    guides.failures["second"] = SourceTimeout()
+
+    response = await client.get("/guides")
+
+    assert response.status_code == 504
+
+
+async def test_a_listed_guide_upstream_lacks_is_502_not_404(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.guide_ids.append("missing")
+
+    response = await client.get("/guides")
+
+    assert response.status_code == 502
+
+
+async def test_the_list_endpoint_is_documented(client: AsyncClient) -> None:
+    spec = (await client.get("/openapi.json")).json()
+
+    operation = spec["paths"]["/guides"]["get"]
+    assert {"200", "422", "502", "504"} <= set(operation["responses"])
+    params = {p["name"]: p for p in operation["parameters"]}
+    assert params["q"]["schema"]["maxLength"] == 100
+    assert params["tag"]["schema"]["type"] == "array"
+    schemas = spec["components"]["schemas"]
+    assert set(schemas["GuideListResponse"]["required"]) == {"items", "total"}
+    assert set(schemas["GuideSummaryResponse"]["required"]) == {
+        "id",
+        "title",
+        "shortDescription",
+        "coverPhoto",
+        "tags",
+        "itemCount",
+    }

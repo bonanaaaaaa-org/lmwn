@@ -10,6 +10,7 @@ import httpx
 from app.adapters.outbound.data_server.guide_client import create_guide_source
 from app.adapters.outbound.data_server.restaurant_client import create_restaurant_source
 from app.application.get_guide_detail import GetGuideDetail, create_get_guide_detail
+from app.application.list_guides import ListGuides, create_list_guides
 from app.settings import Settings
 
 
@@ -21,6 +22,7 @@ def create_http_client(settings: Settings) -> httpx.AsyncClient:
 @dataclass(frozen=True, slots=True)
 class UseCases:
     get_guide_detail: GetGuideDetail
+    list_guides: ListGuides
 
 
 def create_use_cases(settings: Settings, client: httpx.AsyncClient) -> UseCases:
@@ -32,4 +34,5 @@ def create_use_cases(settings: Settings, client: httpx.AsyncClient) -> UseCases:
         get_guide_detail=create_get_guide_detail(
             guide_source=guide_source, restaurant_source=restaurant_source
         ),
+        list_guides=create_list_guides(guide_source=guide_source),
     )

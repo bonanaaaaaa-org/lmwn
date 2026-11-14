@@ -12,7 +12,7 @@ from pydantic.alias_generators import to_camel
 from pydantic.json_schema import SkipJsonSchema
 
 from app.application.get_guide_detail import GuideDetail, GuideDetailItem
-from app.domain.guide import Photo
+from app.domain.guide import Guide, Photo
 from app.domain.restaurant import Restaurant
 from app.domain.working_hours import OpeningRange, WorkingHours
 
@@ -188,4 +188,40 @@ class GuideDetailResponse(_Response):
             write_date=guide.write_date,
             time_zone=TIME_ZONE,
             items=[GuideItemResponse.from_domain(entry) for entry in detail.items],
+        )
+
+
+class GuideSummaryResponse(_Response):
+    """A Guide as the Guide Index shows it."""
+
+    id: str
+    title: str
+    short_description: str
+    cover_photo: PhotoResponse
+    tags: list[str]
+    item_count: int = Field(ge=0, description="How many Guide Items the Guide has.")
+
+    @classmethod
+    def from_domain(cls, guide: Guide) -> GuideSummaryResponse:
+        return cls(
+            id=guide.id,
+            title=guide.title,
+            short_description=guide.short_description,
+            cover_photo=PhotoResponse.from_domain(guide.cover_photo),
+            tags=list(guide.tags),
+            item_count=len(guide.item_ids),
+        )
+
+
+class GuideListResponse(_Response):
+    """Matching Guides in upstream order. Not paginated: `total` is `len(items)`."""
+
+    items: list[GuideSummaryResponse]
+    total: int = Field(ge=0)
+
+    @classmethod
+    def from_domain(cls, guides: list[Guide]) -> GuideListResponse:
+        return cls(
+            items=[GuideSummaryResponse.from_domain(g) for g in guides],
+            total=len(guides),
         )
