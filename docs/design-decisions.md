@@ -59,9 +59,28 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
 
+## i18n (Thai only)
+
+- **Thai is the only locale.** There's no second locale, language switcher, locale routing or detection. Data from the gateway (Guide, Guide Item and Restaurant text) renders as served. Adding a locale later means adding a catalog and a switcher, not rewriting components.
+- **Library: Paraglide JS** (`@inlang/paraglide-js`), set up through its Vite plugin. Messages compile to typed, tree-shakable functions (`m.notFound_title()`). Only strings in use ship. An unknown key, or a missing or extra param, fails `type-check`; Paraglide doesn't type param values. No React provider is needed. The compiled output (`web/src/paraglide/`) is generated before `type-check`, `test`, `build` and Storybook, and is never committed. Alternatives considered:
+  - React Aria's `useLocalizedStringFormatter`: already bundled, but its params aren't typed per key. It's the fallback if Paraglide ever has to go.
+  - react-i18next and react-intl: rejected for bundle size against the Lighthouse 100 target.
+  - Lingui: rejected because copy lives in components through its macros.
+  - typesafe-i18n: rejected as unmaintained.
+- **One catalog:** `web/messages/th.json` holds every user-facing string, including accessible names, `alt`, `title`, document titles and the English brand name. Copy uses glossary terms.
+- **Keys mirror the test ID path** (`web/src/lib/testIds.ts`), so an element's `data-testid` maps straight to its copy.
+  - Form: `{owning component path}_{role}`. Each kebab-case segment becomes camelCase and `/` becomes `_`. For example, the read-more link in RestaurantCard (test ID `…/restaurant-card/read-more`) → `restaurantCard_readMore_label`.
+  - Keys are rooted at the component that owns the copy, not the runtime parent chain. Shared components use their own name (`notFound_title`, `errorPanel_retry_label`, `header_logo_label` rather than `app_header_…`), and page-level copy starts with the page (`guide_…`, `guideIndex_…`). A sub-component that only ever renders inside another component nests under it (PhotoStrip → `restaurantCard_photoStrip_*`).
+  - The last segment is the string's role: `title`, `body`, `label`, `ariaLabel`, `alt`.
+  - Keys are always called statically with dot access, never built at runtime.
+  - CI checks every key against `^[a-z][a-zA-Z0-9]*(_[a-z][a-zA-Z0-9]*)+$` and rejects bracket access (`m[…]`). A unit test checks that every catalog key compiled to a message function.
+- **One locale setting.** Paraglide's base locale `th` drives `<html lang="th">`, React Aria's `I18nProvider` (`th-TH`) and every `Intl` formatter.
+- **Formatting goes through one module on `Intl`.** Dates use the Buddhist calendar in `Asia/Bangkok` ("10 มี.ค. 2567"), and numbers and counts use `th-TH`. The module is `web/src/lib/format.ts`; components never call `toLocaleString` or build `Intl` objects themselves. The one exception is a number placed inside a message with Paraglide's `{x: number}`, which Paraglide formats for the same base locale. Dates are never formatted inside messages: format them with `formatDate` (which applies the Buddhist calendar and `Asia/Bangkok`) and pass the result in as a string.
+- **Guard:** CI fails on any Thai character in `web/app` or `web/src` code. Two places are exempt: `web/src/test-utils/fixtures/`, which holds gateway-like sample data and layout stress copy for tests and stories (oxlint stops production code from importing `@/test-utils`), and the generated `web/src/paraglide/`. Tests and stories assert UI copy through the same `m.*()` functions, never a re-typed literal.
+
 ## Non-goals
 
 - Server-side rendering and real Open Graph tags. `socialTitle` is used for `document.title` and share text only.
 - Pagination, and searching restaurants across Guides.
-- i18n (the UI is Thai only), dark mode, user accounts and saved restaurants.
+- i18n beyond Thai: Thai only; no second locale or language switcher (see i18n above). Also dark mode, user accounts and saved restaurants.
 - Replacing or testing the provided Data Server.

@@ -4,7 +4,11 @@ import { ApiError, InvalidResponseError } from "@/lib/apiClient";
 import { env } from "@/lib/env";
 import { server } from "@/test-utils/server";
 
-import { GUIDE_ID, makeGuide, toGatewayJson } from "./fixtures";
+import {
+  GUIDE_ID,
+  makeGuide,
+  toGatewayJson,
+} from "@/test-utils/fixtures/guides";
 import { guidesApi } from "./guidesApi";
 
 describe("guidesApi.get", () => {
@@ -17,7 +21,7 @@ describe("guidesApi.get", () => {
 
     const guide = await guidesApi.get(GUIDE_ID);
 
-    expect(guide.title).toBe("10 คาเฟ่ลับ One Bangkok!");
+    expect(guide.title).toBe(makeGuide().title);
     expect(guide.items.map((item) => item.restaurant?.name ?? null)).toEqual([
       "ONIBUS COFFEE",
       "KFC",

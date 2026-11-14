@@ -1,6 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { everyDay } from "./fixtures";
+import { m } from "@/paraglide/messages.js";
+
+import { everyDay } from "@/test-utils/fixtures/guides";
 import {
   formatOpeningRange,
   formatOpeningTime,
@@ -216,11 +218,11 @@ describe("formatting", () => {
 
   it("says open 24 hours for any 24-hour range", () => {
     expect(formatOpeningRange({ opensAt: 0, closesAt: 1440 })).toBe(
-      "เปิด 24 ชั่วโมง",
+      m.restaurantCard_workingHours_allDay_body(),
     );
     // 10:00–10:00 arrives from the gateway as 600–2040.
     expect(formatOpeningRange({ opensAt: 600, closesAt: 2040 })).toBe(
-      "เปิด 24 ชั่วโมง",
+      m.restaurantCard_workingHours_allDay_body(),
     );
   });
 });

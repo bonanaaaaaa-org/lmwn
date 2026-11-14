@@ -16,6 +16,7 @@ import type { Guide } from "@/features/guides/lib/types";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ApiError, InvalidResponseError } from "@/lib/apiClient";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuidePage.module.css";
 
@@ -40,7 +41,7 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
           testId={`${GUIDE_PAGE_TEST_ID}/back-link`}
         >
           <Icon name="chevron-left" size={16} />
-          ไกด์ทั้งหมด
+          {m.guide_backLink_label()}
         </ButtonLink>
       )}
       <GuideHeader
@@ -51,14 +52,17 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
       />
       {guide.items.length === 0 ? (
         <EmptyState
-          title="ไกด์นี้ยังไม่มีร้าน"
-          description="บรรณาธิการยังไม่ได้เพิ่มร้านในไกด์นี้ ลองดูไกด์อื่นไปก่อน"
-          actionLabel="ดูไกด์ทั้งหมด"
+          title={m.guide_emptyState_title()}
+          description={m.guide_emptyState_body()}
+          actionLabel={m.guide_emptyState_action_label()}
           actionHref="/"
           parentTestId={GUIDE_PAGE_TEST_ID}
         />
       ) : (
-        <ol className={styles.GuidePage__Items} aria-label="ร้านในไกด์นี้">
+        <ol
+          className={styles.GuidePage__Items}
+          aria-label={m.guide_items_ariaLabel()}
+        >
           {guide.items.map((item, index) => (
             <li key={item.id}>
               <RestaurantCard
@@ -107,13 +111,13 @@ export function GuidePage({ guideId }: GuidePageProps) {
     content =
       query.error instanceof ApiError && query.error.status === 404 ? (
         <NotFound
-          title="ไม่พบไกด์นี้"
-          description="ไกด์นี้อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง"
+          title={m.guide_notFound_title()}
+          description={m.guide_notFound_body()}
           parentTestId={GUIDE_PAGE_TEST_ID}
         />
       ) : (
         <ErrorPanel
-          title="โหลดไกด์ไม่สำเร็จ"
+          title={m.guide_errorPanel_title()}
           headingLevel={1}
           onRetry={() => void query.refetch()}
           isRetrying={query.isFetching}

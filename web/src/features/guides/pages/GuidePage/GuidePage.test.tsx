@@ -6,10 +6,11 @@ import {
   GUIDE_ID,
   makeGuide,
   toGatewayJson,
-} from "@/features/guides/lib/fixtures";
+} from "@/test-utils/fixtures/guides";
 import type { Guide } from "@/features/guides/lib/types";
 import { env } from "@/lib/env";
-import { renderWithQueryClient } from "@/test-utils/queryClient";
+import { m } from "@/paraglide/messages.js";
+import { renderWithProviders } from "@/test-utils/renderWithProviders";
 import { server } from "@/test-utils/server";
 
 import { GuidePage } from "./GuidePage";
@@ -21,7 +22,7 @@ function serveGuide(guide: Guide = makeGuide()) {
 }
 
 function renderPage() {
-  return renderWithQueryClient(<GuidePage guideId={GUIDE_ID} />);
+  return renderWithProviders(<GuidePage guideId={GUIDE_ID} />);
 }
 
 describe("GuidePage", () => {
@@ -34,26 +35,24 @@ describe("GuidePage", () => {
     );
     renderPage();
 
-    expect(screen.getByRole("status")).toHaveTextContent("กำลังโหลดไกด์…");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      m.guide_skeleton_label(),
+    );
     expect(screen.getByTestId("guide/skeleton")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("shows the header and Guide Items in guide order, with socialTitle as the tab title", async () => {
-    serveGuide();
+    const guide = makeGuide();
+    serveGuide(guide);
     renderPage();
 
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: "10 คาเฟ่ลับ One Bangkok!",
-      }),
+      await screen.findByRole("heading", { level: 1, name: guide.title }),
     ).toBeInTheDocument();
-    expect(document.title).toBe(
-      "ไม่อยากจะเชื่อ มีร้านคาเฟ่ดี ๆ แบบนี้ห้างดังย่านลุมพินี One Bangkok ด้วย",
-    );
+    expect(document.title).toBe(guide.socialTitle);
     const items = within(
-      screen.getByRole("list", { name: "ร้านในไกด์นี้" }),
+      screen.getByRole("list", { name: m.guide_items_ariaLabel() }),
     ).getAllByTestId("guide/restaurant-card");
     expect(items).toHaveLength(4);
     expect(
@@ -61,8 +60,8 @@ describe("GuidePage", () => {
         (item) => within(item).queryByRole("heading")?.textContent ?? null,
       ),
     ).toEqual([
-      "ONIBUS COFFEE (สาขา One Bangkok)",
-      "KFC (สาขา One Bangkok)",
+      `ONIBUS COFFEE ${m.restaurantCard_branch_body({ branch: "One Bangkok" })}`,
+      `KFC ${m.restaurantCard_branch_body({ branch: "One Bangkok" })}`,
       null,
       "% Arabica",
     ]);
@@ -70,7 +69,8 @@ describe("GuidePage", () => {
   });
 
   it("keeps an Unavailable Restaurant's write-up and photos", async () => {
-    serveGuide();
+    const guide = makeGuide();
+    serveGuide(guide);
     renderPage();
 
     const unavailable = (
@@ -78,10 +78,16 @@ describe("GuidePage", () => {
     )[2];
     expect(unavailable).toBeDefined();
     const card = within(unavailable as HTMLElement);
-    expect(card.getByText("ไม่สามารถโหลดข้อมูลร้านได้")).toBeInTheDocument();
-    expect(card.getByText("RISE ลุกขึ้นแล้วดื่มกาแฟ !")).toBeInTheDocument();
-    expect(card.getByRole("img", { name: "รูปที่ 1 จาก 2" })).toBeInTheDocument();
-    expect(card.getByRole("img", { name: "รูปที่ 2 จาก 2" })).toHaveAttribute(
+    const photoAlt = (position: number) =>
+      m.restaurantCard_photoStrip_photo_unnamedAlt({ position, total: 2 });
+    expect(
+      card.getByText(m.restaurantCard_unavailable_body()),
+    ).toBeInTheDocument();
+    expect(
+      card.getByText(guide.items[2]?.description ?? ""),
+    ).toBeInTheDocument();
+    expect(card.getByRole("img", { name: photoAlt(1) })).toBeInTheDocument();
+    expect(card.getByRole("img", { name: photoAlt(2) })).toHaveAttribute(
       "data-state",
       "placeholder",
     );
@@ -92,7 +98,7 @@ describe("GuidePage", () => {
     renderPage();
 
     const readMore = await screen.findAllByRole("button", {
-      name: "อ่านเพิ่มเติม",
+      name: m.restaurantCard_readMore_label(),
     });
     expect(readMore).toHaveLength(1);
     expect(
@@ -107,18 +113,18 @@ describe("GuidePage", () => {
     renderPage();
 
     expect(
-      await screen.findByRole("heading", { name: "ไกด์นี้ยังไม่มีร้าน" }),
+      await screen.findByRole("heading", { name: m.guide_emptyState_title() }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("guide/empty-state/action")).toHaveAttribute(
       "href",
       "/",
     );
     expect(
-      screen.queryByRole("list", { name: "ร้านในไกด์นี้" }),
+      screen.queryByRole("list", { name: m.guide_items_ariaLabel() }),
     ).not.toBeInTheDocument();
   });
 
-  it("shows ไม่พบไกด์นี้ with a link to the Guide Index for a 404", async () => {
+  it("says the Guide is not found, with a link to the Guide Index, for a 404", async () => {
     server.use(
       http.get(guideUrl, () =>
         HttpResponse.json({ detail: "Guide not found" }, { status: 404 }),
@@ -127,7 +133,10 @@ describe("GuidePage", () => {
     renderPage();
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: "ไม่พบไกด์นี้" }),
+      await screen.findByRole("heading", {
+        level: 1,
+        name: m.guide_notFound_title(),
+      }),
     ).toBeInTheDocument();
     expect(screen.getByTestId("guide/not-found/back-link")).toHaveAttribute(
       "href",
@@ -135,7 +144,7 @@ describe("GuidePage", () => {
     );
   });
 
-  it("offers ลองใหม่ after a failure and recovers when the retry succeeds", async () => {
+  it("offers a retry after a failure and recovers when the retry succeeds", async () => {
     const user = userEvent.setup();
     let calls = 0;
     server.use(
@@ -151,16 +160,16 @@ describe("GuidePage", () => {
     const panel = await screen.findByTestId("guide/error-panel");
     expect(panel).toHaveRole("alert");
     expect(
-      within(panel).getByRole("heading", { level: 1, name: "โหลดไกด์ไม่สำเร็จ" }),
+      within(panel).getByRole("heading", {
+        level: 1,
+        name: m.guide_errorPanel_title(),
+      }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByTestId("guide/error-panel/retry"));
 
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: "10 คาเฟ่ลับ One Bangkok!",
-      }),
+      await screen.findByRole("heading", { level: 1, name: makeGuide().title }),
     ).toBeInTheDocument();
     expect(calls).toBe(2);
   });

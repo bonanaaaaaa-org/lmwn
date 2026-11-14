@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 
@@ -6,7 +7,12 @@ import { defineConfig } from "vite";
 const isStorybook = process.env.STORYBOOK === "true";
 
 export default defineConfig({
-  plugins: [!isStorybook && reactRouter()],
+  plugins: [
+    // Compiles web/messages/th.json into typed message functions in src/paraglide (gitignored).
+    // Options live in project.inlang/paraglide.config.ts, shared with `pnpm gen:i18n`.
+    paraglideVitePlugin({ project: "./project.inlang" }),
+    !isStorybook && reactRouter(),
+  ],
   resolve: {
     tsconfigPaths: true,
   },

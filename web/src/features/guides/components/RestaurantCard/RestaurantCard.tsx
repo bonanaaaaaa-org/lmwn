@@ -12,7 +12,6 @@ import { Icon } from "@/components/common/Icon";
 import { Rating } from "@/components/common/Rating";
 import { PhotoStrip } from "@/features/guides/components/PhotoStrip";
 import { WorkingHours } from "@/features/guides/components/WorkingHours";
-import { formatPhoneNumber } from "@/features/guides/lib/format";
 import {
   facebookUrl,
   instagramUrl,
@@ -26,7 +25,9 @@ import {
   type GuideItem,
   type Restaurant,
 } from "@/features/guides/lib/types";
+import { formatPhoneNumber } from "@/lib/format";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./RestaurantCard.module.css";
 
@@ -43,7 +44,7 @@ export interface RestaurantCardProps {
   timeZone?: string;
   /** Show the Unavailable Restaurant state. Defaults to whether the Restaurant failed to load. */
   unavailable?: boolean;
-  /** Start with the write-up cut to about 4 lines, with "อ่านเพิ่มเติม" (read more) to expand it. */
+  /** Start with the write-up cut to about 4 lines, with `m.restaurantCard_readMore_label()` to expand it. */
   clamp?: boolean;
   className?: string;
   /** The page's test ID; the card is `{parent}/restaurant-card`. */
@@ -51,7 +52,8 @@ export interface RestaurantCardProps {
 }
 
 // Thai vowels and tone marks above or below a consonant take no width of their own.
-const THAI_COMBINING = /[ัิ-ฺ็-๎]/g;
+// U+0E31, U+0E34–U+0E3A and U+0E47–U+0E4E (escaped: no Thai literals in code).
+const THAI_COMBINING = /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g;
 /** Roughly 4 lines of write-up at each layout's measure. */
 const CLAMP_AFTER_CHARS: Record<RestaurantCardLayout, number> = {
   desktop: 260,
@@ -68,7 +70,7 @@ export function needsClamp(
   );
 }
 
-/** "ONIBUS COFFEE (สาขา One Bangkok)", with the branch styled apart. */
+/** The name, then `m.restaurantCard_branch_body()` for the branch, styled apart. */
 function RestaurantName({ restaurant }: { restaurant: Restaurant }) {
   return (
     <>
@@ -77,7 +79,7 @@ function RestaurantName({ restaurant }: { restaurant: Restaurant }) {
         <>
           {" "}
           <span className={styles.RestaurantCard__Branch}>
-            (สาขา {restaurant.branch})
+            {m.restaurantCard_branch_body({ branch: restaurant.branch })}
           </span>
         </>
       )}
@@ -97,19 +99,19 @@ function Badges({
       key: "official",
       show: restaurant.official,
       variant: "official",
-      label: "Official",
+      label: m.restaurantCard_badges_official_label(),
     },
     {
       key: "delivery",
       show: restaurant.delivery,
       variant: "neutral",
-      label: "เดลิเวอรี่",
+      label: m.restaurantCard_badges_delivery_label(),
     },
     {
       key: "pickup",
       show: restaurant.pickup,
       variant: "neutral",
-      label: "รับเองที่ร้าน",
+      label: m.restaurantCard_badges_pickup_label(),
     },
   ] as const;
   const shown = badges.filter((badge) => badge.show);
@@ -117,7 +119,7 @@ function Badges({
   return (
     <ul
       className={clsx(styles.RestaurantCard__Badges, className)}
-      aria-label="บริการ"
+      aria-label={m.restaurantCard_badges_ariaLabel()}
     >
       {shown.map((badge) => (
         <li key={badge.key}>
@@ -136,7 +138,7 @@ function ExternalLink({
   return (
     <ButtonLink {...props} target="_blank" rel="noopener noreferrer">
       {children}
-      <VisuallyHidden> (เปิดในแท็บใหม่)</VisuallyHidden>
+      <VisuallyHidden> {m.restaurantCard_newTab_label()}</VisuallyHidden>
     </ButtonLink>
   );
 }
@@ -152,20 +154,20 @@ function socialsOf(restaurant: Restaurant): Social[] {
   if (restaurant.line)
     socials.push({
       key: "line",
-      label: "LINE",
+      label: m.restaurantCard_line_label(),
       href: lineUrl(restaurant.line),
     });
   if (restaurant.instagram) {
     socials.push({
       key: "instagram",
-      label: "Instagram",
+      label: m.restaurantCard_instagram_label(),
       href: instagramUrl(restaurant.instagram),
     });
   }
   if (restaurant.facebook) {
     socials.push({
       key: "facebook",
-      label: "Facebook",
+      label: m.restaurantCard_facebook_label(),
       href: facebookUrl(restaurant.facebook),
     });
   }
@@ -206,12 +208,16 @@ export function RestaurantCard({
       data-state={restaurant ? undefined : "unavailable"}
       data-testid={testId}
       aria-labelledby={restaurant ? nameId : undefined}
-      aria-label={restaurant ? undefined : `ร้านที่ ${index}`}
+      aria-label={
+        restaurant
+          ? undefined
+          : m.restaurantCard_unavailable_ariaLabel({ index })
+      }
     >
       {!restaurant && (
         <p className={styles.RestaurantCard__Unavailable}>
           <Icon name="alert" size={18} />
-          ไม่สามารถโหลดข้อมูลร้านได้
+          {m.restaurantCard_unavailable_body()}
         </p>
       )}
 
@@ -282,7 +288,9 @@ export function RestaurantCard({
             onPress={() => setExpanded((value) => !value)}
             testId={`${testId}/read-more`}
           >
-            {expanded ? "แสดงน้อยลง" : "อ่านเพิ่มเติม"}
+            {expanded
+              ? m.restaurantCard_readMore_expandedLabel()
+              : m.restaurantCard_readMore_label()}
           </Button>
         )}
       </div>
@@ -295,7 +303,9 @@ export function RestaurantCard({
             parentTestId={testId}
           />
           <div className={styles.RestaurantCard__Detail}>
-            <dt className={styles.RestaurantCard__Term}>ที่อยู่</dt>
+            <dt className={styles.RestaurantCard__Term}>
+              {m.restaurantCard_address_label()}
+            </dt>
             <dd>{restaurant.address}</dd>
             <dd>
               <ExternalLink
@@ -303,14 +313,16 @@ export function RestaurantCard({
                 href={mapUrl(restaurant.lat, restaurant.lng)}
                 testId={`${testId}/map`}
               >
-                ดูแผนที่
+                {m.restaurantCard_map_label()}
                 <Icon name="external" size={16} />
               </ExternalLink>
             </dd>
           </div>
           {isDesktop && (
             <div className={styles.RestaurantCard__Detail}>
-              <dt className={styles.RestaurantCard__Term}>ติดต่อ</dt>
+              <dt className={styles.RestaurantCard__Term}>
+                {m.restaurantCard_contact_label()}
+              </dt>
               <dd className={styles.RestaurantCard__Contacts}>
                 <ButtonLink
                   variant="ghost"
@@ -319,7 +331,9 @@ export function RestaurantCard({
                   testId={`${testId}/call`}
                 >
                   <Icon name="phone" size={16} />
-                  <VisuallyHidden>โทร </VisuallyHidden>
+                  <VisuallyHidden>
+                    {m.restaurantCard_call_hiddenLabel()}{" "}
+                  </VisuallyHidden>
                   {phone}
                 </ButtonLink>
                 {socials.map((social) => (
@@ -343,7 +357,7 @@ export function RestaurantCard({
                     href={wongnaiUrl}
                     testId={`${testId}/wongnai`}
                   >
-                    ดูร้านบน Wongnai
+                    {m.restaurantCard_wongnai_label()}
                     <Icon name="external" size={14} />
                   </ExternalLink>
                 )}
@@ -366,7 +380,7 @@ export function RestaurantCard({
             testId={`${testId}/call`}
           >
             <Icon name="phone" size={18} />
-            โทร {phone}
+            {m.restaurantCard_call_label({ phone })}
           </ButtonLink>
           {wongnaiUrl && (
             <ExternalLink
@@ -374,7 +388,7 @@ export function RestaurantCard({
               href={wongnaiUrl}
               testId={`${testId}/wongnai`}
             >
-              ดูบน Wongnai
+              {m.restaurantCard_wongnai_shortLabel()}
               <Icon name="external" size={14} />
             </ExternalLink>
           )}

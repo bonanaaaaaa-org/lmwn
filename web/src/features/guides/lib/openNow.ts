@@ -1,3 +1,6 @@
+import { wallClock } from "@/lib/format";
+import { m } from "@/paraglide/messages.js";
+
 import type { WorkingDay } from "./types";
 
 /**
@@ -19,47 +22,12 @@ export interface WeekdayAndMinutes {
   minutes: number;
 }
 
-const ISO_WEEKDAY: Record<string, number> = {
-  Mon: 1,
-  Tue: 2,
-  Wed: 3,
-  Thu: 4,
-  Fri: 5,
-  Sat: 6,
-  Sun: 7,
-};
-
-const formatters = new Map<string, Intl.DateTimeFormat>();
-
-function formatterFor(timeZone: string): Intl.DateTimeFormat {
-  let formatter = formatters.get(timeZone);
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    });
-    formatters.set(timeZone, formatter);
-  }
-  return formatter;
-}
-
 /** The weekday and minutes since midnight of `now` on the wall clock in `timeZone`. */
 export function weekdayAndMinutes(
   now: Date,
   timeZone: string,
 ): WeekdayAndMinutes {
-  let day = 0;
-  let hour = 0;
-  let minute = 0;
-  for (const part of formatterFor(timeZone).formatToParts(now)) {
-    if (part.type === "weekday") day = ISO_WEEKDAY[part.value] ?? 0;
-    else if (part.type === "hour") hour = Number(part.value);
-    else if (part.type === "minute") minute = Number(part.value);
-  }
-  return { day, minutes: hour * 60 + minute };
+  return wallClock(now, timeZone);
 }
 
 /** The ranges of ISO weekday `day`; none when the day is missing. */
@@ -153,8 +121,10 @@ export function formatOpeningTime(minutes: number): string {
   return `${pad(Math.floor(time / 60))}:${pad(time % 60)}`;
 }
 
-/** "08:00–17:00"; an overnight close wraps ("18:00–02:00"); a 24-hour range is "เปิด 24 ชั่วโมง". */
+/** "08:00–17:00"; an overnight close wraps ("18:00–02:00"); a 24-hour range is `m.restaurantCard_workingHours_allDay_body()`. */
 export function formatOpeningRange(range: OpeningRange): string {
-  if (range.closesAt - range.opensAt === MINUTES_PER_DAY) return "เปิด 24 ชั่วโมง";
+  if (range.closesAt - range.opensAt === MINUTES_PER_DAY) {
+    return m.restaurantCard_workingHours_allDay_body();
+  }
   return `${formatOpeningTime(range.opensAt)}–${formatOpeningTime(range.closesAt)}`;
 }

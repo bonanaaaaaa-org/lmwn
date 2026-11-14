@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { makeGuide } from "@/features/guides/lib/fixtures";
+import { makeGuide } from "@/test-utils/fixtures/guides";
+import { stressCopy } from "@/test-utils/fixtures/sampleContent";
 
 import { GuideHeader } from "./GuideHeader";
 
@@ -34,8 +35,7 @@ export const MissingCover: Story = {
 export const LongTitle: Story = {
   args: {
     guide: makeGuide({
-      title:
-        "พาส่องพิกัดร้านดัง One Bangkok ทั้งคาเฟ่&ร้านอาหาร ที่สายกินอย่างเราต้องมาเช็กอินให้ได้สักครั้ง",
+      title: stressCopy.guideTitle,
     }),
   },
 };

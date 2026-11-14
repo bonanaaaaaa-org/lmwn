@@ -8,10 +8,11 @@ import {
 } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { format, message } from "#support/messages";
 
 const GATEWAY = process.env.API_BASE_URL ?? "http://localhost:4000";
 
-// "10 คาเฟ่ลับ One Bangkok!": the 4th item, LMWN Cafe, is closed Monday and Sunday, 09:00–17:00 otherwise.
+// The cafe Guide ("10 cafes in One Bangkok"): the 4th item, LMWN Cafe, is closed Monday and Sunday, 09:00–17:00 otherwise.
 const CAFE_GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb";
 const LMWN_CAFE_INDEX = 3;
 
@@ -20,7 +21,27 @@ const THU_NOON_BANGKOK = new Date("2026-11-12T05:00:00Z"); // Wed 21:00 in Los A
 const TUE_0859_BANGKOK = new Date("2026-11-10T01:59:00Z");
 const MON_NOON_BANGKOK = new Date("2026-11-09T05:00:00Z");
 
-const DAY_NAMES = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
+const DAY_NAMES = [
+  message("restaurantCard_workingHours_monday_label"),
+  message("restaurantCard_workingHours_tuesday_label"),
+  message("restaurantCard_workingHours_wednesday_label"),
+  message("restaurantCard_workingHours_thursday_label"),
+  message("restaurantCard_workingHours_friday_label"),
+  message("restaurantCard_workingHours_saturday_label"),
+  message("restaurantCard_workingHours_sunday_label"),
+];
+const OPEN = message("openStatus_open_label");
+const CLOSED = message("restaurantCard_workingHours_closed_body");
+const todayHours = (hours: string) =>
+  format("restaurantCard_workingHours_today_body", { hours });
+const opensAt = (time: string) =>
+  format("openStatus_closed_opensAtLabel", { time });
+const closedMonSunToggle = format(
+  "restaurantCard_workingHours_toggle_closedDaysLabel",
+  { days: `${DAY_NAMES[0]}, ${DAY_NAMES[6]}` },
+);
+/** The Open Now badge, read by state: the open label is a substring of the closed one. */
+const badge = (scope: Locator) => scope.locator("span[data-state]");
 
 interface GatewayGuide {
   timeZone: string;
@@ -99,19 +120,27 @@ test.describe("Working Hours - Open Now in Thailand time", () => {
     ).toBe(3);
 
     const hours = workingHours(card);
-    await expect(hours.getByText("เวลาทำการ", { exact: true })).toBeVisible();
-    await expect(hours).toContainText("เปิดอยู่");
-    await expect(hours).not.toContainText("ปิดอยู่ · เปิด");
-    await expect(hours).toContainText("วันนี้ 09:00–17:00");
+    await expect(
+      hours.getByText(message("restaurantCard_workingHours_title"), {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(hours).toContainText(OPEN);
+    await expect(badge(hours)).toHaveAttribute("data-state", "open");
+    await expect(hours).toContainText(todayHours("09:00–17:00"));
 
     const toggle = toggleOf(card);
-    await expect(toggle).toHaveText("ดูเวลาทั้งสัปดาห์ · ปิดวันจันทร์, อาทิตย์");
+    await expect(toggle).toHaveText(closedMonSunToggle);
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
 
     const today = hours.locator('tr[aria-current="date"]');
     await expect(today).toHaveCount(1);
-    await expect(today.getByRole("rowheader")).toHaveText("พฤหัสบดี (วันนี้)");
+    await expect(today.getByRole("rowheader")).toHaveText(
+      format("restaurantCard_workingHours_week_todayLabel", {
+        day: DAY_NAMES[3] ?? "",
+      }),
+    );
     await expect(today.getByRole("cell")).toHaveText("09:00–17:00");
 
     await card.scrollIntoViewIfNeeded();
@@ -125,8 +154,8 @@ test.describe("Working Hours - Live update", () => {
   }) => {
     const card = await openGuideAt(page, TUE_0859_BANGKOK);
     const hours = workingHours(card);
-    await expect(hours).toContainText("ปิดอยู่ · เปิด 09:00");
-    await expect(hours).toContainText("วันนี้ 09:00–17:00");
+    await expect(hours).toContainText(opensAt("09:00"));
+    await expect(hours).toContainText(todayHours("09:00–17:00"));
 
     let navigations = 0;
     page.on("framenavigated", (frame) => {
@@ -135,8 +164,8 @@ test.describe("Working Hours - Live update", () => {
 
     await page.clock.runFor(90_000);
 
-    await expect(hours).toContainText("เปิดอยู่");
-    await expect(hours).not.toContainText("ปิดอยู่ · เปิด");
+    await expect(hours).toContainText(OPEN);
+    await expect(badge(hours)).toHaveAttribute("data-state", "open");
     expect(navigations, "no reload").toBe(0);
   });
 });
@@ -151,14 +180,14 @@ test.describe("Working Hours - Closed day", () => {
 
     const card = await openGuideAt(page, MON_NOON_BANGKOK);
     const hours = workingHours(card);
-    await expect(hours).toContainText("ปิดวันนี้");
-    await expect(hours).toContainText("วันนี้ ปิด");
-    await expect(hours).not.toContainText("เปิดอยู่");
+    await expect(hours).toContainText(message("openStatus_closed_todayLabel"));
+    await expect(hours).toContainText(todayHours(CLOSED));
+    await expect(badge(hours)).toHaveAttribute("data-state", "closed");
 
     // A neighbour open every day is unaffected (ONIBUS COFFEE, 08:00–17:00).
     const onibus = workingHours(cards(page).first());
-    await expect(onibus).toContainText("เปิดอยู่");
-    await expect(onibus).toContainText("วันนี้ 08:00–17:00");
+    await expect(onibus).toContainText(OPEN);
+    await expect(onibus).toContainText(todayHours("08:00–17:00"));
   });
 });
 
@@ -174,10 +203,12 @@ test.describe("Working Hours - Week toggle", () => {
           ? day.ranges
               .map((r) => `${hhmm(r.opensAt)}–${hhmm(r.closesAt)}`)
               .join(", ")
-          : "ปิด";
+          : CLOSED;
       // Thursday is today with THU_NOON_BANGKOK.
       await expect(rows.nth(i).getByRole("rowheader")).toHaveText(
-        i === 3 ? `${name} (วันนี้)` : name,
+        i === 3
+          ? format("restaurantCard_workingHours_week_todayLabel", { day: name })
+          : name,
       );
       await expect(rows.nth(i).getByRole("cell")).toHaveText(expected);
     }
@@ -193,12 +224,14 @@ test.describe("Working Hours - Week toggle", () => {
 
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await expect(toggle).toHaveText("ซ่อนเวลาทั้งสัปดาห์");
+    await expect(toggle).toHaveText(
+      message("restaurantCard_workingHours_toggle_expandedLabel"),
+    );
     await expectWeek(card, guide);
 
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
-    await expect(toggle).toHaveText("ดูเวลาทั้งสัปดาห์ · ปิดวันจันทร์, อาทิตย์");
+    await expect(toggle).toHaveText(closedMonSunToggle);
     await expect(workingHours(card).getByRole("row")).toHaveCount(0);
   });
 

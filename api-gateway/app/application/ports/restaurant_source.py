@@ -13,7 +13,9 @@ class RestaurantSource(Protocol):
     - Technical failures raise SourceUnavailable, SourceTimeout, or InvalidSourceData
       (payload failed validation, or broke a domain rule such as malformed Working
       Hours) — never raw transport, validation or domain errors.
-    - Each call makes at most one upstream request and does not cache.
+    - Each call makes at most one upstream request, and may be answered from a
+      cache. Only successful reads may be cached: NotFound and technical failures
+      are never cached.
     """
 
     async def get_restaurant(self, restaurant_id: str) -> Restaurant: ...

@@ -2,10 +2,24 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 
-import { everyDay } from "@/features/guides/lib/fixtures";
+import { everyDay } from "@/test-utils/fixtures/guides";
 import type { WorkingDay } from "@/features/guides/lib/types";
+import { m } from "@/paraglide/messages.js";
 
 import { WorkingHours } from "./WorkingHours";
+
+const DAY = {
+  mon: m.restaurantCard_workingHours_monday_label,
+  tue: m.restaurantCard_workingHours_tuesday_label,
+  wed: m.restaurantCard_workingHours_wednesday_label,
+  thu: m.restaurantCard_workingHours_thursday_label,
+  fri: m.restaurantCard_workingHours_friday_label,
+  sat: m.restaurantCard_workingHours_saturday_label,
+  sun: m.restaurantCard_workingHours_sunday_label,
+};
+const CLOSED = m.restaurantCard_workingHours_closed_body;
+const TODAY = (day: string) =>
+  m.restaurantCard_workingHours_week_todayLabel({ day });
 
 const BANGKOK = "Asia/Bangkok";
 /** 2026-11-19 is a Thursday. */
@@ -33,9 +47,17 @@ describe("WorkingHours", () => {
         parentTestId="guide/restaurant-card"
       />,
     );
-    expect(within(root()).getByText("เวลาทำการ")).toBeInTheDocument();
-    expect(within(root()).getByText("เปิดอยู่")).toBeInTheDocument();
-    expect(within(root()).getByText("วันนี้ 09:00–17:00")).toBeInTheDocument();
+    expect(
+      within(root()).getByText(m.restaurantCard_workingHours_title()),
+    ).toBeInTheDocument();
+    expect(
+      within(root()).getByText(m.openStatus_open_label()),
+    ).toBeInTheDocument();
+    expect(
+      within(root()).getByText(
+        m.restaurantCard_workingHours_today_body({ hours: "09:00–17:00" }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("says when it opens while closed, and closed today on a closed day", () => {
@@ -46,7 +68,9 @@ describe("WorkingHours", () => {
         now={thursday("07:30:00")}
       />,
     );
-    expect(screen.getByText("ปิดอยู่ · เปิด 09:00")).toBeInTheDocument();
+    expect(
+      screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+    ).toBeInTheDocument();
     unmount();
 
     // Monday is missing from the Working Hours.
@@ -57,11 +81,17 @@ describe("WorkingHours", () => {
         now={new Date("2026-11-16T12:00:00+07:00")}
       />,
     );
-    expect(screen.getByText("ปิดวันนี้")).toBeInTheDocument();
-    expect(screen.getByText("วันนี้ ปิด")).toBeInTheDocument();
+    expect(
+      screen.getByText(m.openStatus_closed_todayLabel()),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        m.restaurantCard_workingHours_today_body({ hours: CLOSED() }),
+      ),
+    ).toBeInTheDocument();
   });
 
-  it("expands the full week with today marked and closed days reading ปิด", async () => {
+  it("expands the full week with today marked and closed days marked closed", async () => {
     const user = userEvent.setup();
     inList(
       <WorkingHours
@@ -73,22 +103,28 @@ describe("WorkingHours", () => {
     );
 
     expect(toggle()).toHaveAttribute("aria-expanded", "false");
-    expect(toggle()).toHaveTextContent("ดูเวลาทั้งสัปดาห์ · ปิดวันจันทร์, อาทิตย์");
+    expect(toggle()).toHaveTextContent(
+      m.restaurantCard_workingHours_toggle_closedDaysLabel({
+        days: `${DAY.mon()}, ${DAY.sun()}`,
+      }),
+    );
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
 
     await user.click(toggle());
 
     expect(toggle()).toHaveAttribute("aria-expanded", "true");
-    expect(toggle()).toHaveTextContent("ซ่อนเวลาทั้งสัปดาห์");
+    expect(toggle()).toHaveTextContent(
+      m.restaurantCard_workingHours_toggle_expandedLabel(),
+    );
     const rows = within(screen.getByRole("table")).getAllByRole("row");
     expect(rows.map((row) => row.textContent)).toEqual([
-      "จันทร์ปิด",
-      "อังคาร09:00–17:00",
-      "พุธ09:00–17:00",
-      "พฤหัสบดี (วันนี้)09:00–17:00",
-      "ศุกร์09:00–17:00",
-      "เสาร์09:00–17:00",
-      "อาทิตย์ปิด",
+      `${DAY.mon()}${CLOSED()}`,
+      `${DAY.tue()}09:00–17:00`,
+      `${DAY.wed()}09:00–17:00`,
+      `${TODAY(DAY.thu())}09:00–17:00`,
+      `${DAY.fri()}09:00–17:00`,
+      `${DAY.sat()}09:00–17:00`,
+      `${DAY.sun()}${CLOSED()}`,
     ]);
     expect(rows[3]).toHaveAttribute("aria-current", "date");
     expect(rows.filter((row) => row.hasAttribute("aria-current"))).toHaveLength(
@@ -117,12 +153,16 @@ describe("WorkingHours", () => {
       />,
     );
     expect(
-      screen.getByText("วันนี้ 11:00–14:00, 18:00–02:00"),
+      screen.getByText(
+        m.restaurantCard_workingHours_today_body({
+          hours: "11:00–14:00, 18:00–02:00",
+        }),
+      ),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button"));
     expect(
       screen.getByRole("row", {
-        name: "พฤหัสบดี (วันนี้) 11:00–14:00, 18:00–02:00",
+        name: `${TODAY(DAY.thu())} 11:00–14:00, 18:00–02:00`,
       }),
     ).toBeInTheDocument();
   });
@@ -135,8 +175,15 @@ describe("WorkingHours", () => {
         now={thursday("01:00:00")}
       />,
     );
-    expect(screen.getByText("เปิดอยู่")).toBeInTheDocument();
-    expect(screen.getByText("เปิดถึง 02:00 · วันนี้ ปิด")).toBeInTheDocument();
+    expect(screen.getByText(m.openStatus_open_label())).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        m.restaurantCard_workingHours_today_openUntilBody({
+          time: "02:00",
+          hours: CLOSED(),
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("keeps today's own hours beside yesterday's late closing time", () => {
@@ -151,7 +198,12 @@ describe("WorkingHours", () => {
       />,
     );
     expect(
-      screen.getByText("เปิดถึง 02:00 · วันนี้ 10:00–14:00"),
+      screen.getByText(
+        m.restaurantCard_workingHours_today_openUntilBody({
+          time: "02:00",
+          hours: "10:00–14:00",
+        }),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -163,7 +215,9 @@ describe("WorkingHours", () => {
         now={thursday("12:00:00")}
       />,
     );
-    expect(screen.getByRole("button").textContent).toBe("ดูเวลาทั้งสัปดาห์");
+    expect(screen.getByRole("button").textContent).toBe(
+      m.restaurantCard_workingHours_toggle_label(),
+    );
   });
 
   it("says closed every day when no day is listed", () => {
@@ -175,7 +229,7 @@ describe("WorkingHours", () => {
       />,
     );
     expect(screen.getByRole("button")).toHaveTextContent(
-      "ดูเวลาทั้งสัปดาห์ · ปิดทุกวัน",
+      m.restaurantCard_workingHours_toggle_closedEveryDayLabel(),
     );
   });
 
@@ -190,17 +244,21 @@ describe("WorkingHours", () => {
     it("updates Open Now when the page stays open past opening and closing time", () => {
       vi.setSystemTime(thursday("08:59:00"));
       inList(<WorkingHours workingHours={weekdays} timeZone={BANGKOK} />);
-      expect(screen.getByText("ปิดอยู่ · เปิด 09:00")).toBeInTheDocument();
+      expect(
+        screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+      ).toBeInTheDocument();
 
       act(() => {
         vi.advanceTimersByTime(60_000);
       });
-      expect(screen.getByText("เปิดอยู่")).toBeInTheDocument();
+      expect(screen.getByText(m.openStatus_open_label())).toBeInTheDocument();
 
       act(() => {
         vi.advanceTimersByTime(8 * 60 * 60_000);
       });
-      expect(screen.getByText("ปิดวันนี้")).toBeInTheDocument();
+      expect(
+        screen.getByText(m.openStatus_closed_todayLabel()),
+      ).toBeInTheDocument();
     });
 
     it("moves today on at midnight", () => {
@@ -210,7 +268,9 @@ describe("WorkingHours", () => {
         vi.advanceTimersByTime(60_000);
       });
       // Friday now; still Tuesday–Saturday hours.
-      expect(screen.getByText("ปิดอยู่ · เปิด 09:00")).toBeInTheDocument();
+      expect(
+        screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+      ).toBeInTheDocument();
     });
   });
 });

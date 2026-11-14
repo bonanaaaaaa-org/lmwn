@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { everyDay } from "@/features/guides/lib/fixtures";
+import { everyDay } from "@/test-utils/fixtures/guides";
 import type { WorkingDay } from "@/features/guides/lib/types";
 
 import { WorkingHours } from "./WorkingHours";

@@ -49,7 +49,7 @@
       color: var(--color-text-muted);
     }
 
-    /* Today: bold on a grey band, and named "(วันนี้)" so it isn't marked by shade alone. */
+    /* Today: bold on a grey band, and labelled as today in words, so it isn't marked by shade alone. */
     &[aria-current="date"] {
       background: var(--color-surface-subtle);
       color: var(--color-text);

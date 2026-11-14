@@ -1,15 +1,27 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { sampleEmptyState } from "@/test-utils/fixtures/sampleContent";
+
 import { EmptyState } from "./EmptyState";
 
 describe("EmptyState", () => {
   it("explains the empty result under a heading", () => {
-    render(<EmptyState title="ไกด์นี้ยังไม่มีร้าน" description="ลองดูไกด์อื่น" />);
+    render(
+      <EmptyState
+        title={sampleEmptyState.filterTitle}
+        description={sampleEmptyState.shortDescription}
+      />,
+    );
     expect(
-      screen.getByRole("heading", { level: 2, name: "ไกด์นี้ยังไม่มีร้าน" }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: sampleEmptyState.filterTitle,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByText("ลองดูไกด์อื่น")).toBeInTheDocument();
+    expect(
+      screen.getByText(sampleEmptyState.shortDescription),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -18,8 +30,8 @@ describe("EmptyState", () => {
     const onAction = vi.fn();
     render(
       <EmptyState
-        title="ไม่พบ"
-        actionLabel="ล้างตัวกรอง"
+        title={sampleEmptyState.shortTitle}
+        actionLabel={sampleEmptyState.clearFilters}
         onAction={onAction}
         parentTestId="guide"
       />,
@@ -30,10 +42,15 @@ describe("EmptyState", () => {
   });
 
   it("offers a link action", () => {
-    render(<EmptyState title="ไม่พบ" actionLabel="ดูไกด์ทั้งหมด" actionHref="/" />);
-    expect(screen.getByRole("link", { name: "ดูไกด์ทั้งหมด" })).toHaveAttribute(
-      "href",
-      "/",
+    render(
+      <EmptyState
+        title={sampleEmptyState.shortTitle}
+        actionLabel={sampleEmptyState.clearSearch}
+        actionHref="/"
+      />,
     );
+    expect(
+      screen.getByRole("link", { name: sampleEmptyState.clearSearch }),
+    ).toHaveAttribute("href", "/");
   });
 });

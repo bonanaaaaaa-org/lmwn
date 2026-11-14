@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import AnyHttpUrl
+from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     guide_service_url: AnyHttpUrl = AnyHttpUrl("http://localhost:8888")
     restaurant_service_url: AnyHttpUrl = AnyHttpUrl("http://localhost:9999")
     upstream_timeout_seconds: float = 5.0
+    cache_ttl_seconds: float = Field(default=60.0, gt=0)
+    """How long a successful upstream read is served from memory."""
     cors_allowed_origins: list[str] = ["http://localhost:3000"]
 
 
