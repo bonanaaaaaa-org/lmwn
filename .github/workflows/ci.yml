@@ -70,6 +70,12 @@ jobs:
         run: pnpm run build
       - name: Build Storybook
         run: pnpm run build-storybook
+      # Story tests render every story in headless Chromium and fail on any axe violation
+      # (Storybook a11y addon, `a11y.test: "error"`).
+      - name: Install Playwright Chromium (story tests)
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Storybook tests (play functions + axe, WCAG 2.2 A and AA)
+        run: pnpm run test:storybook
 
   e2e:
     name: E2E
@@ -99,7 +105,7 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter e2e exec playwright install --with-deps chromium
       # Playwright's webServer starts the whole stack (`pnpm dev`: data server, gateway, web).
-      - name: E2E (Playwright, desktop + mobile)
+      - name: E2E (Playwright + axe, desktop + mobile)
         run: pnpm run test:e2e
       - name: Upload Playwright report
         if: failure()

@@ -30,10 +30,23 @@ const preview: Preview = {
     viewport: {
       options: INITIAL_VIEWPORTS,
     },
-    // Accessibility violations show in the a11y panel; switch to "error" to
-    // fail story tests once they are wired up.
+    // Any axe violation, of any impact, fails the story's test (`pnpm test:storybook`,
+    // run in CI). Scans use the WCAG 2.2 A and AA tags, the same set as the e2e helper.
     a11y: {
-      test: "todo",
+      test: "error",
+      options: {
+        runOnly: {
+          type: "tag",
+          values: [
+            "wcag2a",
+            "wcag2aa",
+            "wcag21a",
+            "wcag21aa",
+            "wcag22a",
+            "wcag22aa",
+          ],
+        },
+      },
     },
   },
 };

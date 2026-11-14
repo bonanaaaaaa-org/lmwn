@@ -38,6 +38,8 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **Response models** are the gateway's own contract.
   - Mongo internals are dropped, and absent optional fields stay absent.
   - Working Hours are normalised to minutes since midnight for all 7 days, with missing days closed. Overnight ranges keep a close time past 1440 (18:00–02:00 becomes 1080–1560).
+    - Equal open and close times mean open for 24 hours (00:00–00:00 becomes 0–1440), not an error.
+    - `24:00` is accepted as a closing time only and means midnight at the end of the opening day (17:00–24:00 becomes 1020–1440). As an opening time it is malformed.
   - The response includes `timeZone: "Asia/Bangkok"`.
   - Time-dependent facts like Open Now are **not** computed in the gateway.
 - **Caching:** upstream reads are cached in memory for about 60 s, and responses send `Cache-Control: public, max-age=60`.

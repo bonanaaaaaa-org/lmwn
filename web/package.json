@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "storybook": "STORYBOOK=true storybook dev -p 6006 --no-open",
-    "build-storybook": "STORYBOOK=true storybook build --quiet"
+    "build-storybook": "STORYBOOK=true storybook build --quiet",
+    "test:storybook": "STORYBOOK=true vitest run --config vitest.storybook.config.ts --passWithNoTests"
   },
   "dependencies": {
     "@fontsource/mali": "^5.3.0",
@@ -41,6 +42,7 @@
     "@react-router/fs-routes": "^8.5.1",
     "@storybook/addon-a11y": "^10.6.7",
     "@storybook/addon-docs": "^10.6.7",
+    "@storybook/addon-vitest": "^10.6.7",
     "@storybook/react-vite": "^10.6.7",
     "@tanstack/react-query-devtools": "^5.107.1",
     "@testing-library/jest-dom": "^7.0.1",
@@ -50,11 +52,13 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "@vitest/browser-playwright": "^5.1.0",
     "@vitest/coverage-v8": "^5.1.0",
     "jsdom": "^31.0.0",
     "msw": "^3.0.5",
     "oxfmt": "0.78.0",
     "oxlint": "1.93.0",
+    "playwright": "^1.65.0",
     "storybook": "^10.6.7",
     "stylelint": "^18.0.0",
     "stylelint-config-standard": "^41.0.0",

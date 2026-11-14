@@ -19,6 +19,7 @@ pnpm format:check                              # oxfmt — run `pnpm format` to 
 pnpm gen:css-types && pnpm type-check          # CSS module types + react-router typegen + tsc --noEmit
 pnpm exec vitest run <paths covering your change>  # Scoped unit tests — all must pass
 pnpm build-storybook                           # Stories compile (also run in CI)
+pnpm test:storybook                            # Every story in headless Chromium + axe — zero violations (also run in CI)
 ```
 
 From the repo root, `pnpm lint`, `pnpm type-check` and `pnpm test` run the same checks across the workspace through Turborepo (turbo runs `gen:css-types` before `type-check` for you).
@@ -498,7 +499,8 @@ describe("CategoryFilter", () => {
 ### Config
 
 - Framework: `@storybook/react-vite` (Storybook 10), reusing `vite.config.ts` — the scripts set `STORYBOOK=true`, which drops the React Router plugin there
-- Addons: docs (autodocs, MDX) and a11y (Accessibility panel per story)
+- Addons: docs (autodocs, MDX), a11y (Accessibility panel per story) and vitest (story tests)
+- `a11y.test: "error"` with the WCAG 2.2 A and AA tags in `.storybook/preview.ts`: any axe violation in any story fails `pnpm test:storybook` and CI. Never switch it off per story (`a11y.test: "off"`/`"todo"`, `a11y.disable`, narrower `a11y.options`, or `tags: ["!test"]`); fix the component instead
 - Stories: `src/**/*.stories.@(ts|tsx)` and `src/**/*.mdx`; `.storybook/preview.ts` loads `modern-normalize` + `globals.css` and offers device viewports
 
 ### Commands
@@ -506,6 +508,7 @@ describe("CategoryFilter", () => {
 ```bash
 pnpm storybook             # Dev server on http://localhost:6006
 pnpm build-storybook       # Static build (CI runs it from the root through turbo)
+pnpm test:storybook        # Story tests: play functions + axe (first run: pnpm exec playwright install chromium)
 ```
 
 ### Story conventions
