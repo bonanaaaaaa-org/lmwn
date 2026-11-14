@@ -257,7 +257,7 @@ describe("WorkingHours", () => {
         vi.advanceTimersByTime(8 * 60 * 60_000);
       });
       expect(
-        screen.getByText(m.openStatus_closed_todayLabel()),
+        screen.getByText(m.openStatus_closed_forTheDayLabel()),
       ).toBeInTheDocument();
     });
 

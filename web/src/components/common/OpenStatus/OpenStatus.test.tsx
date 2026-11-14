@@ -21,8 +21,15 @@ describe("OpenStatus", () => {
     expect(status).toHaveAttribute("data-state", "closed");
   });
 
-  it("says closed today when it doesn't open again today", () => {
+  it("says closed for the day once today's hours are over", () => {
     render(<OpenStatus open={false} testId="status" />);
+    expect(screen.getByTestId("status")).toHaveTextContent(
+      m.openStatus_closed_forTheDayLabel(),
+    );
+  });
+
+  it("says closed today on a day it doesn't open at all", () => {
+    render(<OpenStatus open={false} closedAllDay testId="status" />);
     expect(screen.getByTestId("status")).toHaveTextContent(
       m.openStatus_closed_todayLabel(),
     );

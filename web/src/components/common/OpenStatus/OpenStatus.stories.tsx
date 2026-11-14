@@ -17,13 +17,17 @@ export const Open: Story = {};
 export const ClosedOpensLater: Story = {
   args: { open: false, opensAt: "10:00" },
 };
-export const ClosedToday: Story = { args: { open: false } };
+/** Today's hours are over: closed for the day. */
+export const ClosedForTheDay: Story = { args: { open: false } };
+/** No opening hours today at all: closed today. */
+export const ClosedToday: Story = { args: { open: false, closedAllDay: true } };
 export const AllStates: Story = {
   render: () => (
     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
       <OpenStatus open />
       <OpenStatus open={false} opensAt="10:00" />
       <OpenStatus open={false} />
+      <OpenStatus open={false} closedAllDay />
     </div>
   ),
 };

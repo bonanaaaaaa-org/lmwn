@@ -186,13 +186,23 @@ describe("openStatus", () => {
     });
   });
 
-  it("has no next opening once today's ranges are over, or on a closed day", () => {
+  it("is closed for the day once today's ranges are over", () => {
     expect(
       openStatus(everyDay(480, 1020), bangkok("2026-11-18T20:00:00"), BANGKOK),
     ).toEqual({ open: false });
+  });
+
+  it("is closed all day on a day without ranges", () => {
     expect(
       openStatus(mondayLateNight, bangkok("2026-11-18T12:00:00"), BANGKOK),
-    ).toEqual({ open: false });
+    ).toEqual({ open: false, closedAllDay: true });
+  });
+
+  it("is closed all day after yesterday's overnight range ends on a day without ranges", () => {
+    // Monday 18:00–02:00 only; Tuesday 03:00 is after it and Tuesday has no ranges.
+    expect(
+      openStatus(mondayLateNight, bangkok("2026-11-17T03:00:00"), BANGKOK),
+    ).toEqual({ open: false, closedAllDay: true });
   });
 });
 

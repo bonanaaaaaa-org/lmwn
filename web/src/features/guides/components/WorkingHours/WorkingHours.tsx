@@ -103,6 +103,7 @@ export function WorkingHours({
                   ? undefined
                   : formatOpeningTime(status.opensAt)
               }
+              closedAllDay={status.closedAllDay}
             />
             <span>
               {status.fromYesterday && status.closesAt !== undefined

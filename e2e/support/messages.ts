@@ -28,6 +28,7 @@ type MessageKey =
   | "notFound_backLink_label"
   | "openStatus_open_label"
   | "openStatus_closed_todayLabel"
+  | "openStatus_closed_forTheDayLabel"
   | "restaurantCard_workingHours_title"
   | "restaurantCard_workingHours_closed_body"
   | "restaurantCard_workingHours_toggle_expandedLabel"
