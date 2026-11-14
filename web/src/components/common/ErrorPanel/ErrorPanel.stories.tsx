@@ -19,6 +19,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+/** Offline, and the page was never opened before, so the service worker has nothing saved. */
+export const Offline: Story = { args: { isOffline: true } };
 export const Retrying: Story = { args: { isRetrying: true } };
 export const Inline: Story = {
   args: {

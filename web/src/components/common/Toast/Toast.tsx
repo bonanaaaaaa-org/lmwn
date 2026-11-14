@@ -19,14 +19,17 @@ export interface ToastRegionProps {
   /** Defaults to the app's queue; `showToast()` adds to it. */
   queue?: ToastQueue<ToastContent>;
   className?: string;
-  /** The shell's test ID; each toast is `{parent}/toast`, its close button `{parent}/toast/close`. */
+  /**
+   * The shell's test ID; each toast is `{parent}/toast`, its action button `{parent}/toast/action`
+   * and its close button `{parent}/toast/close`.
+   */
   parentTestId?: string;
 }
 
 /**
  * Where toasts appear: centred at the bottom of the viewport, above the page. Each toast is an
- * ink pill with a saffron check and its message, announced politely, with a close button.
- * Hovering or focusing it pauses its timer.
+ * ink pill with a saffron check and its message, announced politely, then an optional action
+ * button and a close button. Hovering or focusing it pauses its timer.
  */
 export function ToastRegion({
   queue = toastQueue,
@@ -63,6 +66,18 @@ export function ToastRegion({
               />
               <Text slot="title">{toast.content.message}</Text>
             </AriaToastContent>
+            {toast.content.action && (
+              <Button
+                className={styles.Toast__Action}
+                data-testid={`${testId}/action`}
+                onPress={() => {
+                  toast.content.action?.onAction();
+                  queue.close(toast.key);
+                }}
+              >
+                {toast.content.action.label}
+              </Button>
+            )}
             <Button
               slot="close"
               aria-label={m.toast_close_ariaLabel()}
