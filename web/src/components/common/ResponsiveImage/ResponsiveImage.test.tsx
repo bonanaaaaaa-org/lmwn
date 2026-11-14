@@ -53,9 +53,11 @@ describe("ResponsiveImage", () => {
     expect(screen.getByRole("img", { name: "คาเฟ่ลับ" })).toBe(
       container.firstElementChild,
     );
-    expect(container.firstElementChild).toHaveStyle({
-      "--image-aspect-ratio": "4 / 3",
-    });
+    expect(
+      (container.firstElementChild as HTMLElement).style.getPropertyValue(
+        "--image-aspect-ratio",
+      ),
+    ).toBe("4 / 3");
   });
 
   it("treats an image that loads with no pixels (empty body) as failed", () => {
