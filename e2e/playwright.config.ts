@@ -14,7 +14,7 @@ export default defineConfig({
     isCI ? ["github"] : ["list"],
     ["html", { open: "never" }],
     // Results for the combined Allure report (root `pnpm allure`, CI). It attaches what Playwright
-    // keeps for a failed test below: its trace, screenshot and video.
+    // keeps below: a failed test's trace, screenshot and video, and a flaky test's trace.
     [
       "allure-playwright",
       {
@@ -25,7 +25,10 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    trace: "retain-on-failure",
+    // Keep the trace of every failed attempt, and of a flaky test that passed on retry, for
+    // replaying in Allure's trace viewer. Not every test: at ~5 MB each the report would be
+    // too big to upload. The video and screenshot stay failure-only.
+    trace: "retain-on-failure-and-retries",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },

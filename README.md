@@ -81,7 +81,7 @@ Both checks fail on any axe violation, of any impact, against the WCAG 2.2 A and
 
 ## Test reports (Allure)
 
-Every suite also writes [Allure](https://allurereport.org/) results into its own package: the Playwright e2e on desktop and mobile (`e2e/allure-results`, with the trace, screenshot and video of a failed test attached), Vitest unit and Storybook story tests (`web/allure-results/unit` and `storybook`), and the gateway's pytest (`api-gateway/allure-results`). `pnpm test`, `pnpm test:storybook` and `pnpm test:e2e` replace their suite's results on each run.
+Every suite also writes [Allure](https://allurereport.org/) results into its own package: the Playwright e2e on desktop and mobile (`e2e/allure-results`, with the trace, screenshot and video of a failed test attached, and the trace of a flaky test that passed on retry, replayable in Allure's trace viewer), Vitest unit and Storybook story tests (`web/allure-results/unit` and `storybook`), and the gateway's pytest (`api-gateway/allure-results`). `pnpm test`, `pnpm test:storybook` and `pnpm test:e2e` replace their suite's results on each run.
 
 ```bash
 pnpm allure   # combines whatever results exist into one report (allure-report/index.html) and opens it
