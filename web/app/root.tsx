@@ -17,6 +17,8 @@ import "@/styles/globals.css";
 import { showToast } from "@/components/common/Toast";
 import { AppShell, guidePageTestIdFrom } from "@/components/layout/AppShell";
 import { env } from "@/lib/env";
+import { addManifestLink } from "@/lib/manifestLink";
+import { whenPageSettled } from "@/lib/whenPageSettled";
 import { appLocale } from "@/lib/locale";
 import {
   preloadPageScript,
@@ -38,30 +40,31 @@ declare module "react-aria-components" {
 const THEME_COLOR = "#f2b705";
 
 /**
- * Registers the service worker in production builds, once the page has loaded, so neither the
- * worker nor its precache competes with the first paint. A new deploy's worker waits until the
+ * The installable PWA, in production builds, once the page has settled (whenPageSettled): links
+ * the web app manifest (see addManifestLink for why it isn't in the head) and registers the
+ * service worker, so neither competes with the first paint. A new deploy's worker waits until the
  * diner taps the update toast.
  */
-function useServiceWorker() {
+function usePwa() {
   useEffect(() => {
-    if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
-    const register = () => {
-      void import("@/lib/serviceWorker").then(({ registerServiceWorker }) =>
-        registerServiceWorker({
-          onUpdateReady: (update) =>
-            showToast({
-              message: m.app_updateToast_body(),
-              action: { label: m.app_updateToast_label(), onAction: update },
-            }),
-        }),
-      );
+    if (!import.meta.env.PROD) return;
+    let cancelled = false;
+    void whenPageSettled().then(async () => {
+      if (cancelled) return;
+      addManifestLink();
+      if (!("serviceWorker" in navigator)) return;
+      const { registerServiceWorker } = await import("@/lib/serviceWorker");
+      registerServiceWorker({
+        onUpdateReady: (update) =>
+          showToast({
+            message: m.app_updateToast_body(),
+            action: { label: m.app_updateToast_label(), onAction: update },
+          }),
+      });
+    });
+    return () => {
+      cancelled = true;
     };
-    if (document.readyState === "complete") {
-      register();
-      return;
-    }
-    window.addEventListener("load", register, { once: true });
-    return () => window.removeEventListener("load", register);
   }, []);
 }
 
@@ -103,8 +106,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <title>{m.app_title()}</title>
         <meta name="description" content={m.app_description()} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        {/* Installable PWA (#43): the manifest is built by vite-plugin-pwa (see vite.config.ts). */}
-        <link rel="manifest" href="/manifest.webmanifest" />
+        {/* Installable PWA (#43). The manifest link is added after load (usePwa). */}
         <meta name="theme-color" content={THEME_COLOR} />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -140,7 +142,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   const navigate = useNavigate();
-  useServiceWorker();
+  usePwa();
   const guidePageTestId = guidePageTestIdFrom(useMatches());
   return (
     // React Aria links (Link, ButtonLink, TagLink) navigate client-side through React Router.

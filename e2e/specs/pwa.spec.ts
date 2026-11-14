@@ -73,11 +73,10 @@ test.describe("PWA", () => {
   }) => {
     await page.goto("/");
 
-    const manifestHref = await page
-      .locator('link[rel="manifest"]')
-      .getAttribute("href");
-    expect(manifestHref).toBe("/manifest.webmanifest");
-    const manifestResponse = await request.get(manifestHref ?? "");
+    // The page links the manifest once it has settled, not in the HTML (see addManifestLink).
+    const manifestLink = page.locator('link[rel="manifest"]');
+    await expect(manifestLink).toHaveAttribute("href", "/manifest.webmanifest");
+    const manifestResponse = await request.get("/manifest.webmanifest");
     expect(manifestResponse.ok()).toBe(true);
     const manifest = (await manifestResponse.json()) as Manifest;
     expect(manifest).toMatchObject({

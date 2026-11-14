@@ -72,12 +72,17 @@ The web app is an installable Progressive Web App, and Guides a diner has opened
   - The Workbox modules (`workbox-*` 7.4) are runtime dependencies of the worker and of the page's registration. `workbox-window` is the only one the page loads.
 - **Cost.**
   - JS loaded on every page grows by about 1.5 KB gzipped (the offline copy, the toast action and the head tags).
-  - The registration code (`web/src/lib/serviceWorker.ts`, with `workbox-window`) is a separate 2.5 KB gzipped chunk. It loads after the page's `load` event.
+  - The registration code (`web/src/lib/serviceWorker.ts`, with `workbox-window`) is a separate 2.5 KB gzipped chunk. It loads once the page has settled (see below).
   - `sw.js` is about 9 KB gzipped.
-  - The precache is 28 files, about 980 KB raw and 380 KB gzipped: the hashed JS and CSS, the six Mali woff2 files (not the .woff fallbacks), `index.html`, the favicon and the icons. It downloads once, in the background after load, and most of it is already in the HTTP cache from the page itself.
-  - Lighthouse stays at the #16 targets (median of 5): desktop 100 everywhere. Mobile Performance goes from 94 to 92 on the Guide Index and from 91 to 90 on a Guide page.
-    - The drop isn't the worker, which registers after load (deferring it to idle time changed nothing). It's the `<link rel="manifest">`: Chrome fetches the manifest and an icon during load, and Lighthouse's slow-4G simulation counts them before the cover paints (mobile LCP 3.4 s → 3.7 s on a Guide page). Without the link, the scores are 94 and 91 again.
-    - We keep the standard static link. Adding it from script after load would win the points back, at the cost of a non-standard install path. A Guide page on mobile now sits at the 90 floor.
+  - The precache is 28 files, about 980 KB raw and 380 KB gzipped: the hashed JS and CSS, the six Mali woff2 files (not the .woff fallbacks), `index.html`, the favicon and the icons. It downloads once, in the background once the page has settled, and most of it is already in the HTTP cache from the page itself.
+  - Lighthouse stays at the #16 targets (median of 5): desktop 100 everywhere. Mobile Performance is 94 on the Guide Index (94 before) and 90 on a Guide page (91 before).
+- **Nothing PWA-related runs before the cover paints.**
+  - A static `<link rel="manifest">` cost about 2 mobile points. Chrome fetches the manifest and an icon as soon as the link exists, and Lighthouse's slow-4G simulation counts those requests before the cover paints.
+  - So the page adds the link itself (`addManifestLink`) and registers the worker only once the page has settled (`whenPageSettled`). That means after `load`, after a Largest Contentful Paint for an image (the cover or the first card) or 3 s, and then after an idle moment.
+  - `load` alone isn't late enough: it fires before the fonts and the cover arrive.
+  - Waiting on `document.fonts.ready` was tried and dropped: it pushed FCP from 0.75 s to 1.25 s.
+  - Browsers read a manifest added later when the diner installs, and Chrome's installability check passes (e2e).
+  - What's left of the Guide page's drop is about 0.1 s of mobile LCP from the extra JS on every page. It sits on the 90 floor.
 - **What is cached.**
   - The app shell is precached. Same-origin page navigations, apart from files such as `/robots.txt`, are answered with `index.html`, so every route opens offline.
   - Gateway `GET /guides` (with or without a search) and `GET /guides/{guideId}` are network-first. After 3 s, or when there's no network, the last good response is used. At most 60 entries, for 30 days.
