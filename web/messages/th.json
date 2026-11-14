@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_title": "Guide to Hidden Gems",
+  "app_skipLink_label": "ข้ามไปยังเนื้อหาหลัก",
+  "app_header_logo_label": "Guide to Hidden Gems",
+  "app_header_tagline_body": "ไกด์ร้านลับ คัดโดยบรรณาธิการ",
+  "app_footer_brand_label": "Guide to Hidden Gems",
+  "app_footer_body": "ข้อมูลตัวอย่างสำหรับงาน Assignment",
+  "guideIndex_title": "Guide to Hidden Gems",
+  "notFound_title": "ไม่พบหน้านี้",
+  "notFound_body": "ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกลบไปแล้ว",
+  "notFound_backLink_label": "กลับไปหน้าไกด์ทั้งหมด",
+  "errorPanel_title": "โหลดข้อมูลไม่สำเร็จ",
+  "errorPanel_body": "เซิร์ฟเวอร์ไม่ตอบสนองในขณะนี้ ลองใหม่อีกครั้งในอีกสักครู่",
+  "errorPanel_retry_label": "ลองใหม่",
+  "errorPanel_retry_pendingLabel": "กำลังลองใหม่…",
+  "skeletonGroup_label": "กำลังโหลด…",
+  "rating_ariaLabel": "{rating: number maximumFractionDigits=1} จาก 5 ดาว, {count: number} รีวิว"
+}

@@ -1,24 +1,43 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { m } from "@/paraglide/messages.js";
+import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
+
 import { ErrorPanel } from "./ErrorPanel";
 
 describe("ErrorPanel", () => {
   it("is announced as an alert with its title", () => {
-    render(<ErrorPanel title="โหลดไกด์ไม่สำเร็จ" />);
+    render(<ErrorPanel title={sampleOverrides.guideErrorTitle} />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("โหลดไกด์ไม่สำเร็จ");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      sampleOverrides.guideErrorTitle,
+    );
     expect(
-      screen.getByRole("heading", { level: 2, name: "โหลดไกด์ไม่สำเร็จ" }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: sampleOverrides.guideErrorTitle,
+      }),
     ).toBeInTheDocument();
   });
 
-  it("calls onRetry when the diner presses ลองใหม่", async () => {
+  it("says loading failed by default", () => {
+    render(<ErrorPanel />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: m.errorPanel_title() }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(m.errorPanel_body());
+  });
+
+  it("calls onRetry when the diner presses retry", async () => {
     const user = userEvent.setup();
     const onRetry = vi.fn();
     render(<ErrorPanel onRetry={onRetry} />);
 
-    await user.click(screen.getByRole("button", { name: "ลองใหม่" }));
+    await user.click(
+      screen.getByRole("button", { name: m.errorPanel_retry_label() }),
+    );
 
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
@@ -28,7 +47,9 @@ describe("ErrorPanel", () => {
     const onRetry = vi.fn();
     render(<ErrorPanel onRetry={onRetry} isRetrying />);
 
-    await user.click(screen.getByRole("button", { name: "กำลังลองใหม่…" }));
+    await user.click(
+      screen.getByRole("button", { name: m.errorPanel_retry_pendingLabel() }),
+    );
 
     expect(onRetry).not.toHaveBeenCalled();
   });
@@ -47,7 +68,7 @@ describe("ErrorPanel", () => {
       screen.getByRole("alert"),
     );
     expect(screen.getByTestId("guide/error-panel/retry")).toBe(
-      screen.getByRole("button", { name: "ลองใหม่" }),
+      screen.getByRole("button", { name: m.errorPanel_retry_label() }),
     );
 
     rerender(

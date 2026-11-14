@@ -2,6 +2,8 @@ import clsx from "clsx";
 import type { CSSProperties, ReactNode } from "react";
 import { VisuallyHidden } from "react-aria";
 
+import { m } from "@/paraglide/messages.js";
+
 import styles from "./Skeleton.module.css";
 
 export interface SkeletonProps {
@@ -67,7 +69,7 @@ export function Skeleton({
 }
 
 export interface SkeletonGroupProps {
-  /** What screen readers hear while this region loads. */
+  /** What screen readers hear while this region loads. Defaults to `m.skeletonGroup_label()`. */
   label?: string;
   className?: string;
   children: ReactNode;
@@ -75,13 +77,13 @@ export interface SkeletonGroupProps {
 
 /** Marks a loading region: announces `label` once, hides the skeleton shapes from assistive tech. */
 export function SkeletonGroup({
-  label = "กำลังโหลด…",
+  label,
   className,
   children,
 }: SkeletonGroupProps) {
   return (
     <div className={className} role="status">
-      <VisuallyHidden>{label}</VisuallyHidden>
+      <VisuallyHidden>{label ?? m.skeletonGroup_label()}</VisuallyHidden>
       {children}
     </div>
   );

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
+
 import { Skeleton, SkeletonGroup } from "./Skeleton";
 
 const meta = {
@@ -29,7 +31,7 @@ export const Circle: Story = { args: { shape: "circle" } };
 /** How building blocks combine into a card-shaped loading state. */
 export const CardComposition: Story = {
   render: () => (
-    <SkeletonGroup label="กำลังโหลดไกด์…">
+    <SkeletonGroup label={sampleOverrides.guideLoadingLabel}>
       <div style={{ display: "grid", gap: "0.75rem" }}>
         <Skeleton aspectRatio="16 / 9" />
         <Skeleton width="80%" height="1.5rem" />
