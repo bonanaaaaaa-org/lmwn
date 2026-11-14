@@ -36,7 +36,7 @@ describe("GuidePage", () => {
     renderPage();
 
     expect(screen.getByRole("status")).toHaveTextContent(
-      m.guidePageSkeleton_label(),
+      m.guide_skeleton_label(),
     );
     expect(screen.getByTestId("guide/skeleton")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();

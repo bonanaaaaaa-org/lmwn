@@ -47,7 +47,7 @@ export function GuidePageSkeleton({
 }: GuidePageSkeletonProps) {
   return (
     <SkeletonGroup
-      label={m.guidePageSkeleton_label()}
+      label={m.guide_skeleton_label()}
       className={clsx(styles.GuidePageSkeleton__Root, className)}
     >
       <div

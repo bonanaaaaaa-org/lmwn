@@ -7,14 +7,14 @@ import { Skeleton, SkeletonGroup } from "./Skeleton";
 describe("SkeletonGroup", () => {
   it("announces one loading status and hides the shapes from assistive tech", () => {
     const { container } = render(
-      <SkeletonGroup label={m.guidePageSkeleton_label()}>
+      <SkeletonGroup label={m.guide_skeleton_label()}>
         <Skeleton shape="text" lines={3} />
         <Skeleton aspectRatio="4 / 3" />
       </SkeletonGroup>,
     );
 
     const status = screen.getByRole("status");
-    expect(status).toHaveTextContent(m.guidePageSkeleton_label());
+    expect(status).toHaveTextContent(m.guide_skeleton_label());
     expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });
 

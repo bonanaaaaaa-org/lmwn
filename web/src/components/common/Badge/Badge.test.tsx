@@ -6,8 +6,14 @@ import { Badge } from "./Badge";
 
 describe("Badge", () => {
   it("shows its label; the official check is decorative", () => {
-    const { container } = render(<Badge variant="official">Official</Badge>);
-    expect(screen.getByText("Official")).toBeInTheDocument();
+    const { container } = render(
+      <Badge variant="official">
+        {m.restaurantCard_badges_official_label()}
+      </Badge>,
+    );
+    expect(
+      screen.getByText(m.restaurantCard_badges_official_label()),
+    ).toBeInTheDocument();
     expect(container.querySelector("svg")).toHaveAttribute(
       "aria-hidden",
       "true",

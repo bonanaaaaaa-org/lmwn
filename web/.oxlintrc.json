@@ -100,6 +100,10 @@
             "message": "index imports are not allowed."
           },
           {
+            "group": ["@/../**"],
+            "message": "Don't reach outside src through the alias; production code takes copy from m.*(), never the raw catalog or test fixtures."
+          },
+          {
             "group": ["@/test-utils/**"],
             "message": "Test utilities and fixtures (with their allowlisted Thai sample data) are for tests and stories only; production code takes copy from m.*()."
           }
@@ -312,6 +316,7 @@
         ".storybook/**",
         "vitest.setup.tsx"
       ],
+      // Same patterns as the base rule minus the @/test-utils and @/../ bans; keep them in sync.
       "rules": {
         "no-restricted-imports": [
           "error",

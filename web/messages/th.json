@@ -16,7 +16,7 @@
   "guide_notFound_title": "ไม่พบไกด์นี้",
   "guide_notFound_body": "ไกด์นี้อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง",
   "guide_errorPanel_title": "โหลดไกด์ไม่สำเร็จ",
-  "guidePageSkeleton_label": "กำลังโหลดไกด์…",
+  "guide_skeleton_label": "กำลังโหลดไกด์…",
   "guideHeader_tags_ariaLabel": "แท็ก",
   "guideHeader_writeDate_label": "เขียนเมื่อ",
   "guideHeader_restaurantCount_body": "{count: number} ร้าน",

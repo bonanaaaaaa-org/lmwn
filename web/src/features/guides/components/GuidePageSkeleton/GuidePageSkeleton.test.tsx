@@ -8,7 +8,7 @@ describe("GuidePageSkeleton", () => {
   it("announces one loading status for the whole page", () => {
     render(<GuidePageSkeleton parentTestId="guide" />);
     expect(screen.getByRole("status")).toHaveTextContent(
-      m.guidePageSkeleton_label(),
+      m.guide_skeleton_label(),
     );
     expect(screen.getByTestId("guide/skeleton")).toBeInTheDocument();
   });

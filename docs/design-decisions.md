@@ -70,7 +70,7 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **One catalog:** `web/messages/th.json` holds every user-facing string, including accessible names, `alt`, `title`, document titles and the English brand name. Copy uses glossary terms.
 - **Keys mirror the test ID path** (`web/src/lib/testIds.ts`), so an element's `data-testid` maps straight to its copy.
   - Form: `{owning component path}_{role}`. Each kebab-case segment becomes camelCase and `/` becomes `_`. For example, the read-more link in RestaurantCard (test ID `…/restaurant-card/read-more`) → `restaurantCard_readMore_label`.
-  - Keys are rooted at the component that owns the copy, not the runtime parent chain. Shared components use their own name (`notFound_title`, `errorPanel_retry_label`, `header_logo_label` rather than `app_header_…`), and page-level copy starts with the page (`guide_…`, `guideIndex_…`).
+  - Keys are rooted at the component that owns the copy, not the runtime parent chain. Shared components use their own name (`notFound_title`, `errorPanel_retry_label`, `header_logo_label` rather than `app_header_…`), and page-level copy starts with the page (`guide_…`, `guideIndex_…`). A sub-component that only ever renders inside another component nests under it (PhotoStrip → `restaurantCard_photoStrip_*`).
   - The last segment is the string's role: `title`, `body`, `label`, `ariaLabel`, `alt`.
   - Keys are always called statically with dot access, never built at runtime.
   - CI checks every key against `^[a-z][a-zA-Z0-9]*(_[a-z][a-zA-Z0-9]*)+$` and rejects bracket access (`m[…]`). A unit test checks that every catalog key compiled to a message function.
