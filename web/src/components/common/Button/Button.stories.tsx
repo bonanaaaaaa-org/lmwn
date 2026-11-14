@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
 import { Icon } from "@/components/common/Icon";
+import { m } from "@/paraglide/messages.js";
 
 import { Button, ButtonLink } from "./Button";
 
@@ -10,7 +11,7 @@ const meta = {
   component: Button,
   parameters: { layout: "centered" },
   tags: ["autodocs"],
-  args: { onPress: fn(), children: "ลองใหม่" },
+  args: { onPress: fn(), children: m.errorPanel_retry_label() },
 } satisfies Meta<typeof Button>;
 
 export default meta;
@@ -20,13 +21,15 @@ export const Primary: Story = {};
 export const Secondary: Story = { args: { variant: "secondary" } };
 export const Ghost: Story = { args: { variant: "ghost" } };
 export const Inverse: Story = { args: { variant: "inverse" } };
-export const Text: Story = { args: { variant: "text", children: "อ่านเพิ่มเติม" } };
+export const Text: Story = {
+  args: { variant: "text", children: m.restaurantCard_readMore_label() },
+};
 export const Compact: Story = { args: { variant: "ghost", size: "compact" } };
 export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };
 
 export const AsLink: Story = {
-  render: () => <ButtonLink href="/">กลับไปหน้าไกด์ทั้งหมด</ButtonLink>,
+  render: () => <ButtonLink href="/">{m.notFound_backLink_label()}</ButtonLink>,
 };
 
 /** The phone call action: an ink-filled link with an icon. */
@@ -34,7 +37,7 @@ export const InverseLink: Story = {
   render: () => (
     <ButtonLink href="tel:0939164541" variant="inverse">
       <Icon name="phone" size={18} />
-      โทร 093 916 4541
+      {m.restaurantCard_call_label({ phone: "093 916 4541" })}
     </ButtonLink>
   ),
 };
@@ -55,7 +58,7 @@ export const GhostCompactLink: Story = {
 export const SecondaryLink: Story = {
   render: () => (
     <ButtonLink href="/" variant="secondary">
-      กลับไปหน้าไกด์ทั้งหมด
+      {m.notFound_backLink_label()}
     </ButtonLink>
   ),
 };

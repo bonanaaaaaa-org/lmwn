@@ -8,6 +8,7 @@ import {
 } from "@/components/layout/Header";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./AppShell.module.css";
 
@@ -51,7 +52,8 @@ export interface AppShellProps {
  * The frame around every page: a skip link, the Header linking to the Guide Index, `<main>`
  * and a footer, plus the toasts. Its root is `app`, the header `app/header`, their links
  * `app/skip-link` and `app/header/logo`, and each toast `app/toast`. A page can put one action
- * in the header with `HeaderSlotPortal`.
+ * in the header with `HeaderSlotPortal`. Its own copy is the `app_*` messages; the Header's is
+ * `header_*`.
  */
 export function AppShell({ guidePageTestId, children }: AppShellProps) {
   const isPhone = useIsPhone();
@@ -65,7 +67,7 @@ export function AppShell({ guidePageTestId, children }: AppShellProps) {
           href={`#${MAIN_CONTENT_ID}`}
           data-testid={joinTestId(APP_TEST_ID, "skip-link")}
         >
-          ข้ามไปยังเนื้อหาหลัก
+          {m.app_skipLink_label()}
         </a>
         <Header
           layout={headerLayout}
@@ -86,8 +88,8 @@ export function AppShell({ guidePageTestId, children }: AppShellProps) {
         <footer className={styles.AppShell__Footer}>
           <div className={styles.AppShell__Bar}>
             <p>
-              <span lang="en">Guide to Hidden Gems</span> · ข้อมูลตัวอย่างสำหรับงาน
-              Assignment
+              <span lang="en">{m.app_footer_brand_label()}</span> ·{" "}
+              {m.app_footer_body()}
             </p>
           </div>
         </footer>

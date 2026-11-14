@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { sampleImageAlts } from "@/test-utils/fixtures/sampleContent";
+
 import { ResponsiveImage } from "./ResponsiveImage";
 
 // Inline SVG data URLs keep stories off the network (and off the image server).
@@ -13,7 +15,7 @@ const meta = {
   component: ResponsiveImage,
   tags: ["autodocs"],
   args: {
-    alt: "คาเฟ่ลับใน One Bangkok",
+    alt: sampleImageAlts.hiddenCafeInOneBangkok,
     aspectRatio: "16 / 9",
     sizes: "(min-width: 48rem) 36rem, 100vw",
     sources: [

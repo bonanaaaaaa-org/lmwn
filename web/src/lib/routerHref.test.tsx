@@ -3,6 +3,7 @@ import { RouterProvider } from "react-aria-components";
 import { MemoryRouter, useNavigate } from "react-router";
 
 import { ButtonLink } from "@/components/common/Button";
+import { sampleTags } from "@/test-utils/fixtures/sampleContent";
 
 import { isExternalHref, useRouterHref } from "./routerHref";
 
@@ -17,7 +18,7 @@ function AppLinks() {
       <ButtonLink href="https://www.wongnai.com/restaurants/x">
         wongnai
       </ButtonLink>
-      <ButtonLink href="/?tag=คาเฟ่">tag</ButtonLink>
+      <ButtonLink href={`/?tag=${sampleTags.cafe}`}>tag</ButtonLink>
     </RouterProvider>
   );
 }

@@ -1,4 +1,9 @@
-import type { Guide, GuideItem, Photo, Restaurant } from "./types";
+import type {
+  Guide,
+  GuideItem,
+  Photo,
+  Restaurant,
+} from "@/features/guides/lib/types";
 
 /**
  * Gateway-shaped sample data for tests and stories, modelled on the provided Data Server's

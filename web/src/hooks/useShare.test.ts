@@ -1,19 +1,15 @@
 import { act, renderHook } from "@testing-library/react";
 
 import { toastQueue } from "@/components/common/Toast";
+import { m } from "@/paraglide/messages.js";
 
-import {
-  COPY_FAILED_MESSAGE,
-  shareOrCopy,
-  type ShareTarget,
-  useShare,
-} from "./useShare";
+import { shareOrCopy, type ShareTarget, useShare } from "./useShare";
 
 const target: ShareTarget = {
-  title: "10 คาเฟ่ลับ One Bangkok!",
-  text: "ไม่อยากจะเชื่อ มีร้านคาเฟ่ดี ๆ",
+  title: "Guide title",
+  text: "Share text",
   url: "/guides/g1#item-i1",
-  copiedMessage: "คัดลอกลิงก์แล้ว",
+  copiedMessage: "Link copied",
 };
 const BASE = "https://gems.example/guides/g1?category=x";
 const ABSOLUTE = "https://gems.example/guides/g1#item-i1";
@@ -63,7 +59,7 @@ describe("shareOrCopy", () => {
     await expect(shareOrCopy(target, nav, BASE)).resolves.toBe("copied");
 
     expect(nav.clipboard.writeText).toHaveBeenCalledWith(ABSOLUTE);
-    expect(toastMessages()).toEqual([{ message: "คัดลอกลิงก์แล้ว" }]);
+    expect(toastMessages()).toEqual([{ message: "Link copied" }]);
   });
 
   it("copies when canShare rejects the data", async () => {
@@ -102,7 +98,7 @@ describe("shareOrCopy", () => {
 
     await expect(shareOrCopy(target, nav, BASE)).resolves.toBe("failed");
     expect(toastMessages()).toEqual([
-      { message: COPY_FAILED_MESSAGE, tone: "error" },
+      { message: m.shareButton_copyFailed_body(), tone: "error" },
     ]);
   });
 
@@ -110,9 +106,9 @@ describe("shareOrCopy", () => {
     const nav = fakeNavigator();
 
     await shareOrCopy(target, nav, BASE);
-    await shareOrCopy({ ...target, copiedMessage: "อีกครั้ง" }, nav, BASE);
+    await shareOrCopy({ ...target, copiedMessage: "Copied again" }, nav, BASE);
 
-    expect(toastMessages()).toEqual([{ message: "อีกครั้ง" }]);
+    expect(toastMessages()).toEqual([{ message: "Copied again" }]);
   });
 });
 

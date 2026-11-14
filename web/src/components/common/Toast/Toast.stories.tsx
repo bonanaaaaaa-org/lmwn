@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { UNSTABLE_ToastQueue as ToastQueue } from "react-aria-components";
 
 import { Button } from "@/components/common/Button";
+import { m } from "@/paraglide/messages.js";
 
 import { ToastRegion } from "./Toast";
 import { showToast, type ToastContent } from "./toastQueue";
@@ -19,7 +20,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     parentTestId: "app",
-    queue: queueWith({ message: "คัดลอกลิงก์แล้ว" }),
+    queue: queueWith({ message: m.guideHeader_share_copiedBody() }),
   },
   parameters: { layout: "fullscreen" },
   decorators: [
@@ -40,20 +41,29 @@ export const LinkCopied: Story = {};
 /** A card's link was copied: the message names the Restaurant. */
 export const RestaurantLinkCopied: Story = {
   args: {
-    queue: queueWith({ message: "คัดลอกลิงก์ร้าน ONIBUS COFFEE แล้ว" }),
+    queue: queueWith({
+      message: m.restaurantCard_share_copiedBody({
+        restaurant: "ONIBUS COFFEE",
+      }),
+    }),
   },
 };
 
 export const CopyFailed: Story = {
   args: {
-    queue: queueWith({ message: "คัดลอกลิงก์ไม่สำเร็จ", tone: "error" }),
+    queue: queueWith({
+      message: m.shareButton_copyFailed_body(),
+      tone: "error",
+    }),
   },
 };
 
 export const Phone: Story = {
   args: {
     queue: queueWith({
-      message: "คัดลอกลิงก์ร้าน BLUE COFFEE - URBAN COLLECTIONS แล้ว",
+      message: m.restaurantCard_share_copiedBody({
+        restaurant: "BLUE COFFEE - URBAN COLLECTIONS",
+      }),
     }),
   },
   globals: { viewport: { value: "iphone14", isRotated: false } },
@@ -66,8 +76,12 @@ export const Interactive: Story = {
   args: { queue: liveQueue },
   render: (args) => (
     <div style={{ padding: "1rem" }}>
-      <Button onPress={() => showToast({ message: "คัดลอกลิงก์แล้ว" }, liveQueue)}>
-        แสดง toast
+      <Button
+        onPress={() =>
+          showToast({ message: m.guideHeader_share_copiedBody() }, liveQueue)
+        }
+      >
+        Show toast
       </Button>
       <ToastRegion {...args} />
     </div>

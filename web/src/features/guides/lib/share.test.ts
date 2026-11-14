@@ -1,4 +1,9 @@
-import { makeGuide, makeGuideItem, makeRestaurant } from "./fixtures";
+import { m } from "@/paraglide/messages.js";
+import {
+  makeGuide,
+  makeGuideItem,
+  makeRestaurant,
+} from "@/test-utils/fixtures/guides";
 import {
   guideItemIdFromHash,
   guideItemShareTarget,
@@ -11,10 +16,10 @@ describe("guideShareTarget", () => {
     const guide = makeGuide();
 
     expect(guideShareTarget(guide)).toEqual({
-      title: "10 คาเฟ่ลับ One Bangkok!",
+      title: guide.title,
       text: guide.socialTitle,
       url: `/guides/${guide.id}`,
-      copiedMessage: "คัดลอกลิงก์แล้ว",
+      copiedMessage: m.guideHeader_share_copiedBody(),
     });
   });
 });
@@ -25,10 +30,15 @@ describe("guideItemShareTarget", () => {
     const item = makeGuideItem();
 
     expect(guideItemShareTarget(guide, item)).toEqual({
-      title: "ONIBUS COFFEE (สาขา One Bangkok)",
-      text: "ร้าน ONIBUS COFFEE (สาขา One Bangkok) จากไกด์ 10 คาเฟ่ลับ One Bangkok!",
+      title: `ONIBUS COFFEE ${m.restaurantCard_branch_body({ branch: "One Bangkok" })}`,
+      text: m.restaurantCard_share_text({
+        restaurant: `ONIBUS COFFEE ${m.restaurantCard_branch_body({ branch: "One Bangkok" })}`,
+        guide: guide.title,
+      }),
       url: `/guides/${guide.id}#item-${item.id}`,
-      copiedMessage: "คัดลอกลิงก์ร้าน ONIBUS COFFEE แล้ว",
+      copiedMessage: m.restaurantCard_share_copiedBody({
+        restaurant: "ONIBUS COFFEE",
+      }),
     });
   });
 

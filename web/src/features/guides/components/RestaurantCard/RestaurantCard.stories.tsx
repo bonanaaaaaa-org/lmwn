@@ -6,7 +6,8 @@ import {
   makeGuideItem,
   makePhoto,
   makeRestaurant,
-} from "@/features/guides/lib/fixtures";
+} from "@/test-utils/fixtures/guides";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
 import { guideItemShareTarget } from "@/features/guides/lib/share";
 
 import { RestaurantCard } from "./RestaurantCard";
@@ -77,7 +78,7 @@ export const Unavailable: Story = {
   args: {
     index: 3,
     item: makeGuideItem({
-      description: "RISE ลุกขึ้นแล้วดื่มกาแฟ !",
+      description: sampleThaiText.writeUp,
       photos: [
         makePhoto(1),
         makePhoto(2),

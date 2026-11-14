@@ -8,7 +8,7 @@
 @import url("modern-normalize/modern-normalize.css") layer(reset);
 
 /*
- * Mali, a rounded looped Thai (มีหัว) face, for body text and headings alike. Self-hosted
+ * Mali, a rounded looped Thai face (with head loops), for body text and headings alike. Self-hosted
  * through Fontsource: Vite bundles the woff2 files, so the font comes from the app's own
  * origin. Only the Thai and Latin subsets are loaded; `unicode-range` means a page downloads
  * just the subsets it actually uses.

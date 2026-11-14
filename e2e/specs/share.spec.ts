@@ -7,10 +7,11 @@ import {
 } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { format, message } from "#support/messages";
 
 const GATEWAY = process.env.API_BASE_URL ?? "http://localhost:4000";
 
-// "10 คาเฟ่ลับ One Bangkok!": 10 Guide Items, enough that a late card starts off screen.
+// The One Bangkok cafés Guide: 10 Guide Items, enough that a late card starts off screen.
 const CAFE_GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb";
 const LATE_CARD = 7;
 
@@ -156,7 +157,9 @@ test.describe("Share - copy-link fallback", () => {
 
     const card = page.locator(`#item-${item.id}`);
     const share = card.getByTestId("guide/restaurant-card/share");
-    await expect(share).toHaveAccessibleName(`แชร์ร้าน ${item.name}`);
+    await expect(share).toHaveAccessibleName(
+      format("restaurantCard_share_ariaLabel", { restaurant: item.name }),
+    );
     // Pressing repeatedly is safe: one toast, never a stack.
     await share.click();
     await share.click();
@@ -164,7 +167,9 @@ test.describe("Share - copy-link fallback", () => {
 
     const toast = page.getByTestId("app/toast");
     await expect(toast).toHaveCount(1);
-    await expect(toast).toContainText(`คัดลอกลิงก์ร้าน ${item.name} แล้ว`);
+    await expect(toast).toContainText(
+      format("restaurantCard_share_copiedBody", { restaurant: item.name }),
+    );
     // Focus pauses the toast's 4 s timer (as hovering does), so the checks below can't race it.
     await toast.focus();
     await screenshot(page, testInfo, "toast");
@@ -199,14 +204,18 @@ test.describe("Share - copy-link fallback", () => {
       .getByTestId("app/header")
       .getByTestId("guide/guide-header/share");
     if (testInfo.project.name === "chromium-mobile") {
-      await expect(inAppHeader).toHaveAccessibleName("แชร์ไกด์");
+      await expect(inAppHeader).toHaveAccessibleName(
+        message("guideHeader_share_label"),
+      );
     } else {
       await expect(inAppHeader).toHaveCount(0);
-      await expect(share).toHaveText("แชร์ไกด์");
+      await expect(share).toHaveText(message("guideHeader_share_label"));
     }
     await share.click();
 
-    await expect(page.getByTestId("app/toast")).toContainText("คัดลอกลิงก์แล้ว");
+    await expect(page.getByTestId("app/toast")).toContainText(
+      message("guideHeader_share_copiedBody"),
+    );
     const link = await page.evaluate(() => navigator.clipboard.readText());
     expect(link).toMatch(new RegExp(`/guides/${CAFE_GUIDE_ID}$`));
   });

@@ -1,13 +1,15 @@
 import { render, screen } from "@testing-library/react";
 
+import { sampleTags } from "@/test-utils/fixtures/sampleContent";
+
 import { TagLink, tagHref } from "./TagLink";
 
 describe("tagHref", () => {
   it("points at the Guide Index filtered by the encoded Tag", () => {
     expect(tagHref("One Bangkok")).toBe("/?tag=One+Bangkok");
-    expect(new URLSearchParams(tagHref("คาเฟ่").slice(2)).get("tag")).toBe(
-      "คาเฟ่",
-    );
+    expect(
+      new URLSearchParams(tagHref(sampleTags.cafe).slice(2)).get("tag"),
+    ).toBe(sampleTags.cafe);
   });
 
   it("keeps characters that would otherwise break the query intact", () => {
@@ -19,28 +21,35 @@ describe("tagHref", () => {
 
 describe("TagLink", () => {
   it("renders a link named by the Tag", () => {
-    render(<TagLink tag="คาเฟ่" />);
+    render(<TagLink tag={sampleTags.cafe} />);
 
-    expect(screen.getByRole("link", { name: "คาเฟ่" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: sampleTags.cafe })).toHaveAttribute(
       "href",
-      tagHref("คาเฟ่"),
+      tagHref(sampleTags.cafe),
     );
   });
 
   it("uses a caller-built href when given one", () => {
-    render(<TagLink tag="คาเฟ่" href="/?q=coffee&tag=คาเฟ่" />);
+    render(
+      <TagLink
+        tag={sampleTags.cafe}
+        href={`/?q=coffee&tag=${sampleTags.cafe}`}
+      />,
+    );
 
-    expect(screen.getByRole("link", { name: "คาเฟ่" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: sampleTags.cafe })).toHaveAttribute(
       "href",
-      "/?q=coffee&tag=คาเฟ่",
+      `/?q=coffee&tag=${sampleTags.cafe}`,
     );
   });
 
   it("takes its finished test ID from the parent", () => {
-    render(<TagLink tag="คาเฟ่" testId="guide-index/guide-card/tag" />);
+    render(
+      <TagLink tag={sampleTags.cafe} testId="guide-index/guide-card/tag" />,
+    );
 
     expect(screen.getByTestId("guide-index/guide-card/tag")).toBe(
-      screen.getByRole("link", { name: "คาเฟ่" }),
+      screen.getByRole("link", { name: sampleTags.cafe }),
     );
   });
 });

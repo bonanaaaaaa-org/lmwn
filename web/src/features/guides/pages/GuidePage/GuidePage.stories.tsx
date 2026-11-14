@@ -2,7 +2,7 @@ import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
 
-import { GUIDE_ID, makeGuide } from "@/features/guides/lib/fixtures";
+import { GUIDE_ID, makeGuide } from "@/test-utils/fixtures/guides";
 import { guideKeys } from "@/features/guides/lib/queryKeys";
 import type { Guide } from "@/features/guides/lib/types";
 import { ApiError } from "@/lib/apiClient";

@@ -15,7 +15,9 @@ class GuideSource(Protocol):
     - Technical failures raise SourceUnavailable (connection error or server error),
       SourceTimeout, or InvalidSourceData (payload failed validation) — never raw
       transport or validation errors.
-    - Each call makes at most one upstream request and does not cache.
+    - Each call makes at most one upstream request, and may be answered from a
+      cache. Only successful reads may be cached: NotFound and technical failures
+      are never cached.
     - Returns domain values; callers treat them as immutable.
     """
 

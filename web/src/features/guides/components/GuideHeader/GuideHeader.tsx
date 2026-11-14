@@ -4,14 +4,12 @@ import { ResponsiveImage } from "@/components/common/ResponsiveImage";
 import { ShareButton } from "@/components/common/ShareButton";
 import { TagLink } from "@/components/common/TagLink";
 import { HeaderSlotPortal } from "@/components/layout/Header";
-import {
-  formatThaiDate,
-  photoSources,
-  toIsoDate,
-} from "@/features/guides/lib/format";
+import { photoSources } from "@/features/guides/lib/photos";
 import type { Guide } from "@/features/guides/lib/types";
+import { formatDate, toIsoDate } from "@/lib/format";
 import type { ShareTarget } from "@/hooks/useShare";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuideHeader.module.css";
 
@@ -29,7 +27,7 @@ export interface GuideHeaderProps {
   /** `desktop`: a rounded 21:9 cover. `phone`: a full-bleed 4:3 cover. */
   layout?: "desktop" | "phone";
   /**
-   * Sharing the whole Guide. On desktop the "แชร์ไกด์" button sits beside the title; on a
+   * Sharing the whole Guide. On desktop the `m.guideHeader_share_label()` button sits beside the title; on a
    * phone an icon button goes in the app header (see `HeaderSlotPortal`). Omit for no button.
    */
   share?: ShareTarget;
@@ -71,7 +69,10 @@ export function GuideHeader({
       <div className={styles.GuideHeader__Intro}>
         <div className={styles.GuideHeader__Body}>
           {guide.tags.length > 0 && (
-            <ul className={styles.GuideHeader__Tags} aria-label="แท็ก">
+            <ul
+              className={styles.GuideHeader__Tags}
+              aria-label={m.guideHeader_tags_ariaLabel()}
+            >
               {guide.tags.map((tag) => (
                 <li key={tag}>
                   <TagLink
@@ -85,18 +86,19 @@ export function GuideHeader({
           )}
           <h1 className={styles.GuideHeader__Title}>{guide.title}</h1>
           <p className={styles.GuideHeader__Meta}>
-            เขียนเมื่อ{" "}
+            {m.guideHeader_writeDate_label()}{" "}
             <time dateTime={toIsoDate(guide.writeDate, guide.timeZone)}>
-              {formatThaiDate(guide.writeDate, guide.timeZone)}
+              {formatDate(guide.writeDate, { timeZone: guide.timeZone })}
             </time>{" "}
-            · {guide.items.length} ร้าน
+            ·{" "}
+            {m.guideHeader_restaurantCount_body({ count: guide.items.length })}
           </p>
           <p className={styles.GuideHeader__Description}>{guide.description}</p>
         </div>
         {share && layout === "desktop" && (
           <ShareButton
             target={share}
-            label="แชร์ไกด์"
+            label={m.guideHeader_share_label()}
             variant="primary"
             className={styles.GuideHeader__Share}
             testId={shareTestId}
@@ -107,7 +109,7 @@ export function GuideHeader({
         <HeaderSlotPortal>
           <ShareButton
             target={share}
-            label="แชร์ไกด์"
+            label={m.guideHeader_share_label()}
             variant="text"
             iconOnly
             testId={shareTestId}

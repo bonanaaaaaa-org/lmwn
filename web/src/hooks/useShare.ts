@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import { showToast } from "@/components/common/Toast";
+import { m } from "@/paraglide/messages.js";
 
 /** What to share: the share sheet's title and text, the link, and the toast if it's copied instead. */
 export interface ShareTarget {
@@ -23,8 +24,6 @@ export type ShareOutcome =
   | "cancelled"
   | "failed"
   | "busy";
-
-export const COPY_FAILED_MESSAGE = "คัดลอกลิงก์ไม่สำเร็จ";
 
 type ShareNavigator = Pick<Navigator, "share" | "canShare" | "clipboard">;
 
@@ -59,7 +58,7 @@ export async function shareOrCopy(
     showToast({ message: target.copiedMessage });
     return "copied";
   } catch {
-    showToast({ message: COPY_FAILED_MESSAGE, tone: "error" });
+    showToast({ message: m.shareButton_copyFailed_body(), tone: "error" });
     return "failed";
   }
 }

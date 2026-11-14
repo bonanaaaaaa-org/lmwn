@@ -1,4 +1,5 @@
 import type { ShareTarget } from "@/hooks/useShare";
+import { m } from "@/paraglide/messages.js";
 
 import type { Guide, GuideItem, Restaurant } from "./types";
 
@@ -22,10 +23,10 @@ export function guideItemIdFromHash(hash: string): string | undefined {
 export const guidePath = (guideId: string) =>
   `/guides/${encodeURIComponent(guideId)}`;
 
-/** "ONIBUS COFFEE (สาขา One Bangkok)" */
+/** The Restaurant's name, with `m.restaurantCard_branch_body()` after it when it has a branch. */
 export const restaurantDisplayName = (restaurant: Restaurant) =>
   restaurant.branch
-    ? `${restaurant.name} (สาขา ${restaurant.branch})`
+    ? `${restaurant.name} ${m.restaurantCard_branch_body({ branch: restaurant.branch })}`
     : restaurant.name;
 
 /** Sharing a whole Guide: the share text is its socialTitle. */
@@ -36,7 +37,7 @@ export function guideShareTarget(
     title: guide.title,
     text: guide.socialTitle,
     url: guidePath(guide.id),
-    copiedMessage: "คัดลอกลิงก์แล้ว",
+    copiedMessage: m.guideHeader_share_copiedBody(),
   };
 }
 
@@ -52,8 +53,10 @@ export function guideItemShareTarget(
   const name = restaurantDisplayName(item.restaurant);
   return {
     title: name,
-    text: `ร้าน ${name} จากไกด์ ${guide.title}`,
+    text: m.restaurantCard_share_text({ restaurant: name, guide: guide.title }),
     url: `${guidePath(guide.id)}#${itemAnchorId(encodeURIComponent(item.id))}`,
-    copiedMessage: `คัดลอกลิงก์ร้าน ${item.restaurant.name} แล้ว`,
+    copiedMessage: m.restaurantCard_share_copiedBody({
+      restaurant: item.restaurant.name,
+    }),
   };
 }

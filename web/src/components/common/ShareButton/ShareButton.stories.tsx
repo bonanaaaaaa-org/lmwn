@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ToastRegion } from "@/components/common/Toast";
+import {
+  guideItemShareTarget,
+  guideShareTarget,
+} from "@/features/guides/lib/share";
+import { m } from "@/paraglide/messages.js";
+import { makeGuide, makeGuideItem } from "@/test-utils/fixtures/guides";
 
 import { ShareButton } from "./ShareButton";
 
@@ -9,14 +15,9 @@ const meta = {
   component: ShareButton,
   tags: ["autodocs"],
   args: {
-    label: "แชร์ไกด์",
+    label: m.guideHeader_share_label(),
     variant: "primary",
-    target: {
-      title: "10 คาเฟ่ลับ One Bangkok!",
-      text: "ไม่อยากจะเชื่อ มีร้านคาเฟ่ดี ๆ แบบนี้ห้างดังย่านลุมพินี One Bangkok ด้วย",
-      url: "/guides/e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb",
-      copiedMessage: "คัดลอกลิงก์แล้ว",
-    },
+    target: guideShareTarget(makeGuide()),
     testId: "guide/guide-header/share",
   },
   // Press it: the share sheet where the browser has one, else the copied-link toast.
@@ -39,16 +40,11 @@ export const Guide: Story = {};
 /** A Restaurant card: a ghost icon button named after the Restaurant. */
 export const RestaurantCard: Story = {
   args: {
-    label: "แชร์ร้าน ONIBUS COFFEE",
+    label: m.restaurantCard_share_ariaLabel({ restaurant: "ONIBUS COFFEE" }),
     variant: "ghost",
     iconOnly: true,
     testId: "guide/restaurant-card/share",
-    target: {
-      title: "ONIBUS COFFEE (สาขา One Bangkok)",
-      text: "ร้าน ONIBUS COFFEE (สาขา One Bangkok) จากไกด์ 10 คาเฟ่ลับ One Bangkok!",
-      url: "/guides/e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb#item-c77c4d6c-01fa-4e62-8870-563de216a976",
-      copiedMessage: "คัดลอกลิงก์ร้าน ONIBUS COFFEE แล้ว",
-    },
+    target: guideItemShareTarget(makeGuide(), makeGuideItem()),
   },
 };
 

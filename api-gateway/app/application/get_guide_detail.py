@@ -30,6 +30,10 @@ class GuideDetail:
     guide: Guide
     items: tuple[GuideDetailItem, ...]
 
+    @property
+    def has_unavailable_restaurant(self) -> bool:
+        return any(entry.restaurant is None for entry in self.items)
+
 
 type GetGuideDetail = Callable[[str], Awaitable[GuideDetail]]
 """Returns the Guide with each Guide Item and its Restaurant, in guide order.

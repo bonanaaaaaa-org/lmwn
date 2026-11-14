@@ -10,6 +10,7 @@ import {
 
 import { Icon } from "@/components/common/Icon";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./Toast.module.css";
 import { type ToastContent, toastQueue } from "./toastQueue";
@@ -36,7 +37,7 @@ export function ToastRegion({
   return (
     <AriaToastRegion
       queue={queue}
-      aria-label="การแจ้งเตือน"
+      aria-label={m.toast_region_ariaLabel()}
       className={clsx(styles.Toast__Region, className)}
     >
       {({ toast }) => {
@@ -64,7 +65,7 @@ export function ToastRegion({
             </AriaToastContent>
             <Button
               slot="close"
-              aria-label="ปิดการแจ้งเตือน"
+              aria-label={m.toast_close_ariaLabel()}
               className={styles.Toast__Close}
               data-testid={`${testId}/close`}
             >

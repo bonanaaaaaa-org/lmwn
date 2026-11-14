@@ -85,3 +85,13 @@ class FakeRestaurantSource:
         if restaurant_id not in self.restaurants:
             raise RestaurantNotFound(restaurant_id)
         return self.restaurants[restaurant_id]
+
+
+@dataclass
+class FakeClock:
+    """A monotonic clock that moves only when a test advances `now`."""
+
+    now: float = 1000.0
+
+    def __call__(self) -> float:
+        return self.now

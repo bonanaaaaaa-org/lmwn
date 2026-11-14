@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { makePhoto } from "@/features/guides/lib/fixtures";
+import { makePhoto } from "@/test-utils/fixtures/guides";
 
 import { PhotoStrip } from "./PhotoStrip";
 

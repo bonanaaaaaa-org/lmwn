@@ -1,65 +1,65 @@
 import { render, screen, within } from "@testing-library/react";
 
 import { Header, HeaderSlotProvider } from "@/components/layout/Header";
-import { makeGuide } from "@/features/guides/lib/fixtures";
+import { guideShareTarget } from "@/features/guides/lib/share";
+import { m } from "@/paraglide/messages.js";
+import { makeGuide } from "@/test-utils/fixtures/guides";
+import { formattedDates } from "@/test-utils/fixtures/sampleContent";
 
 import { GuideHeader } from "./GuideHeader";
 
-const share = {
-  title: "10 คาเฟ่ลับ One Bangkok!",
-  text: "socialTitle",
-  url: "/guides/g1",
-  copiedMessage: "คัดลอกลิงก์แล้ว",
-};
+const share = guideShareTarget(makeGuide());
 
 describe("GuideHeader", () => {
   it("shows the title, Tags as Guide Index links, the date in Thai and the description", () => {
-    render(<GuideHeader guide={makeGuide()} parentTestId="guide" />);
+    const guide = makeGuide();
+    render(<GuideHeader guide={guide} parentTestId="guide" />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "10 คาเฟ่ลับ One Bangkok!" }),
+      screen.getByRole("heading", { level: 1, name: guide.title }),
     ).toBeInTheDocument();
-    const tags = within(screen.getByRole("list", { name: "แท็ก" })).getAllByRole(
-      "link",
+    const tags = within(
+      screen.getByRole("list", { name: m.guideHeader_tags_ariaLabel() }),
+    ).getAllByRole("link");
+    expect(tags.map((tag) => tag.textContent)).toEqual(
+      guide.tags.map((tag) => `#${tag}`),
     );
-    expect(tags.map((tag) => tag.textContent)).toEqual([
-      "#กาแฟ",
-      "#คาเฟ่",
-      "#กรุงเทพ",
-      "#One",
-      "#Bangkok",
-    ]);
     expect(tags[0]).toHaveAttribute(
       "href",
       "/?tag=%E0%B8%81%E0%B8%B2%E0%B9%81%E0%B8%9F",
     );
     expect(screen.getAllByTestId("guide/guide-header/tag")).toHaveLength(5);
-    expect(screen.getByText("10 มี.ค. 2567")).toHaveAttribute(
+    expect(screen.getByText(formattedDates.march10th2024)).toHaveAttribute(
       "datetime",
       "2024-03-10",
     );
-    expect(screen.getByText(/· 4 ร้าน/)).toBeInTheDocument();
-    expect(screen.getByText(/รวมสุดยอดคาเฟ่ลับ/)).toBeInTheDocument();
+    expect(
+      screen.getByText(formattedDates.march10th2024).parentElement,
+    ).toHaveTextContent(
+      `${m.guideHeader_writeDate_label()} ${formattedDates.march10th2024} · ${m.guideHeader_restaurantCount_body({ count: 4 })}`,
+    );
+    expect(screen.getByText(guide.description)).toBeInTheDocument();
   });
 
   it("loads the cover first, described by the Guide title", () => {
-    render(<GuideHeader guide={makeGuide()} />);
-    const cover = screen.getByRole("img", { name: "10 คาเฟ่ลับ One Bangkok!" });
+    const guide = makeGuide();
+    render(<GuideHeader guide={guide} />);
+    const cover = screen.getByRole("img", { name: guide.title });
     expect(cover).toHaveAttribute("fetchpriority", "high");
     expect(cover).toHaveAttribute("loading", "eager");
     expect(cover.getAttribute("srcset")).toMatch(/ \d+w, .* \d+w$/);
   });
 
-  it("puts the แชร์ไกด์ button beside the title on desktop", () => {
+  it("puts the share button beside the title on desktop", () => {
     render(
       <GuideHeader guide={makeGuide()} share={share} parentTestId="guide" />,
     );
 
     const button = within(screen.getByTestId("guide/guide-header")).getByRole(
       "button",
-      { name: "แชร์ไกด์" },
+      { name: m.guideHeader_share_label() },
     );
-    expect(button).toHaveTextContent("แชร์ไกด์");
+    expect(button).toHaveTextContent(m.guideHeader_share_label());
     expect(button).toHaveAttribute("data-testid", "guide/guide-header/share");
   });
 
@@ -78,7 +78,7 @@ describe("GuideHeader", () => {
 
     const button = screen.getByTestId("guide/guide-header/share");
     expect(screen.getByTestId("app/header")).toContainElement(button);
-    expect(button).toHaveAccessibleName("แชร์ไกด์");
+    expect(button).toHaveAccessibleName(m.guideHeader_share_label());
     expect(button).toHaveTextContent("");
     expect(screen.getByTestId("guide/guide-header")).not.toContainElement(
       button,
@@ -89,7 +89,7 @@ describe("GuideHeader", () => {
     render(<GuideHeader guide={makeGuide()} parentTestId="guide" />);
 
     expect(
-      screen.queryByRole("button", { name: "แชร์ไกด์" }),
+      screen.queryByRole("button", { name: m.guideHeader_share_label() }),
     ).not.toBeInTheDocument();
   });
 });

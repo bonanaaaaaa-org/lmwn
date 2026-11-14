@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 
-import { makePhoto } from "@/features/guides/lib/fixtures";
+import { m } from "@/paraglide/messages.js";
+import { makePhoto } from "@/test-utils/fixtures/guides";
 
 import { PhotoStrip } from "./PhotoStrip";
 
@@ -20,9 +21,17 @@ describe("PhotoStrip", () => {
       />,
     );
 
-    const strip = screen.getByRole("list", { name: "รูปภาพของ ONIBUS COFFEE" });
+    const strip = screen.getByRole("list", {
+      name: m.restaurantCard_photoStrip_ariaLabel({
+        restaurant: "ONIBUS COFFEE",
+      }),
+    });
     const first = within(strip).getByRole("img", {
-      name: "รูปที่ 1 จาก 2 ของ ONIBUS COFFEE",
+      name: m.restaurantCard_photoStrip_photo_alt({
+        position: 1,
+        total: 2,
+        restaurant: "ONIBUS COFFEE",
+      }),
     });
     expect(first).toHaveAttribute(
       "srcset",
@@ -30,7 +39,13 @@ describe("PhotoStrip", () => {
     );
     expect(first).toHaveAttribute("loading", "lazy");
     expect(
-      within(strip).getByRole("img", { name: "รูปที่ 2 จาก 2 ของ ONIBUS COFFEE" }),
+      within(strip).getByRole("img", {
+        name: m.restaurantCard_photoStrip_photo_alt({
+          position: 2,
+          total: 2,
+          restaurant: "ONIBUS COFFEE",
+        }),
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByTestId("guide/restaurant-card/photo-strip"),
@@ -45,7 +60,13 @@ describe("PhotoStrip", () => {
       />,
     );
     expect(
-      screen.getByRole("img", { name: "รูปที่ 1 จาก 1 ของ RISE" }),
+      screen.getByRole("img", {
+        name: m.restaurantCard_photoStrip_photo_alt({
+          position: 1,
+          total: 1,
+          restaurant: "RISE",
+        }),
+      }),
     ).toHaveAttribute("data-state", "placeholder");
     expect(container.querySelector("img")).not.toBeInTheDocument();
   });
@@ -56,7 +77,7 @@ describe("PhotoStrip", () => {
       <PhotoStrip photos={photos} parentTestId="card" />,
     );
     expect(screen.getByTestId("card/photo-strip/next")).toHaveAccessibleName(
-      "รูปถัดไป",
+      m.restaurantCard_photoStrip_next_ariaLabel(),
     );
 
     rerender(<PhotoStrip photos={photos.slice(0, 3)} parentTestId="card" />);
@@ -72,9 +93,18 @@ describe("PhotoStrip", () => {
 
   it("names photos without a Restaurant when it is unavailable", () => {
     render(<PhotoStrip photos={[makePhoto(1)]} />);
-    expect(screen.getByRole("list", { name: "รูปภาพ" })).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: "รูปที่ 1 จาก 1" }),
+      screen.getByRole("list", {
+        name: m.restaurantCard_photoStrip_unnamedAriaLabel(),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: m.restaurantCard_photoStrip_photo_unnamedAlt({
+          position: 1,
+          total: 1,
+        }),
+      }),
     ).toBeInTheDocument();
   });
 

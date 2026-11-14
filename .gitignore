@@ -24,3 +24,6 @@ storybook-static/
 playwright-report/
 test-results/
 blob-report/
+# Paraglide JS: compiled message functions and the compiler cache (generated from web/messages)
+web/src/paraglide/
+web/project.inlang/cache/
