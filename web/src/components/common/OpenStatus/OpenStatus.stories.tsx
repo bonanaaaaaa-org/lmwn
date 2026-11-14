@@ -14,8 +14,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Open: Story = {};
+/** Before today's first opening: not open yet. */
+export const NotOpenYet: Story = {
+  args: { open: false, opensAt: "10:00", notOpenYet: true },
+};
+/** Between today's hours: closed for a break, opening again later. */
 export const ClosedOpensLater: Story = {
-  args: { open: false, opensAt: "10:00" },
+  args: { open: false, opensAt: "17:00" },
 };
 /** Today's hours are over: closed for the day. */
 export const ClosedForTheDay: Story = { args: { open: false } };
@@ -25,7 +30,8 @@ export const AllStates: Story = {
   render: () => (
     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
       <OpenStatus open />
-      <OpenStatus open={false} opensAt="10:00" />
+      <OpenStatus open={false} opensAt="10:00" notOpenYet />
+      <OpenStatus open={false} opensAt="17:00" />
       <OpenStatus open={false} />
       <OpenStatus open={false} closedAllDay />
     </div>

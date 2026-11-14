@@ -10,6 +10,12 @@ export interface OpenStatusProps {
   /** While closed, today's next opening time ("10:00"). */
   opensAt?: string;
   /**
+   * With `opensAt`: today's hours haven't started yet, so the badge reads
+   * `m.openStatus_closed_notOpenYetLabel()` (not open yet) instead of
+   * `m.openStatus_closed_opensAtLabel()` (closed for a break between today's hours).
+   */
+  notOpenYet?: boolean;
+  /**
    * While closed with no `opensAt`: today has no opening hours at all, so the badge reads
    * `m.openStatus_closed_todayLabel()` (closed today). Otherwise today's hours are over and it
    * reads `m.openStatus_closed_forTheDayLabel()` (closed for the day).
@@ -22,20 +28,25 @@ export interface OpenStatusProps {
 
 /**
  * The Open Now badge: `m.openStatus_open_label()` with a filled dot, or, closed, with a ring:
- * `m.openStatus_closed_opensAtLabel()` (opens later today), `m.openStatus_closed_forTheDayLabel()`
+ * `m.openStatus_closed_notOpenYetLabel()` (today's hours haven't started),
+ * `m.openStatus_closed_opensAtLabel()` (a break between today's hours), `m.openStatus_closed_forTheDayLabel()`
  * (today's hours are over) or `m.openStatus_closed_todayLabel()` (closed all day). The
  * words carry the state; colour and dot shape only repeat it.
  */
 export function OpenStatus({
   open,
   opensAt,
+  notOpenYet = false,
   closedAllDay = false,
   className,
   testId,
 }: OpenStatusProps) {
   let label = m.openStatus_open_label();
   if (!open) {
-    if (opensAt) label = m.openStatus_closed_opensAtLabel({ time: opensAt });
+    if (opensAt && notOpenYet)
+      label = m.openStatus_closed_notOpenYetLabel({ time: opensAt });
+    else if (opensAt)
+      label = m.openStatus_closed_opensAtLabel({ time: opensAt });
     else if (closedAllDay) label = m.openStatus_closed_todayLabel();
     else label = m.openStatus_closed_forTheDayLabel();
   }

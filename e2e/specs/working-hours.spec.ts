@@ -35,8 +35,8 @@ const OPEN = message("openStatus_open_label");
 const CLOSED = message("restaurantCard_workingHours_closed_body");
 const todayHours = (hours: string) =>
   format("restaurantCard_workingHours_today_body", { hours });
-const opensAt = (time: string) =>
-  format("openStatus_closed_opensAtLabel", { time });
+const notOpenYet = (time: string) =>
+  format("openStatus_closed_notOpenYetLabel", { time });
 const closedMonSunToggle = format(
   "restaurantCard_workingHours_toggle_closedDaysLabel",
   { days: `${DAY_NAMES[0]}, ${DAY_NAMES[6]}` },
@@ -155,7 +155,7 @@ test.describe("Working Hours - Live update", () => {
   }) => {
     const card = await openGuideAt(page, TUE_0859_BANGKOK);
     const hours = workingHours(card);
-    await expect(hours).toContainText(opensAt("09:00"));
+    await expect(hours).toContainText(notOpenYet("09:00"));
     await expect(hours).toContainText(todayHours("09:00–17:00"));
 
     let navigations = 0;

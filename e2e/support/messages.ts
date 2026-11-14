@@ -68,6 +68,7 @@ interface FormatParams {
     total: number;
   };
   openStatus_closed_opensAtLabel: { time: string };
+  openStatus_closed_notOpenYetLabel: { time: string };
   restaurantCard_workingHours_today_body: { hours: string };
   restaurantCard_workingHours_toggle_closedDaysLabel: { days: string };
   restaurantCard_workingHours_week_todayLabel: { day: string };

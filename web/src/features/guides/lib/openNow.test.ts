@@ -176,14 +176,24 @@ describe("openStatus", () => {
         ],
       },
     ];
+    // Before today's first opening: not open yet.
     expect(openStatus(split, bangkok("2026-11-18T08:00:00"), BANGKOK)).toEqual({
       open: false,
       opensAt: 660,
+      notOpenYet: true,
     });
+    // Between the two ranges: closed for a break, opening again later.
     expect(openStatus(split, bangkok("2026-11-18T15:00:00"), BANGKOK)).toEqual({
       open: false,
       opensAt: 1020,
     });
+  });
+
+  it("is not open yet after yesterday's overnight range ends, before today's opening", () => {
+    // Monday 18:00–02:00; Monday 03:00 follows Sunday's (none) and precedes Monday's 18:00.
+    expect(
+      openStatus(mondayLateNight, bangkok("2026-11-16T03:00:00"), BANGKOK),
+    ).toEqual({ open: false, opensAt: 1080, notOpenYet: true });
   });
 
   it("is closed for the day once today's ranges are over", () => {

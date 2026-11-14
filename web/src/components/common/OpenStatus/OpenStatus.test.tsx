@@ -21,6 +21,15 @@ describe("OpenStatus", () => {
     expect(status).toHaveAttribute("data-state", "closed");
   });
 
+  it("says not open yet before today's first opening", () => {
+    render(
+      <OpenStatus open={false} opensAt="10:00" notOpenYet testId="status" />,
+    );
+    expect(screen.getByTestId("status")).toHaveTextContent(
+      m.openStatus_closed_notOpenYetLabel({ time: "10:00" }),
+    );
+  });
+
   it("says closed for the day once today's hours are over", () => {
     render(<OpenStatus open={false} testId="status" />);
     expect(screen.getByTestId("status")).toHaveTextContent(

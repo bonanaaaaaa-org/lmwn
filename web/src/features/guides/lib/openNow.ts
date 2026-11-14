@@ -89,6 +89,11 @@ export interface OpenStatusValue {
   /** While closed: today's next opening; absent when it doesn't open again today. */
   opensAt?: number;
   /**
+   * While closed with an `opensAt`: none of today's ranges has started yet, so it is not open
+   * yet today. Absent between today's ranges, when it is closed for a break.
+   */
+  notOpenYet?: boolean;
+  /**
    * While closed: today has no opening hours at all (closed today). Absent when today's hours are
    * still ahead (`opensAt`) or already over for the day (closed for the day).
    */
@@ -112,9 +117,14 @@ export function openStatus(
   const later = today
     .map((todayRange) => todayRange.opensAt)
     .filter((opensAt) => opensAt > clock.minutes);
-  return later.length > 0
-    ? { open: false, opensAt: Math.min(...later) }
-    : { open: false };
+  if (later.length === 0) return { open: false };
+  const opensAt = Math.min(...later);
+  const startedToday = today.some(
+    (todayRange) => todayRange.opensAt <= clock.minutes,
+  );
+  return startedToday
+    ? { open: false, opensAt }
+    : { open: false, opensAt, notOpenYet: true };
 }
 
 const pad = (value: number) => String(value).padStart(2, "0");
