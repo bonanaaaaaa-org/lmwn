@@ -2,7 +2,14 @@ import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
 
-import { GUIDE_ID, makeGuide } from "@/test-utils/fixtures/guides";
+import { expect, userEvent, within } from "storybook/test";
+
+import { m } from "@/paraglide/messages.js";
+import {
+  GUIDE_ID,
+  makeGuide,
+  sampleCategories,
+} from "@/test-utils/fixtures/guides";
 import { guideKeys } from "@/features/guides/lib/queryKeys";
 import type { Guide } from "@/features/guides/lib/types";
 import { ApiError } from "@/lib/apiClient";
@@ -56,9 +63,14 @@ const meta = {
   args: { guideId: GUIDE_ID },
   decorators: [
     withSeededGuide({ data: makeGuide() }),
-    // The page reads the URL hash (shared `#item-` links) from the router.
-    (Story) => (
-      <MemoryRouter initialEntries={[`/guides/${GUIDE_ID}`]}>
+    // The page reads the filters (search params) and shared `#item-` links (hash) from the
+    // router; a story sets its query string with `parameters.search`.
+    (Story, { parameters }) => (
+      <MemoryRouter
+        initialEntries={[
+          `/guides/${GUIDE_ID}${String(parameters.search ?? "")}`,
+        ]}
+      >
         <Story />
       </MemoryRouter>
     ),
@@ -84,4 +96,58 @@ export const LoadFailed: Story = {
   decorators: [
     withSeededGuide({ error: new ApiError(504, "Upstream timed out") }),
   ],
+};
+
+const coffeeAndDelivery = `?category=${encodeURIComponent(sampleCategories.coffee)}&delivery=1`;
+
+/** Filtered from the URL: one Category and delivery; the Unavailable Restaurant is hidden. */
+export const Filtered: Story = {
+  parameters: { search: coffeeAndDelivery },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByText(m.guideFilters_count_body({ shown: 1, total: 4 })),
+    ).toBeVisible();
+  },
+};
+
+export const FilteredPhone: Story = {
+  globals: phone,
+  parameters: { search: coffeeAndDelivery },
+};
+
+/** Sorted by Rating: Unrated after the rated, the Unavailable Restaurant last; numbers keep guide order. */
+export const SortedByRating: Story = { parameters: { search: "?sort=rating" } };
+
+const noMatch = `?category=${encodeURIComponent(sampleCategories.fastFood)}&pickup=1&sort=rating`;
+
+/** Nothing matches: the no-match panel offers to clear the filters (the sort stays). */
+export const NoMatches: Story = {
+  parameters: { search: noMatch },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("heading", { name: m.guide_emptyState_filteredTitle() }),
+    ).toBeVisible();
+  },
+};
+
+export const NoMatchesPhone: Story = {
+  globals: phone,
+  parameters: { search: noMatch },
+};
+
+/** Clearing from the no-match panel brings every card back. */
+export const ClearFilters: Story = {
+  parameters: { search: noMatch },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByTestId("guide/empty-state/action"));
+    await expect(canvas.getAllByTestId("guide/restaurant-card")).toHaveLength(
+      4,
+    );
+    await expect(
+      canvas.getByTestId("guide/filters/sort-select/trigger"),
+    ).toHaveTextContent(m.sortSelect_rating_label());
+  },
 };

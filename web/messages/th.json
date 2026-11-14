@@ -31,6 +31,9 @@
   "guide_emptyState_title": "ไกด์นี้ยังไม่มีร้าน",
   "guide_emptyState_body": "บรรณาธิการยังไม่ได้เพิ่มร้านในไกด์นี้ ลองดูไกด์อื่นไปก่อน",
   "guide_emptyState_action_label": "ดูไกด์ทั้งหมด",
+  "guide_emptyState_filteredTitle": "ไม่มีร้านที่ตรงกับตัวกรอง",
+  "guide_emptyState_filteredMeta": "0 จาก {total: number} ร้าน",
+  "guide_emptyState_action_clearFiltersLabel": "ล้างตัวกรอง",
   "guide_notFound_title": "ไม่พบไกด์นี้",
   "guide_notFound_body": "ไกด์นี้อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง",
   "guide_errorPanel_title": "โหลดไกด์ไม่สำเร็จ",
@@ -109,5 +112,16 @@
   "guideHeader_share_copiedBody": "คัดลอกลิงก์แล้ว",
   "restaurantCard_share_ariaLabel": "แชร์ร้าน {restaurant}",
   "restaurantCard_share_text": "ร้าน {restaurant} จากไกด์ {guide}",
-  "restaurantCard_share_copiedBody": "คัดลอกลิงก์ร้าน {restaurant} แล้ว"
+  "restaurantCard_share_copiedBody": "คัดลอกลิงก์ร้าน {restaurant} แล้ว",
+  "guideFilters_ariaLabel": "ตัวกรองและการเรียง",
+  "guideFilters_group_ariaLabel": "ตัวกรอง",
+  "guideFilters_category_title": "ประเภทร้าน",
+  "guideFilters_openNow_label": "เปิดอยู่ตอนนี้",
+  "guideFilters_delivery_label": "เดลิเวอรี่",
+  "guideFilters_pickup_label": "รับเองที่ร้าน",
+  "guideFilters_count_body": "{shown: number} จาก {total: number} ร้าน",
+  "sortSelect_label": "เรียงตาม",
+  "sortSelect_trigger_ariaLabel": "เรียงตาม: {value}",
+  "sortSelect_guideOrder_label": "ลำดับในไกด์",
+  "sortSelect_rating_label": "คะแนนสูงสุด"
 }

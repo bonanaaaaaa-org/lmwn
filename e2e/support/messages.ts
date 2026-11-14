@@ -35,7 +35,15 @@ type MessageKey =
   | "restaurantCard_workingHours_saturday_label"
   | "restaurantCard_workingHours_sunday_label"
   | "guideHeader_share_label"
-  | "guideHeader_share_copiedBody";
+  | "guideHeader_share_copiedBody"
+  | "guideFilters_ariaLabel"
+  | "guideFilters_openNow_label"
+  | "guideFilters_delivery_label"
+  | "guideFilters_pickup_label"
+  | "sortSelect_guideOrder_label"
+  | "sortSelect_rating_label"
+  | "guide_emptyState_filteredTitle"
+  | "guide_emptyState_action_clearFiltersLabel";
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
@@ -60,6 +68,8 @@ interface FormatParams {
   restaurantCard_share_ariaLabel: { restaurant: string };
   restaurantCard_share_copiedBody: { restaurant: string };
   lightbox_counter_body: { position: number; total: number };
+  guideFilters_count_body: { shown: number; total: number };
+  guide_emptyState_filteredMeta: { total: number };
 }
 
 const catalog = JSON.parse(

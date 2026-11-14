@@ -25,6 +25,14 @@ export function makePhoto(n: number, overrides: Partial<Photo> = {}): Photo {
   };
 }
 
+/** Restaurant Categories as the gateway serves them; `cafe` is on no fixture Restaurant. */
+export const sampleCategories = {
+  coffee: "ร้านกาแฟ/ชา",
+  bakery: "เบเกอรี/เค้ก",
+  fastFood: "ฟาสต์ฟู้ด/จานด่วน",
+  cafe: "คาเฟ่",
+} as const;
+
 /** The same single range on all seven days. */
 export const everyDay = (opensAt: number, closesAt: number): WorkingDay[] =>
   [1, 2, 3, 4, 5, 6, 7].map((day) => ({
@@ -46,7 +54,7 @@ export function makeRestaurant(
     lat: 13.7275,
     lng: 100.5469,
     phoneNo: "0939164541",
-    categories: ["ร้านกาแฟ/ชา", "เบเกอรี/เค้ก"],
+    categories: [sampleCategories.coffee, sampleCategories.bakery],
     workingHours: everyDay(480, 1020),
     official: true,
     delivery: true,
@@ -101,7 +109,7 @@ export function makeGuide(overrides: Partial<Guide> = {}): Guide {
           branch: "One Bangkok",
           rating: 4,
           numberOfReviews: 2,
-          categories: ["ฟาสต์ฟู้ด/จานด่วน"],
+          categories: [sampleCategories.fastFood],
           phoneNo: "0655053058",
           pickup: false,
           line: undefined,
@@ -125,7 +133,7 @@ export function makeGuide(overrides: Partial<Guide> = {}): Guide {
           branch: undefined,
           rating: 0,
           numberOfReviews: 0,
-          categories: ["ร้านกาแฟ/ชา"],
+          categories: [sampleCategories.coffee],
           official: false,
           delivery: false,
           pickup: false,
