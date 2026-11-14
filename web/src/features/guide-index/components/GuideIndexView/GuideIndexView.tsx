@@ -5,7 +5,7 @@ import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorPanel } from "@/components/common/ErrorPanel";
 import { FilterTagGroup } from "@/components/common/FilterTag";
-import { SkeletonGroup } from "@/components/common/Skeleton";
+import { Skeleton, SkeletonGroup } from "@/components/common/Skeleton";
 import { GuideCard } from "@/features/guide-index/components/GuideCard";
 import { SearchField } from "@/features/guide-index/components/SearchField";
 import { SkeletonCard } from "@/features/guide-index/components/SkeletonCard";
@@ -53,6 +53,11 @@ export interface GuideIndexViewProps {
   results: GuideIndexResults;
   /** The Tags on offer (every Tag across all Guides, plus any selected one). */
   tags: readonly string[];
+  /**
+   * The Tags are still loading: a placeholder row holds the Tag filter's place, so the
+   * results don't jump down when the Tags arrive.
+   */
+  tagsLoading?: boolean;
   /** The text in the search box, which can run ahead of `filters.q` while typing. */
   searchText: string;
   isSearchTooLong: boolean;
@@ -87,6 +92,7 @@ export function GuideIndexView({
   filters,
   results,
   tags,
+  tagsLoading = false,
   searchText,
   isSearchTooLong,
   onSearchTextChange,
@@ -150,6 +156,27 @@ export function GuideIndexView({
             tagTestId={`${testId}/tag-filter/tag`}
           />
         </section>
+      )}
+
+      {tags.length === 0 && tagsLoading && (
+        <div className={styles.GuideIndexView__TagFilter} aria-hidden="true">
+          <p className={styles.GuideIndexView__TagHeading}>
+            {m.guideIndex_tagFilter_title()}
+          </p>
+          <div
+            className={styles.GuideIndexView__TagSkeletonRow}
+            data-layout={layout}
+          >
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton
+                key={i}
+                className={styles.GuideIndexView__TagSkeleton}
+                width="5rem"
+                height="100%"
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       <section

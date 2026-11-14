@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { env } from "@/lib/env";
+import { takePreloadedResponse } from "@/lib/preloadPageData";
 
 /** A non-2xx response from the API gateway. `detail` is the gateway's safe error message. */
 export class ApiError extends Error {
@@ -49,10 +50,16 @@ export async function fetchJson<Schema extends z.ZodType>(
   schema: Schema,
   init?: RequestInit,
 ): Promise<z.output<Schema>> {
-  const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    ...init,
-    headers: { Accept: "application/json", ...init?.headers },
-  });
+  const url = `${env.apiBaseUrl}${path}`;
+  const request = () =>
+    fetch(url, {
+      ...init,
+      headers: { Accept: "application/json", ...init?.headers },
+    });
+  // The page's first request may already be in flight from the document head; if that
+  // one failed to reach the gateway, ask again.
+  const preloaded = takePreloadedResponse(url);
+  const response = preloaded ? await preloaded.catch(request) : await request();
   if (!response.ok) {
     throw new ApiError(response.status, await readDetail(response));
   }

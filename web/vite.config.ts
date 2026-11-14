@@ -34,6 +34,11 @@ export default defineConfig({
       "clsx",
     ],
   },
+  build: {
+    // One stylesheet (~7 KB gzipped) instead of one per chunk: fewer render-blocking
+    // requests on the critical path (Lighthouse, #16).
+    cssCodeSplit: false,
+  },
   server: {
     port: 3000,
   },

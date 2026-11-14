@@ -10,6 +10,22 @@ const sources = [
 ];
 
 describe("ResponsiveImage", () => {
+  it("holds a deferred image's box and name without requesting it", () => {
+    const { container } = render(
+      <ResponsiveImage
+        sources={sources}
+        alt={sampleImageAlts.hiddenCafe}
+        aspectRatio="16 / 9"
+        deferred
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: sampleImageAlts.hiddenCafe }),
+    ).toHaveAttribute("data-state", "deferred");
+    expect(container.querySelector("img")).toBeNull();
+  });
+
   it("offers every source in srcset, lazily by default", () => {
     render(
       <ResponsiveImage

@@ -7,6 +7,7 @@ import { Icon } from "@/components/common/Icon";
 import { ResponsiveImage } from "@/components/common/ResponsiveImage";
 import { Lightbox } from "@/features/guides/components/Lightbox";
 import { photoAlt, photoSources } from "@/features/guides/lib/photos";
+import { useNearViewport } from "@/hooks/useNearViewport";
 import type { Photo } from "@/features/guides/lib/types";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
@@ -54,7 +55,11 @@ export function PhotoStrip({
   lightboxParentTestId,
 }: PhotoStripProps) {
   const testId = joinTestId(parentTestId, "photo-strip");
+  const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  // Photos load once the strip nears the viewport, not at the browser's much wider lazy
+  // distance, so strips below the fold don't slow the Guide's cover (LCP).
+  const nearViewport = useNearViewport(rootRef);
   const [atEnd, setAtEnd] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxPhoto, setLightboxPhoto] = useState(0);
@@ -96,6 +101,7 @@ export function PhotoStrip({
 
   return (
     <div
+      ref={rootRef}
       className={clsx(styles.PhotoStrip__Root, className)}
       data-layout={layout}
       data-testid={testId}
@@ -120,10 +126,17 @@ export function PhotoStrip({
             >
               <ResponsiveImage
                 className={styles.PhotoStrip__Photo}
-                sources={photoSources(photo)}
+                sources={
+                  // Phones get the small photo only: at 78vw it is about 1.5x the box on a
+                  // typical phone, and the large one is ~4x the bytes. The lightbox shows the large one.
+                  layout === "phone"
+                    ? photoSources(photo).slice(0, 1)
+                    : photoSources(photo)
+                }
                 alt={photoAlt(index + 1, photos.length, restaurantName)}
                 aspectRatio={layout === "desktop" ? "1 / 1" : "4 / 5"}
                 sizes={SIZES[layout]}
+                deferred={!nearViewport}
               />
             </AriaButton>
           </li>
