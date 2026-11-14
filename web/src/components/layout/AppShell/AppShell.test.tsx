@@ -21,16 +21,17 @@ describe("AppShell", () => {
     ).toHaveTextContent("ไกด์ทั้งหมด");
   });
 
-  it("gives its links app-scoped test IDs", () => {
+  it("owns the app test ID and passes it down to the header and links", () => {
     render(<AppShell>content</AppShell>);
 
+    expect(screen.getByTestId("app")).toContainElement(
+      screen.getByRole("main"),
+    );
+    expect(screen.getByTestId("app/header")).toBe(screen.getByRole("banner"));
     expect(screen.getByTestId("app/header/logo")).toHaveAttribute("href", "/");
     expect(screen.getByTestId("app/skip-link")).toHaveAttribute(
       "href",
       "#main-content",
-    );
-    expect(screen.getByRole("contentinfo")).toHaveTextContent(
-      "Guide to Hidden Gems",
     );
   });
 

@@ -1,8 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { TestIdScope } from "@/lib/testIds";
-
 import { ErrorPanel } from "./ErrorPanel";
 
 describe("ErrorPanel", () => {
@@ -41,23 +39,32 @@ describe("ErrorPanel", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("scopes the retry button's test ID under the page", () => {
+  it("puts its test ID under the parent and passes it to the retry button", () => {
     const { rerender } = render(
-      <TestIdScope name="guide">
-        <ErrorPanel onRetry={() => {}} />
-      </TestIdScope>,
+      <ErrorPanel parentTestId="guide" onRetry={() => {}} />,
+    );
+    expect(screen.getByTestId("guide/error-panel")).toBe(
+      screen.getByRole("alert"),
     );
     expect(screen.getByTestId("guide/error-panel/retry")).toBe(
       screen.getByRole("button", { name: "ลองใหม่" }),
     );
 
     rerender(
-      <TestIdScope name="guide-index">
-        <ErrorPanel variant="inline" onRetry={() => {}} />
-      </TestIdScope>,
+      <ErrorPanel
+        parentTestId="guide-index"
+        variant="inline"
+        onRetry={() => {}}
+      />,
     );
     expect(
-      screen.getByTestId("guide-index/inline-error/retry"),
+      screen.getByTestId("guide-index/error-panel/retry"),
     ).toBeInTheDocument();
+  });
+
+  it("uses its own segment alone when there is no parent", () => {
+    render(<ErrorPanel onRetry={() => {}} />);
+
+    expect(screen.getByTestId("error-panel/retry")).toBeInTheDocument();
   });
 });

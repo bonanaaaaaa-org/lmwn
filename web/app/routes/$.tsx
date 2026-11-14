@@ -1,11 +1,12 @@
 import { NotFound } from "@/components/common/NotFound";
-import { TestIdScope } from "@/lib/testIds";
 
-/** Any URL no other route matches. Test IDs here start with `unknown/`. */
+const PAGE_TEST_ID = "unknown";
+
+/** Any URL no other route matches. */
 export default function NotFoundRoute() {
   return (
-    <TestIdScope name="unknown">
-      <NotFound />
-    </TestIdScope>
+    <div data-testid={PAGE_TEST_ID}>
+      <NotFound parentTestId={PAGE_TEST_ID} />
+    </div>
   );
 }

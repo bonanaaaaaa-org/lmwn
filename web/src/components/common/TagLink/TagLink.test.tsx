@@ -35,4 +35,12 @@ describe("TagLink", () => {
       "/?q=coffee&tag=คาเฟ่",
     );
   });
+
+  it("takes its finished test ID from the parent", () => {
+    render(<TagLink tag="คาเฟ่" testId="guide-index/guide-card/tag" />);
+
+    expect(screen.getByTestId("guide-index/guide-card/tag")).toBe(
+      screen.getByRole("link", { name: "คาเฟ่" }),
+    );
+  });
 });

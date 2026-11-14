@@ -137,14 +137,17 @@ ComponentName/
 
 ### Test IDs
 
-- Pattern: `{page}/{component}*/{element}`, every segment kebab-case. Examples: `app/header/logo`, `guide-index/guide-card/link`, `guide/restaurant-card/photo-strip/next`, `guide/error-panel/retry`
-  - `page`: the screen, set once by its route with `<TestIdScope name="guide">`. Pages: `app` (the shell, outside any route), `guide-index`, `guide`, `unknown` (catch-all 404)
-  - `component`: zero or more nested components. A component adds its own segment with `useTestId("restaurant-card")`, or wraps children in `<TestIdScope name="restaurant-card">` so nested components inherit it
-  - `element`: the smallest thing a person interacts with (button, link, input, select, toggle). Containers, text and images get no test ID: reach them by role or landmark
-- Build IDs only through `@/lib/testIds` (`useTestId(...)(element)`, or `testId(...)` outside React). Never write the string inline in a component; tests and Playwright use the literal string
-- Repeated elements (one per card or chip) share an ID; tell them apart by order or text
+Each component owns its test ID and passes it down to its children, so IDs are paths of any depth: `guide/restaurant-card/photo-strip/next`.
+
+- A page puts its name on its root (`data-testid="guide"`) and passes it to its components as `parentTestId`. Pages: `guide-index`, `guide`, `unknown` (catch-all 404). The shell around every page is `app`
+- A component takes `parentTestId?: string`, builds its own ID with `joinTestId(parentTestId, "restaurant-card")` from `@/lib/testIds`, puts it on its root element as `data-testid`, and passes it to child components as their `parentTestId`. Without a parent the ID is just its own segment
+- An interactive element inside a component appends its name: `` `${testId}/share` ``
+- Atoms (`Button`, `ButtonLink`, `TagLink`) take the finished string as `testId` and add no segment
+- Segments are kebab-case. Never write a full ID inline in a component; tests and Playwright use the literal string
+- Repeated components share an ID; pick one by order (`.nth()`, `getAllByTestId(...)[i]`) or by text
 - State is never part of an ID. Expose it through ARIA (`aria-pressed`, `aria-expanded`, `aria-current`) or `data-state` / `data-highlighted`
-- In tests, query by role and name first. Use `getByTestId` when there is no accessible name to rely on, or to pick one of many repeated elements
+- In tests, query by role and name first. Use test IDs to scope to a component or to pick one of many repeats
+- The "data-testid catalog" artboard on the design canvas lists the IDs for every screen
 
 ### Example components
 

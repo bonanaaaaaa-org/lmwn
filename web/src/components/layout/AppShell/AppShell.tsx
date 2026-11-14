@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-aria-components";
 
-import { testId } from "@/lib/testIds";
+import { joinTestId } from "@/lib/testIds";
+
+const APP_TEST_ID = "app";
+const HEADER_TEST_ID = joinTestId(APP_TEST_ID, "header");
 
 import styles from "./AppShell.module.css";
 
@@ -13,25 +16,25 @@ export interface AppShellProps {
 
 /**
  * The frame around every page: a skip link, a header linking to the Guide Index, `<main>`
- * and a footer. It sits outside any route, so its test IDs use the `app` page segment:
- * `app/skip-link`, `app/header/logo`.
+ * and a footer. Its root is `app`, the header `app/header`, and their links `app/skip-link` and
+ * `app/header/logo`.
  */
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className={styles.AppShell__Root}>
+    <div className={styles.AppShell__Root} data-testid={APP_TEST_ID}>
       <a
         className={styles.AppShell__SkipLink}
         href={`#${MAIN_CONTENT_ID}`}
-        data-testid={testId("app", "skip-link")}
+        data-testid={joinTestId(APP_TEST_ID, "skip-link")}
       >
         ข้ามไปยังเนื้อหาหลัก
       </a>
-      <header className={styles.AppShell__Header}>
+      <header className={styles.AppShell__Header} data-testid={HEADER_TEST_ID}>
         <div className={styles.AppShell__Bar}>
           <Link
             href="/"
             className={styles.AppShell__Brand}
-            data-testid={testId("app", "header", "logo")}
+            data-testid={joinTestId(HEADER_TEST_ID, "logo")}
           >
             <svg
               className={styles.AppShell__Mark}

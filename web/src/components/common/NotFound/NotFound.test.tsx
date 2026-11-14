@@ -1,7 +1,5 @@
 import { render, screen } from "@testing-library/react";
 
-import { TestIdScope } from "@/lib/testIds";
-
 import { NotFound } from "./NotFound";
 
 describe("NotFound", () => {
@@ -21,13 +19,12 @@ describe("NotFound", () => {
     ).toHaveAttribute("href", "/");
   });
 
-  it("scopes the back link's test ID under the page", () => {
-    render(
-      <TestIdScope name="unknown">
-        <NotFound />
-      </TestIdScope>,
-    );
+  it("puts its test ID under the parent and passes it to the back link", () => {
+    render(<NotFound parentTestId="unknown" />);
 
+    expect(screen.getByTestId("unknown/not-found")).toContainElement(
+      screen.getByRole("heading", { level: 1 }),
+    );
     expect(screen.getByTestId("unknown/not-found/back-link")).toHaveAttribute(
       "href",
       "/",
