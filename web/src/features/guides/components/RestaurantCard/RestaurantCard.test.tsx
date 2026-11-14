@@ -22,6 +22,39 @@ const fullName = `${restaurant.name} ${m.restaurantCard_branch_body({ branch: re
 const callLabel = m.restaurantCard_call_label({ phone: "093 916 4541" });
 
 describe("RestaurantCard", () => {
+  it("shows today's Working Hours and Open Now, with the week behind a toggle", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    // Wednesday 12:00 in Bangkok; the fixture opens 08:00–17:00 every day.
+    vi.setSystemTime(new Date("2026-11-18T12:00:00+07:00"));
+    const user = userEvent.setup();
+    render(
+      <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
+    );
+
+    const hours = within(card()).getByTestId(
+      "guide/restaurant-card/working-hours",
+    );
+    expect(
+      within(hours).getByText(m.openStatus_open_label()),
+    ).toBeInTheDocument();
+    expect(
+      within(hours).getByText(
+        m.restaurantCard_workingHours_today_body({ hours: "08:00–17:00" }),
+      ),
+    ).toBeInTheDocument();
+    await user.click(
+      within(hours).getByTestId("guide/restaurant-card/working-hours/toggle"),
+    );
+    expect(
+      within(hours).getByRole("row", {
+        name: `${m.restaurantCard_workingHours_week_todayLabel({ day: m.restaurantCard_workingHours_wednesday_label() })} 08:00–17:00`,
+      }),
+    ).toHaveAttribute("aria-current", "date");
+  });
+
   it("names the Restaurant with its branch, Rating, Categories and badges", () => {
     render(
       <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,

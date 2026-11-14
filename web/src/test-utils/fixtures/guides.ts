@@ -3,6 +3,7 @@ import type {
   GuideItem,
   Photo,
   Restaurant,
+  WorkingDay,
 } from "@/features/guides/lib/types";
 
 /**
@@ -24,7 +25,8 @@ export function makePhoto(n: number, overrides: Partial<Photo> = {}): Photo {
   };
 }
 
-const everyDay = (opensAt: number, closesAt: number) =>
+/** The same single range on all seven days. */
+export const everyDay = (opensAt: number, closesAt: number): WorkingDay[] =>
   [1, 2, 3, 4, 5, 6, 7].map((day) => ({
     day,
     ranges: [{ opensAt, closesAt }],

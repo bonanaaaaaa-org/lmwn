@@ -22,6 +22,18 @@ type MessageKey =
   | "notFound_title"
   | "notFound_body"
   | "notFound_backLink_label"
+  | "openStatus_open_label"
+  | "openStatus_closed_todayLabel"
+  | "restaurantCard_workingHours_title"
+  | "restaurantCard_workingHours_closed_body"
+  | "restaurantCard_workingHours_toggle_expandedLabel"
+  | "restaurantCard_workingHours_monday_label"
+  | "restaurantCard_workingHours_tuesday_label"
+  | "restaurantCard_workingHours_wednesday_label"
+  | "restaurantCard_workingHours_thursday_label"
+  | "restaurantCard_workingHours_friday_label"
+  | "restaurantCard_workingHours_saturday_label"
+  | "restaurantCard_workingHours_sunday_label"
   | "guideHeader_share_label"
   | "guideHeader_share_copiedBody";
 
@@ -41,6 +53,10 @@ interface FormatParams {
     position: number;
     total: number;
   };
+  openStatus_closed_opensAtLabel: { time: string };
+  restaurantCard_workingHours_today_body: { hours: string };
+  restaurantCard_workingHours_toggle_closedDaysLabel: { days: string };
+  restaurantCard_workingHours_week_todayLabel: { day: string };
   restaurantCard_share_ariaLabel: { restaurant: string };
   restaurantCard_share_copiedBody: { restaurant: string };
   lightbox_counter_body: { position: number; total: number };

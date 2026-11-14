@@ -12,6 +12,7 @@ import { Icon } from "@/components/common/Icon";
 import { Rating } from "@/components/common/Rating";
 import { ShareButton } from "@/components/common/ShareButton";
 import { PhotoStrip } from "@/features/guides/components/PhotoStrip";
+import { WorkingHours } from "@/features/guides/components/WorkingHours";
 import {
   facebookUrl,
   instagramUrl,
@@ -20,7 +21,11 @@ import {
   safeWebUrl,
   telHref,
 } from "@/features/guides/lib/links";
-import type { GuideItem, Restaurant } from "@/features/guides/lib/types";
+import {
+  THAILAND_TIME_ZONE,
+  type GuideItem,
+  type Restaurant,
+} from "@/features/guides/lib/types";
 import type { ShareTarget } from "@/hooks/useShare";
 import { formatPhoneNumber } from "@/lib/format";
 import { joinTestId } from "@/lib/testIds";
@@ -37,6 +42,8 @@ export interface RestaurantCardProps {
   layout?: RestaurantCardLayout;
   /** Position in the Guide, from 1. */
   index: number;
+  /** The Guide's `timeZone`, in which Working Hours and Open Now are read. */
+  timeZone?: string;
   /** Show the Unavailable Restaurant state. Defaults to whether the Restaurant failed to load. */
   unavailable?: boolean;
   /** Start with the write-up cut to about 4 lines, with `m.restaurantCard_readMore_label()` to expand it. */
@@ -183,6 +190,7 @@ export function RestaurantCard({
   item,
   layout = "desktop",
   index,
+  timeZone = THAILAND_TIME_ZONE,
   unavailable = item.restaurant === null,
   clamp = false,
   share,
@@ -310,6 +318,11 @@ export function RestaurantCard({
 
       {restaurant && (
         <dl className={styles.RestaurantCard__Details}>
+          <WorkingHours
+            workingHours={restaurant.workingHours}
+            timeZone={timeZone}
+            parentTestId={testId}
+          />
           <div className={styles.RestaurantCard__Detail}>
             <dt className={styles.RestaurantCard__Term}>
               {m.restaurantCard_address_label()}

@@ -1,0 +1,68 @@
+@layer components {
+  .WorkingHours__Root {
+    display: flex;
+    flex-direction: column;
+
+    /* The card's details list aligns its groups to the start; the week table needs the full width. */
+    align-self: stretch;
+    gap: var(--space-50);
+
+    & dd {
+      margin: 0;
+    }
+  }
+
+  .WorkingHours__Term {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-75);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .WorkingHours__Today {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-100);
+  }
+
+  .WorkingHours__Week {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-100);
+
+    & th {
+      font-weight: inherit;
+      text-align: start;
+    }
+
+    & td {
+      text-align: end;
+    }
+  }
+
+  .WorkingHours__Day {
+    & > * {
+      padding: var(--space-50) 0;
+    }
+
+    &[data-state="closed"] {
+      color: var(--color-text-muted);
+    }
+
+    /* Today: bold on a grey band, and labelled as today in words, so it isn't marked by shade alone. */
+    &[aria-current="date"] {
+      background: var(--color-surface-subtle);
+      color: var(--color-text);
+      font-weight: var(--font-weight-title);
+
+      & > * {
+        padding-inline: var(--space-100);
+      }
+
+      /* Phones show the details on a grey box already: a darker band keeps today visible. */
+      [data-layout="phone"] & {
+        background: var(--color-surface-sunken);
+      }
+    }
+  }
+}

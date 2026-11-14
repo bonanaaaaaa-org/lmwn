@@ -95,6 +95,48 @@ export function toIsoDate(
   return formatter.format(toDate(date));
 }
 
+const ISO_WEEKDAY: Record<string, number> = {
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+  Sun: 7,
+};
+
+/**
+ * The wall clock of `date` in `timeZone`: ISO weekday (1 = Monday … 7 = Sunday) and minutes
+ * since midnight. Machine-readable, so it doesn't follow the UI locale; `h23` keeps midnight
+ * at hour 0, never 24.
+ */
+export function wallClock(
+  date: Date | string | number,
+  timeZone: string = DEFAULT_TIME_ZONE,
+): { day: number; minutes: number } {
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  };
+  const formatter = cached(
+    dateFormatters,
+    ["en-US", options],
+    () => new Intl.DateTimeFormat("en-US", options),
+  );
+  let day = 0;
+  let hour = 0;
+  let minute = 0;
+  for (const part of formatter.formatToParts(toDate(date))) {
+    if (part.type === "weekday") day = ISO_WEEKDAY[part.value] ?? 0;
+    else if (part.type === "hour") hour = Number(part.value);
+    else if (part.type === "minute") minute = Number(part.value);
+  }
+  return { day, minutes: hour * 60 + minute };
+}
+
 /** Formats a number for the UI (`th-TH` grouping and decimals); `options` go to `Intl.NumberFormat`. */
 export function formatNumber(
   value: number,
