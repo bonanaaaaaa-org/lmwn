@@ -10,14 +10,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.adapters.inbound.http import router_health
-from app.composition import create_http_client
+from app.adapters.inbound.http import router_guides, router_health
+from app.adapters.inbound.http.errors import register_error_handlers
+from app.composition import create_http_client, create_use_cases
 from app.settings import get_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    app.state.http_client = create_http_client(get_settings())
+    settings = get_settings()
+    app.state.http_client = create_http_client(settings)
+    app.state.use_cases = create_use_cases(settings, app.state.http_client)
     try:
         yield
     finally:
@@ -33,7 +36,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET"],
         allow_headers=["*"],
     )
+    register_error_handlers(app)
     app.include_router(router_health.router)
+    app.include_router(router_guides.router)
     return app
 
 

@@ -6,7 +6,7 @@ Mock at **system boundaries** only — things you don't control or that have sid
 
 | Boundary | How | Example |
 |---|---|---|
-| API gateway | msw request handlers (preferred), or `vi.mock` on the API client module | ``http.get(`${env.apiBaseUrl}/api/guides/:id`, () => HttpResponse.json(mockGuide))`` |
+| API gateway | msw request handlers (preferred), or `vi.mock` on the API client module | ``http.get(`${env.apiBaseUrl}/guides/:id`, () => HttpResponse.json(mockGuide))`` |
 | Browser APIs | `vi.stubGlobal` / `Object.defineProperty` | `navigator.share`, `navigator.clipboard`, `matchMedia` |
 | Time | `vi.useFakeTimers()` + `vi.setSystemTime()` | "open now", debounce |
 | Randomness | `vi.spyOn(Math, "random")` | ID generation in tests |
@@ -29,7 +29,7 @@ msw intercepts `fetch`, so the real API client, Zod parsing and hooks all run. O
 
 ```ts
 server.use(
-  http.get(`${env.apiBaseUrl}/api/guides/:id`, () =>
+  http.get(`${env.apiBaseUrl}/guides/:id`, () =>
     HttpResponse.json({ detail: "Guide not found" }, { status: 404 }),
   ),
 );

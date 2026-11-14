@@ -55,23 +55,23 @@ async def test_guide_source_rejects_malformed_payload(upstream: respx.MockRouter
 
 # GOOD (inbound adapter): HTTP status, shape and mapping, with use cases over fakes
 async def test_get_guide_returns_camel_case_detail(client_with_fakes: AsyncClient) -> None:
-    response = await client_with_fakes.get(f"/api/guides/{GUIDE_ID}")
+    response = await client_with_fakes.get(f"/guides/{GUIDE_ID}")
 
     assert response.status_code == 200
     assert response.json()["items"][0]["restaurant"]["phoneNo"] == "0939164541"
 
 
 async def test_source_timeout_becomes_504(client_with_failing_guides: AsyncClient) -> None:
-    response = await client_with_failing_guides.get(f"/api/guides/{GUIDE_ID}")
+    response = await client_with_failing_guides.get(f"/guides/{GUIDE_ID}")
 
     assert response.status_code == 504
     assert "localhost" not in response.text
 
 
 async def test_malformed_guide_id_is_rejected(client: AsyncClient) -> None:
-    response = await client.get("/api/guides/not-a-uuid")
+    response = await client.get("/guides/not-a-uuid")
 
-    assert response.status_code == 422
+    assert response.status_code == 404  # never reaches upstream
 ```
 
 Characteristics:
@@ -88,7 +88,7 @@ Characteristics:
 async def test_router_calls_use_case(client: AsyncClient) -> None:
     use_case = AsyncMock(return_value=FAKE_DETAIL)
     app.dependency_overrides[get_get_guide_detail] = lambda: use_case
-    await client.get(f"/api/guides/{GUIDE_ID}")
+    await client.get(f"/guides/{GUIDE_ID}")
     use_case.assert_awaited_once()
 
 

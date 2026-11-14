@@ -57,10 +57,10 @@ This is where most of your test volume should be. API tests are fast, determinis
 
 For each endpoint, cover:
 1. Golden-path response (200) with full shape assertion (camelCase keys, no leaked upstream-only fields)
-2. Validation failure (422) — malformed ids or query params, with no upstream call made
+2. Input safety — a non-UUID guide id is 404 and `q` over 100 characters is 422, with no upstream call made
 3. Upstream not found → 404
-4. Upstream timeout / connection error → 504 / 503, and malformed upstream payload → 502, with no internals in the error body
-5. Partial failure — one guide item or restaurant failing degrades that item instead of failing the guide
+4. Upstream timeout → 504; connection error, upstream 5xx or malformed upstream payload → 502, with no internals in the error body
+5. Partial failure — a failing Restaurant makes that Guide Item an Unavailable Restaurant (`restaurant: null`); a failing Guide or Guide Item fails the request
 6. Edge cases — empty guide (no items), optional fields absent (`branch`, `line`, `instagram`, `facebook`), boundary ratings (0, 5), missing working-hours days
 
 **Layer 3 — E2E tests (Playwright, `e2e/specs/`)**
@@ -133,16 +133,17 @@ Contract tests run the **whole hexagon** in-process — real inbound adapter, us
 
 ```python
 async def test_get_guide_rejects_malformed_id(client: AsyncClient, upstream: respx.MockRouter) -> None:
-    response = await client.get("/api/guides/not-a-uuid")
+    response = await client.get("/guides/not-a-uuid")
 
-    assert response.status_code == 422
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Guide not found"}
     assert not upstream.calls  # rejected before any upstream call
 
 
 async def test_get_guide_maps_upstream_timeout_to_504(client: AsyncClient, upstream: respx.MockRouter) -> None:
     upstream.get(f"{GUIDE_URL}/guides/{GUIDE_ID}").mock(side_effect=httpx.ReadTimeout("timeout"))
 
-    response = await client.get(f"/api/guides/{GUIDE_ID}")
+    response = await client.get(f"/guides/{GUIDE_ID}")
 
     assert response.status_code == 504
     assert "localhost:8888" not in response.text
@@ -151,7 +152,7 @@ async def test_get_guide_maps_upstream_timeout_to_504(client: AsyncClient, upstr
 async def test_get_guide_returns_guide_with_restaurants(client: AsyncClient, upstream: respx.MockRouter) -> None:
     mock_full_guide(upstream)
 
-    response = await client.get(f"/api/guides/{GUIDE_ID}")
+    response = await client.get(f"/guides/{GUIDE_ID}")
 
     assert response.status_code == 200
     body = response.json()
