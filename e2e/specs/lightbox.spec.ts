@@ -321,6 +321,52 @@ test.describe("Guide - Lightbox", () => {
     expect(await started()).toEqual([]);
   });
 
+  test("covers the whole viewport, with the photo as large as fits uncropped", async ({
+    page,
+  }, testInfo) => {
+    const scrollBefore = await page.evaluate(() => window.scrollY);
+    await press(stripPhotos(page).nth(1), testInfo);
+    const photo = lightbox(page).getByRole("img").first();
+    await expect(photo).toBeVisible();
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-entering]") &&
+        (document.querySelector('[role="dialog"] img') as HTMLImageElement)
+          ?.complete,
+    );
+
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error("the project sets a viewport");
+    const dialog = await lightbox(page).boundingBox();
+    expect(dialog).toEqual({
+      x: 0,
+      y: 0,
+      width: viewport.width,
+      height: viewport.height,
+    });
+
+    // The page behind neither scrolls nor shows a scrollbar.
+    const page_ = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      overflowX: document.documentElement.scrollWidth > window.innerWidth,
+    }));
+    expect(page_).toEqual({ scrollY: scrollBefore, overflowX: false });
+
+    if (!isPhone(testInfo)) {
+      // Desktop: edge to edge, so the photo meets the viewport on one axis.
+      const box = await photo.boundingBox();
+      if (!box) throw new Error("the photo has a box");
+      expect(box.x).toBeGreaterThanOrEqual(-1);
+      expect(box.y).toBeGreaterThanOrEqual(-1);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
+      expect(
+        Math.max(box.width / viewport.width, box.height / viewport.height),
+      ).toBeGreaterThan(0.99);
+    }
+    await screenshot(page, testInfo, "03-fullscreen");
+  });
+
   test("has no axe violations while open", async ({ page }, testInfo) => {
     await press(stripPhotos(page).nth(1), testInfo);
     await expect(lightbox(page).getByRole("img").first()).toBeVisible();

@@ -1,5 +1,5 @@
 @layer components {
-  /* The backdrop. Phones get the whole screen; wider screens a rounded panel over a scrim. */
+  /* The backdrop. The viewer covers it edge to edge at every size. */
   .Lightbox__Overlay {
     position: fixed;
     inset: 0;
@@ -14,27 +14,17 @@
     &[data-exiting] {
       animation: fade-in var(--duration-fast) var(--easing-standard) reverse;
     }
-
-    @media (width >= 48rem) {
-      padding: var(--space-300);
-    }
   }
 
   .Lightbox__Modal {
     width: 100%;
     height: 100%;
-
-    @media (width >= 48rem) {
-      width: min(100%, 65rem);
-
-      /* The canvas sheet: a 1040 × 620 panel. */
-      height: min(100%, 38.75rem);
-    }
   }
 
   /*
    * Phone: title and close, then the photo, then prev · thumbnails · next.
-   * Wider: prev and next flank the photo, thumbnails below.
+   * Wider: the photo fills the screen; the title and close, prev and next, and the
+   * thumbnails float over it.
    */
   .Lightbox__Root {
     display: grid;
@@ -59,8 +49,20 @@
         "thumbs thumbs thumbs" auto
         / auto minmax(0, 1fr) auto;
       column-gap: var(--space-300);
+      position: relative;
       padding: var(--space-200) var(--space-300);
-      border-radius: var(--radius-400);
+
+      /* Controls over a photo: a grey that shows on light photos and on the backdrop. */
+      --color-overlay: var(--color-overlay-strong);
+      --color-overlay-hover: var(--color-overlay-strong-hover);
+
+      /*
+       * z-index is off limits, so stacking follows the DOM: the stage comes first and the
+       * positioned controls after it paint on top.
+       */
+      & > :not(.Lightbox__Stage) {
+        position: relative;
+      }
     }
   }
 
@@ -102,6 +104,27 @@
     min-height: 0;
     container-type: size;
     touch-action: pan-y pinch-zoom;
+
+    /* Edge to edge, under the controls (out of the grid, so the dialog is its box). */
+    @media (width >= 48rem) {
+      position: absolute;
+      grid-area: auto;
+      inset: 0;
+
+      /* Shades at the top and bottom keep the title and thumbnails legible over a photo. */
+      &::after {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          var(--color-scrim),
+          transparent 7rem,
+          transparent calc(100% - 7rem),
+          var(--color-scrim)
+        );
+        content: "";
+        pointer-events: none;
+      }
+    }
   }
 
   /* As large as fits the stage at the photo's own ratio. */
@@ -119,6 +142,10 @@
 
   .Lightbox__Photo {
     border-radius: var(--radius-200);
+
+    @media (width >= 48rem) {
+      border-radius: 0;
+    }
   }
 
   .Lightbox__Thumbs {

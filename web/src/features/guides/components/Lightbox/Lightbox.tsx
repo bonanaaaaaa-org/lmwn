@@ -51,9 +51,9 @@ type Direction = "next" | "prev";
 /**
  * A full-screen viewer for a Guide Item's photos (React Aria modal dialog). It shows the
  * large image, moves with the prev/next buttons, the arrow keys, a swipe or a thumbnail,
- * and closes with Esc, the close button or a click on the backdrop. Focus stays inside
- * while it is open and returns to whatever opened it. Transitions are off under
- * `prefers-reduced-motion`.
+ * and closes with Esc or the close button. It covers the whole viewport at every size,
+ * with the photo as large as fits without cropping. Focus stays inside while it is open
+ * and returns to whatever opened it. Transitions are off under `prefers-reduced-motion`.
  */
 export function Lightbox({
   name,
@@ -146,6 +146,34 @@ export function Lightbox({
         >
           {({ close }) => (
             <>
+              {/* First, so the controls after it paint on top where the photo fills the screen. */}
+              <div
+                className={styles.Lightbox__Stage}
+                data-testid={`${testId}/stage`}
+                onPointerDown={onPointerDown}
+                onPointerUp={onPointerUp}
+                onPointerCancel={() => {
+                  swipeStart.current = null;
+                }}
+              >
+                <div
+                  // A new key per photo replays the entrance transition.
+                  key={index}
+                  className={styles.Lightbox__Frame}
+                  data-direction={direction ?? undefined}
+                  style={{ "--photo-ratio": ratio } as CSSProperties}
+                >
+                  <ResponsiveImage
+                    className={styles.Lightbox__Photo}
+                    sources={shown ? [shown] : []}
+                    alt={photoAlt(index + 1, total, name)}
+                    aspectRatio={String(ratio)}
+                    sizes="100vw"
+                    priority
+                  />
+                </div>
+              </div>
+
               <div className={styles.Lightbox__Header}>
                 <Heading
                   slot="title"
@@ -178,33 +206,6 @@ export function Lightbox({
                   <Icon name="chevron-left" size={20} strokeWidth={2.2} />
                 </Button>
               )}
-
-              <div
-                className={styles.Lightbox__Stage}
-                data-testid={`${testId}/stage`}
-                onPointerDown={onPointerDown}
-                onPointerUp={onPointerUp}
-                onPointerCancel={() => {
-                  swipeStart.current = null;
-                }}
-              >
-                <div
-                  // A new key per photo replays the entrance transition.
-                  key={index}
-                  className={styles.Lightbox__Frame}
-                  data-direction={direction ?? undefined}
-                  style={{ "--photo-ratio": ratio } as CSSProperties}
-                >
-                  <ResponsiveImage
-                    className={styles.Lightbox__Photo}
-                    sources={shown ? [shown] : []}
-                    alt={photoAlt(index + 1, total, name)}
-                    aspectRatio={String(ratio)}
-                    sizes="(width >= 48rem) 40rem, 100vw"
-                    priority
-                  />
-                </div>
-              </div>
 
               {canMove && (
                 <Button
