@@ -8,10 +8,11 @@ import {
 } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { format } from "#support/messages";
 
 const GATEWAY = process.env.API_BASE_URL ?? "http://localhost:4000";
 
-// "10 คาเฟ่ลับ One Bangkok!": its first Guide Item, ONIBUS COFFEE, has 4 photos.
+// The seeded cafe Guide: its first Guide Item, ONIBUS COFFEE, has 4 photos.
 const CAFE_GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb";
 
 interface GatewayPhoto {
@@ -29,6 +30,20 @@ async function firstItem(request: APIRequestContext) {
   if (!item?.restaurant)
     throw new Error("the seeded first item has a Restaurant");
   return { name: item.restaurant.name, photos: item.photos };
+}
+
+/** The lightbox's accessible name: the Restaurant, then the photo counter. */
+function title(name: string, position: number, total: number): string {
+  return `${name} ${format("lightbox_counter_body", { position, total })}`;
+}
+
+/** The strip's (and the lightbox's) alt text for a photo. */
+function alt(name: string, position: number, total: number): string {
+  return format("restaurantCard_photoStrip_photo_alt", {
+    position,
+    total,
+    restaurant: name,
+  });
 }
 
 function isPhone(testInfo: TestInfo): boolean {
@@ -105,17 +120,17 @@ test.describe("Guide - Lightbox", () => {
     await press(stripPhotos(page).nth(1), testInfo);
 
     const dialog = page.getByRole("dialog", {
-      name: `${name} · รูปที่ 2 จาก ${photos.length}`,
+      name: title(name, 2, photos.length),
     });
     await expect(dialog).toBeVisible();
     await expect(dialog).toHaveAttribute("data-testid", "guide/lightbox");
     const photo = dialog.getByRole("img", {
-      name: `รูปที่ 2 จาก ${photos.length} ของ ${name}`,
+      name: alt(name, 2, photos.length),
     });
     await expect(photo).toHaveAttribute("src", photos[1]?.largeUrl ?? "");
     await expect(
       stripPhotos(page).nth(1).getByRole("img", { includeHidden: true }),
-    ).toHaveAttribute("alt", `รูปที่ 2 จาก ${photos.length} ของ ${name}`);
+    ).toHaveAttribute("alt", alt(name, 2, photos.length));
 
     await page.waitForFunction(
       () => !document.querySelector("[data-entering]"),
@@ -134,18 +149,14 @@ test.describe("Guide - Lightbox", () => {
     await expect(lightbox(page)).toBeVisible();
 
     await page.keyboard.press("ArrowRight");
-    await expect(lightbox(page)).toHaveAccessibleName(
-      `${name} · รูปที่ 3 จาก ${total}`,
-    );
+    await expect(lightbox(page)).toHaveAccessibleName(title(name, 3, total));
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowLeft");
-    await expect(lightbox(page)).toHaveAccessibleName(
-      `${name} · รูปที่ 1 จาก ${total}`,
-    );
+    await expect(lightbox(page)).toHaveAccessibleName(title(name, 1, total));
     // Wraps from the first photo to the last.
     await press(page.getByTestId("guide/lightbox/prev"), testInfo);
     await expect(lightbox(page)).toHaveAccessibleName(
-      `${name} · รูปที่ ${total} จาก ${total}`,
+      title(name, total, total),
     );
 
     await page.keyboard.press("Escape");
@@ -214,9 +225,7 @@ test.describe("Guide - Lightbox", () => {
         { x: middle.x + 100, y: middle.y },
         { x: middle.x - 100, y: middle.y + 10 },
       );
-      await expect(lightbox(page)).toHaveAccessibleName(
-        `${name} · รูปที่ 2 จาก ${total}`,
-      );
+      await expect(lightbox(page)).toHaveAccessibleName(title(name, 2, total));
 
       // Left to right: back again, then past the first photo to the last.
       await swipe(
@@ -230,7 +239,7 @@ test.describe("Guide - Lightbox", () => {
         { x: middle.x + 100, y: middle.y },
       );
       await expect(lightbox(page)).toHaveAccessibleName(
-        `${name} · รูปที่ ${total} จาก ${total}`,
+        title(name, total, total),
       );
 
       // A mostly vertical drag is not a swipe.
@@ -240,7 +249,7 @@ test.describe("Guide - Lightbox", () => {
         { x: middle.x + 60, y: middle.y + 120 },
       );
       await expect(lightbox(page)).toHaveAccessibleName(
-        `${name} · รูปที่ ${total} จาก ${total}`,
+        title(name, total, total),
       );
       await screenshot(page, testInfo, "02-swiped");
 
@@ -287,7 +296,12 @@ test.describe("Guide - Lightbox", () => {
       await press(stripPhotos(page).first(), testInfo);
       await expect(lightbox(page)).toBeVisible();
       await press(page.getByTestId("guide/lightbox/next"), testInfo);
-      await expect(lightbox(page)).toHaveAccessibleName(/รูปที่ 2 จาก/);
+      // ONIBUS COFFEE has 4 photos: after one move, the counter reads photo 2 of 4.
+      await expect(lightbox(page)).toHaveAccessibleName(
+        new RegExp(
+          `${format("lightbox_counter_body", { position: 2, total: 4 })}$`,
+        ),
+      );
     };
     const close = async () => {
       await page.keyboard.press("Escape");

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
 
-import { makePhoto } from "@/features/guides/lib/fixtures";
+import { m } from "@/paraglide/messages.js";
+import { makePhoto } from "@/test-utils/fixtures/guides";
 
 import { PhotoStrip } from "./PhotoStrip";
 
@@ -54,11 +55,19 @@ export const SinglePhoto: Story = { args: { photos: [makePhoto(1)] } };
 export const OpensLightbox: Story = {
   play: async ({ canvas, canvasElement }) => {
     await userEvent.click(
-      canvas.getByRole("button", { name: "รูปที่ 2 จาก 5 ของ ONIBUS COFFEE" }),
+      canvas.getByRole("button", {
+        name: m.restaurantCard_photoStrip_photo_alt({
+          position: 2,
+          total: 5,
+          restaurant: "ONIBUS COFFEE",
+        }),
+      }),
     );
     const body = within(canvasElement.ownerDocument.body);
     await expect(
-      await body.findByRole("dialog", { name: "ONIBUS COFFEE · รูปที่ 2 จาก 5" }),
+      await body.findByRole("dialog", {
+        name: `ONIBUS COFFEE ${m.lightbox_counter_body({ position: 2, total: 5 })}`,
+      }),
     ).toBeInTheDocument();
   },
 };

@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
-import { makePhoto } from "@/features/guides/lib/fixtures";
+import { m } from "@/paraglide/messages.js";
+import { makePhoto, makeRestaurant } from "@/test-utils/fixtures/guides";
 
 import { Lightbox, type LightboxProps } from "./Lightbox";
 
@@ -38,7 +39,7 @@ const meta = {
     docs: { story: { inline: false, height: "40rem" } },
   },
   args: {
-    name: "ONIBUS COFFEE",
+    name: makeRestaurant().name,
     photos: [1, 2, 3, 4].map((n) => makePhoto(n)),
     current: 1,
     isOpen: true,
@@ -71,9 +72,13 @@ export const MovesBetweenPhotos: Story = {
     const body = within(canvasElement.ownerDocument.body);
     const dialog = await body.findByRole("dialog");
     await userEvent.keyboard("{ArrowRight}");
-    await expect(dialog).toHaveAccessibleName("ONIBUS COFFEE · รูปที่ 4 จาก 4");
+    await expect(dialog).toHaveAccessibleName(
+      `${makeRestaurant().name} ${m.lightbox_counter_body({ position: 4, total: 4 })}`,
+    );
     await userEvent.click(body.getByTestId("guide/lightbox/next"));
-    await expect(dialog).toHaveAccessibleName("ONIBUS COFFEE · รูปที่ 1 จาก 4");
+    await expect(dialog).toHaveAccessibleName(
+      `${makeRestaurant().name} ${m.lightbox_counter_body({ position: 1, total: 4 })}`,
+    );
     await expect(args.onCurrentChange).toHaveBeenLastCalledWith(0);
   },
 };

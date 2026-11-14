@@ -1,10 +1,12 @@
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 // Separate from vite.config.ts: the React Router plugin is for the dev server
-// and build only — tests render components directly with plugin-react.
+// and build only — tests render components directly with plugin-react. Paraglide compiles the
+// message catalog here too, so `pnpm test` works on a clean checkout.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [paraglideVitePlugin({ project: "./project.inlang" }), react()],
   resolve: {
     tsconfigPaths: true,
   },

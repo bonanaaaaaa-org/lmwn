@@ -2,10 +2,19 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 
-import { makePhoto } from "@/features/guides/lib/fixtures";
+import { photoAlt } from "@/features/guides/lib/photos";
 import type { Photo } from "@/features/guides/lib/types";
+import { m } from "@/paraglide/messages.js";
+import { makePhoto, makeRestaurant } from "@/test-utils/fixtures/guides";
 
 import { Lightbox } from "./Lightbox";
+
+const NAME = makeRestaurant().name;
+/** The strip's alt text for photo `n` of `total`, which the lightbox must match. */
+const alt = (n: number, total = 4) => photoAlt(n, total, NAME);
+/** The dialog's name: the Restaurant, then the photo counter. */
+const title = (n: number, total = 4, name = NAME) =>
+  `${name} ${m.lightbox_counter_body({ position: n, total })}`;
 
 const fourPhotos = [1, 2, 3, 4].map((n) =>
   makePhoto(n, {
@@ -17,7 +26,7 @@ const fourPhotos = [1, 2, 3, 4].map((n) =>
 function OpenLightbox({
   photos = fourPhotos,
   initial = 0,
-  name = "ONIBUS COFFEE",
+  name = NAME,
   onOpenChange,
 }: {
   photos?: Photo[];
@@ -51,11 +60,11 @@ describe("Lightbox", () => {
     render(<OpenLightbox initial={1} />);
 
     const dialog = screen.getByRole("dialog", {
-      name: "ONIBUS COFFEE · รูปที่ 2 จาก 4",
+      name: title(2),
     });
     expect(dialog).toHaveAttribute("data-testid", "guide/lightbox");
     const photo = within(dialog).getByRole("img", {
-      name: "รูปที่ 2 จาก 4 ของ ONIBUS COFFEE",
+      name: alt(2),
     });
     expect(photo).toHaveAttribute(
       "src",
@@ -72,15 +81,15 @@ describe("Lightbox", () => {
     render(<OpenLightbox initial={3} />);
 
     await user.click(screen.getByTestId("guide/lightbox/next"));
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 1 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(1));
 
     await user.click(screen.getByTestId("guide/lightbox/prev"));
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 4 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(4));
     expect(screen.getByTestId("guide/lightbox/prev")).toHaveAccessibleName(
-      "รูปก่อนหน้า",
+      m.lightbox_prev_ariaLabel(),
     );
     expect(screen.getByTestId("guide/lightbox/next")).toHaveAccessibleName(
-      "รูปถัดไป",
+      m.lightbox_next_ariaLabel(),
     );
   });
 
@@ -89,9 +98,9 @@ describe("Lightbox", () => {
     render(<OpenLightbox />);
 
     await user.keyboard("{ArrowRight}{ArrowRight}");
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 3 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(3));
     await user.keyboard("{ArrowLeft}");
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 2 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(2));
   });
 
   it("moves with a horizontal touch swipe, but not a short or vertical one or a mouse drag", () => {
@@ -117,33 +126,35 @@ describe("Lightbox", () => {
     };
 
     swipe("touch", [300, 400], [100, 410]);
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 2 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(2));
 
     swipe("touch", [100, 400], [300, 390]);
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 1 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(1));
 
     swipe("touch", [300, 400], [280, 400]); // a tap
     swipe("touch", [300, 400], [200, 700]); // mostly vertical
     swipe("mouse", [300, 400], [100, 400]);
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 1 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(1));
   });
 
   it("jumps to a thumbnail, which marks the current photo", async () => {
     const user = userEvent.setup();
     render(<OpenLightbox />);
 
-    const thumbs = within(screen.getByRole("list", { name: "รูปย่อ" }));
-    expect(
-      thumbs.getByRole("button", { name: "รูปที่ 1 จาก 4 ของ ONIBUS COFFEE" }),
-    ).toHaveAttribute("aria-current", "true");
-
-    await user.click(
-      thumbs.getByRole("button", { name: "รูปที่ 3 จาก 4 ของ ONIBUS COFFEE" }),
+    const thumbs = within(
+      screen.getByRole("list", { name: m.lightbox_thumbnails_ariaLabel() }),
     );
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 3 จาก 4 ของ ONIBUS COFFEE");
-    expect(
-      thumbs.getByRole("button", { name: "รูปที่ 3 จาก 4 ของ ONIBUS COFFEE" }),
-    ).toHaveAttribute("aria-current", "true");
+    expect(thumbs.getByRole("button", { name: alt(1) })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+
+    await user.click(thumbs.getByRole("button", { name: alt(3) }));
+    expect(shownPhoto()).toHaveAccessibleName(alt(3));
+    expect(thumbs.getByRole("button", { name: alt(3) })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
   });
 
   it("keeps Tab on the close, prev and next buttons, inside the dialog", async () => {
@@ -180,7 +191,7 @@ describe("Lightbox", () => {
 
     render(<OpenLightbox onOpenChange={onOpenChange} />);
     expect(screen.getByTestId("guide/lightbox/close")).toHaveAccessibleName(
-      "ปิด",
+      m.lightbox_close_ariaLabel(),
     );
     await user.click(screen.getByTestId("guide/lightbox/close"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -189,9 +200,7 @@ describe("Lightbox", () => {
   it("has no prev, next or thumbnails for a single photo", () => {
     render(<OpenLightbox photos={[fourPhotos[0] as Photo]} />);
 
-    expect(screen.getByRole("dialog")).toHaveAccessibleName(
-      "ONIBUS COFFEE · รูปที่ 1 จาก 1",
-    );
+    expect(screen.getByRole("dialog")).toHaveAccessibleName(title(1, 1));
     expect(screen.queryByTestId("guide/lightbox/prev")).not.toBeInTheDocument();
     expect(screen.queryByTestId("guide/lightbox/next")).not.toBeInTheDocument();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
@@ -209,10 +218,10 @@ describe("Lightbox", () => {
     );
 
     expect(screen.getByRole("dialog")).toHaveAccessibleName(
-      "รูปภาพ · รูปที่ 1 จาก 4",
+      title(1, 4, m.lightbox_title_unnamedLabel()),
     );
     expect(screen.getByTestId("lightbox")).toBeInTheDocument();
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 1 จาก 4");
+    expect(shownPhoto()).toHaveAccessibleName(photoAlt(1, 4));
   });
 
   it("leaves modified arrow keys to the browser", async () => {
@@ -220,7 +229,7 @@ describe("Lightbox", () => {
     render(<OpenLightbox />);
 
     await user.keyboard("{Alt>}{ArrowRight}{/Alt}");
-    expect(shownPhoto()).toHaveAccessibleName("รูปที่ 1 จาก 4 ของ ONIBUS COFFEE");
+    expect(shownPhoto()).toHaveAccessibleName(alt(1));
   });
 
   it("shows the small image when the large URL is blank", () => {

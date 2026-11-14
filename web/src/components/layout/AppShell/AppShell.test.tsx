@@ -1,24 +1,27 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { m } from "@/paraglide/messages.js";
+import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
+
 import { AppShell, guidePageTestIdFrom } from "./AppShell";
 
 describe("AppShell", () => {
   it("links the header to the Guide Index and renders the page in main", () => {
     render(
       <AppShell>
-        <h1>ไกด์ทั้งหมด</h1>
+        <h1>{sampleOverrides.pageHeading}</h1>
       </AppShell>,
     );
 
     expect(
       within(screen.getByRole("banner")).getByRole("link", {
-        name: "Guide to Hidden Gems",
+        name: m.header_logo_label(),
       }),
     ).toHaveAttribute("href", "/");
     expect(
       within(screen.getByRole("main")).getByRole("heading", { level: 1 }),
-    ).toHaveTextContent("ไกด์ทั้งหมด");
+    ).toHaveTextContent(sampleOverrides.pageHeading);
   });
 
   it("owns the app test ID and passes it down to the header and links", () => {
@@ -41,7 +44,7 @@ describe("AppShell", () => {
 
     await user.tab();
 
-    const skip = screen.getByRole("link", { name: "ข้ามไปยังเนื้อหาหลัก" });
+    const skip = screen.getByRole("link", { name: m.app_skipLink_label() });
     expect(skip).toHaveFocus();
     expect(skip).toHaveAttribute("href", `#${screen.getByRole("main").id}`);
   });
@@ -55,7 +58,7 @@ describe("AppShell", () => {
     render(<AppShell guidePageTestId="guide">content</AppShell>);
 
     expect(screen.getByTestId("guide/back-link")).toHaveAccessibleName(
-      "กลับไปไกด์ทั้งหมด",
+      m.header_backLink_ariaLabel(),
     );
     vi.restoreAllMocks();
   });
@@ -63,7 +66,7 @@ describe("AppShell", () => {
   it("has no back link on other pages", () => {
     render(<AppShell>content</AppShell>);
     expect(
-      screen.queryByRole("link", { name: "กลับไปไกด์ทั้งหมด" }),
+      screen.queryByRole("link", { name: m.header_backLink_ariaLabel() }),
     ).not.toBeInTheDocument();
   });
 

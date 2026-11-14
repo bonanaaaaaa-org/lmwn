@@ -13,4 +13,6 @@ pnpm --filter api-gateway test        # pytest + coverage
 ```
 
 Settings come from env vars (see `app/settings.py`), e.g.
-`GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL`, `UPSTREAM_TIMEOUT_SECONDS`.
+`GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL`, `UPSTREAM_TIMEOUT_SECONDS`,
+`CACHE_TTL_SECONDS` (default 60: how long a successful upstream read is
+served from memory).

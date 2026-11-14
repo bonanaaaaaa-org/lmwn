@@ -21,9 +21,10 @@ import {
   photoAlt,
   photoRatio,
   photoSources,
-} from "@/features/guides/lib/format";
+} from "@/features/guides/lib/photos";
 import type { Photo } from "@/features/guides/lib/types";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./Lightbox.module.css";
 
@@ -120,7 +121,7 @@ export function Lightbox({
     step(dx < 0 ? "next" : "prev");
   };
 
-  const label = name ?? "รูปภาพ";
+  const label = name ?? m.lightbox_title_unnamedLabel();
   // The large image, or the small one if upstream left the large URL blank.
   const [small, large] = photoSources(photo);
   const shown = [large, small].find((source) => source?.url.trim());
@@ -153,12 +154,12 @@ export function Lightbox({
                 >
                   {label}{" "}
                   <span className={styles.Lightbox__Counter} aria-live="polite">
-                    · รูปที่ {index + 1} จาก {total}
+                    {m.lightbox_counter_body({ position: index + 1, total })}
                   </span>
                 </Heading>
                 <Button
                   variant="overlay"
-                  aria-label="ปิด"
+                  aria-label={m.lightbox_close_ariaLabel()}
                   onPress={close}
                   testId={`${testId}/close`}
                 >
@@ -170,7 +171,7 @@ export function Lightbox({
                 <Button
                   className={styles.Lightbox__Prev}
                   variant="overlay"
-                  aria-label="รูปก่อนหน้า"
+                  aria-label={m.lightbox_prev_ariaLabel()}
                   onPress={() => step("prev")}
                   testId={`${testId}/prev`}
                 >
@@ -209,7 +210,7 @@ export function Lightbox({
                 <Button
                   className={styles.Lightbox__Next}
                   variant="overlay"
-                  aria-label="รูปถัดไป"
+                  aria-label={m.lightbox_next_ariaLabel()}
                   onPress={() => step("next")}
                   testId={`${testId}/next`}
                 >
@@ -218,7 +219,10 @@ export function Lightbox({
               )}
 
               {canMove && (
-                <ul className={styles.Lightbox__Thumbs} aria-label="รูปย่อ">
+                <ul
+                  className={styles.Lightbox__Thumbs}
+                  aria-label={m.lightbox_thumbnails_ariaLabel()}
+                >
                   {photos.map((thumb, position) => (
                     // Upstream can reuse one photo ID for different photos, so the position is part of the key.
                     <li key={`${position}:${thumb.id}`}>

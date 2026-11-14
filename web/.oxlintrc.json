@@ -14,6 +14,7 @@
     "**/dist/",
     "**/coverage/",
     "**/.react-router/",
+    "src/paraglide/**",
     "public/**"
   ],
   "rules": {
@@ -97,6 +98,14 @@
           {
             "group": ["**/*/index"],
             "message": "index imports are not allowed."
+          },
+          {
+            "group": ["@/../**"],
+            "message": "Don't reach outside src through the alias; production code takes copy from m.*(), never the raw catalog or test fixtures."
+          },
+          {
+            "group": ["@/test-utils/**"],
+            "message": "Test utilities and fixtures (with their allowlisted Thai sample data) are for tests and stories only; production code takes copy from m.*()."
           }
         ]
       }
@@ -297,6 +306,33 @@
       "files": ["**/*.mjs", "**/*.config.*"],
       "env": {
         "node": true
+      }
+    },
+    {
+      "files": [
+        "**/*.test.{ts,tsx}",
+        "**/*.stories.{ts,tsx}",
+        "src/test-utils/**",
+        ".storybook/**",
+        "vitest.setup.tsx"
+      ],
+      // Same patterns as the base rule minus the @/test-utils and @/../ bans; keep them in sync.
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["../**"],
+                "message": "Relative imports are not allowed."
+              },
+              {
+                "group": ["**/*/index"],
+                "message": "index imports are not allowed."
+              }
+            ]
+          }
+        ]
       }
     }
   ]
