@@ -102,6 +102,20 @@ const cardTitles = () =>
 
 const searchBox = () => screen.getByRole("searchbox", { name: "ค้นหาไกด์" });
 
+/**
+ * Replaces the search text in one change event (then presses Enter if asked), so a slow
+ * test run can't let the 300 ms debounce fire on half-typed text.
+ */
+async function enterSearch(
+  user: ReturnType<typeof userEvent.setup>,
+  text: string,
+  { submit = false }: { submit?: boolean } = {},
+) {
+  await user.clear(searchBox());
+  await user.paste(text);
+  if (submit) await user.keyboard("{Enter}");
+}
+
 beforeEach(() => {
   vi.stubGlobal(
     "matchMedia",
@@ -171,8 +185,7 @@ describe("GuideIndexPage", () => {
     // Only the finished text was sent, not one request per keystroke.
     expect(searches(requests)).toEqual([null, "ร้านอาหาร"]);
 
-    await user.clear(searchBox());
-    await user.type(searchBox(), "คาเฟ่");
+    await enterSearch(user, "คาเฟ่");
     act(() => vi.advanceTimersByTime(300));
     expect(params().get("q")).toBe("คาเฟ่");
     expect(router.state.historyAction).toBe("REPLACE");
@@ -184,7 +197,7 @@ describe("GuideIndexPage", () => {
     const { params, router } = renderPage();
     await screen.findByText("พบ 2 ไกด์");
 
-    await user.type(searchBox(), "ราเมน{Enter}");
+    await enterSearch(user, "ราเมน", { submit: true });
 
     expect(params().get("q")).toBe("ราเมน");
     expect(router.state.historyAction).toBe("PUSH");
@@ -211,7 +224,7 @@ describe("GuideIndexPage", () => {
     );
 
     await user.clear(searchBox());
-    await user.type(searchBox(), "One{Enter}");
+    await enterSearch(user, "One", { submit: true });
     expect(router.state.location.search).toContain("q=One");
 
     await act(() => router.navigate(-1));
@@ -278,7 +291,7 @@ describe("GuideIndexPage", () => {
       }),
     );
 
-    await user.type(searchBox(), "ร้านอาหาร{Enter}");
+    await enterSearch(user, "ร้านอาหาร", { submit: true });
 
     expect(cardTitles()).toHaveLength(2);
     expect(screen.getByRole("list", { busy: true })).toBeInTheDocument();
@@ -302,9 +315,9 @@ describe("GuideIndexPage", () => {
     renderPage();
     await screen.findByText("พบ 2 ไกด์");
 
-    await user.type(searchBox(), "คาเฟ่{Enter}");
+    await enterSearch(user, "คาเฟ่", { submit: true });
     await user.clear(searchBox());
-    await user.type(searchBox(), "ร้านอาหาร{Enter}");
+    await enterSearch(user, "ร้านอาหาร", { submit: true });
     expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
 
     act(() => releaseOld());
@@ -358,7 +371,7 @@ describe("GuideIndexPage", () => {
       }),
     );
 
-    await user.type(searchBox(), "คาเฟ่ลับ{Enter}");
+    await enterSearch(user, "คาเฟ่ลับ", { submit: true });
 
     const panel = await screen.findByTestId("guide-index/error-panel");
     expect(panel).toHaveTextContent(

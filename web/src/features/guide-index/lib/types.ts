@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-export const photoSchema = z.object({
-  id: z.string(),
-  smallUrl: z.string(),
-  largeUrl: z.string(),
-});
-export type Photo = z.infer<typeof photoSchema>;
+import { photoSchema } from "@/features/guides/lib/types";
 
 /** One Guide as the Guide Index shows it (`GET /guides` item). */
 export const guideSummarySchema = z.object({

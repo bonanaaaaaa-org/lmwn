@@ -9,7 +9,7 @@ import { SkeletonGroup } from "@/components/common/Skeleton";
 import { GuideCard } from "@/features/guide-index/components/GuideCard";
 import { SearchField } from "@/features/guide-index/components/SearchField";
 import { SkeletonCard } from "@/features/guide-index/components/SkeletonCard";
-import { coverSources } from "@/features/guide-index/lib/coverSources";
+import { photoSources } from "@/features/guides/lib/format";
 import {
   addTag,
   buildIndexHref,
@@ -215,7 +215,7 @@ export function GuideIndexView({
                       title: guide.title,
                       count: guide.itemCount,
                       description: guide.shortDescription,
-                      cover: coverSources(guide.coverPhoto),
+                      cover: photoSources(guide.coverPhoto),
                       tags: guide.tags,
                       href: `/guides/${encodeURIComponent(guide.id)}`,
                     }}
