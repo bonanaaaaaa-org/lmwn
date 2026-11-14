@@ -1,0 +1,110 @@
+@layer components {
+  .AppShell__Root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background: var(--color-background);
+  }
+
+  /* Off-screen until focused, then shown at the top: the first Tab stop on every page. */
+  .AppShell__SkipLink {
+    position: absolute;
+    top: var(--space-100);
+    left: var(--space-100);
+    padding: var(--space-100) var(--space-200);
+    border-radius: var(--radius-200);
+    background: var(--color-text);
+    color: var(--color-surface);
+    font-weight: var(--font-weight-bold);
+    transform: translateY(-200%);
+
+    &:focus-visible {
+      transform: none;
+    }
+  }
+
+  .AppShell__Header {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  .AppShell__Bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-50) var(--space-200);
+    max-width: var(--layout-max-width);
+    min-height: var(--header-height);
+    margin-inline: auto;
+    padding-inline: var(--layout-gutter);
+  }
+
+  .AppShell__Brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-100);
+    min-height: var(--control-height);
+    border-radius: var(--radius-100);
+    color: var(--color-text);
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+
+    &[data-focus-visible] {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  .AppShell__Mark {
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: var(--color-accent);
+    stroke: var(--color-text);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+
+    [data-hovered] > & {
+      fill: var(--color-accent-hover);
+    }
+  }
+
+  /* Phones keep the header to one 3.5rem row: the tagline only shows from 48rem up. */
+  .AppShell__Tagline {
+    display: none;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+
+    @media (width >= 48rem) {
+      display: block;
+    }
+  }
+
+  .AppShell__Footer {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+
+    & > .AppShell__Bar {
+      padding-block: var(--space-200);
+    }
+  }
+
+  .AppShell__Main {
+    flex: 1;
+    width: 100%;
+    max-width: var(--layout-max-width);
+    margin-inline: auto;
+    padding: var(--space-600) var(--layout-gutter) var(--space-800);
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

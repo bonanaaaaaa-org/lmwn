@@ -53,7 +53,7 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **Open Now** is computed in the browser: convert "now" to the gateway's `timeZone` (weekday and minutes), then check today's ranges plus yesterday's ranges that run past midnight.
 - **Retries:** TanStack Query retries failures up to 2 times, but never a 404.
 - **Images:** `srcset` from small and large URLs, `loading="lazy"` below the fold, a high-priority cover, fixed aspect ratios, and a placeholder when an image fails or is empty.
-- **Look:** neutral with one warm accent. The font is IBM Plex Sans Thai, self-hosted through Fontsource. No LINE MAN or Wongnai branding.
+- **Look:** "saffron and ink": neutral greys, near-black text and one saffron accent (#f2b705), used only as a fill under dark text; accent-coloured text uses a dark gold. The font is Mali (rounded, looped Thai มีหัว) for body and headings, self-hosted through Fontsource. Spacing, control heights and radii follow an 8-point grid. No LINE MAN or Wongnai branding.
 - **Tests:** Vitest, Testing Library and MSW, with tests focused on behaviour; Storybook stories for every component; Playwright e2e against the running stack.
 - **axe:**
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.

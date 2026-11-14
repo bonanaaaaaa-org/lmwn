@@ -1,0 +1,47 @@
+@layer components {
+  .ErrorPanel__Root {
+    display: flex;
+    gap: var(--space-200);
+    border-radius: var(--radius-300);
+
+    &[data-variant="block"] {
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-600) var(--space-300);
+      background: var(--color-surface-subtle);
+      text-align: center;
+    }
+
+    &[data-variant="inline"] {
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-150) var(--space-200);
+      border: 1px solid var(--color-danger);
+      background: var(--color-danger-subtle);
+    }
+  }
+
+  .ErrorPanel__Text {
+    display: grid;
+    gap: var(--space-50);
+  }
+
+  .ErrorPanel__Title {
+    font-size: var(--font-size-400);
+
+    [data-variant="inline"] & {
+      color: var(--color-danger);
+      font-size: var(--font-size-200);
+    }
+  }
+
+  .ErrorPanel__Description {
+    color: var(--color-text-muted);
+
+    [data-variant="inline"] & {
+      color: var(--color-text);
+      font-size: var(--font-size-100);
+    }
+  }
+}

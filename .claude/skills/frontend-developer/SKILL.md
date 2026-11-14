@@ -136,6 +136,20 @@ ComponentName/
 - Anything interactive is built on **React Aria Components** (`Button`, `Link`, `ToggleButton`, `TagGroup`, `SearchField`, `Dialog`/`Modal`, `Menu`, ...) or, for custom markup, React Aria hooks (`useButton`, `useFocusRing`, ...). They handle keyboard, focus, press/hover and screen-reader semantics consistently across mouse, touch and keyboard
 - Style React Aria state through the data attributes it renders (`[data-hovered]`, `[data-pressed]`, `[data-focus-visible]`, `[data-selected]`, `[data-disabled]`) instead of `:hover`/`:focus`
 
+### Test IDs
+
+Each component owns its test ID and passes it down to its children, so IDs are paths of any depth: `guide/restaurant-card/photo-strip/next`.
+
+- A page puts its name on its root (`data-testid="guide"`) and passes it to its components as `parentTestId`. Pages: `guide-index`, `guide`, `unknown` (catch-all 404). The shell around every page is `app`
+- A component takes `parentTestId?: string`, builds its own ID with `joinTestId(parentTestId, "restaurant-card")` from `@/lib/testIds`, puts it on its root element as `data-testid`, and passes it to child components as their `parentTestId`. Without a parent the ID is just its own segment
+- An interactive element inside a component appends its name: `` `${testId}/share` ``
+- Atoms (`Button`, `ButtonLink`, `TagLink`) take the finished string as `testId` and add no segment
+- Segments are kebab-case. Never write a full ID inline in a component; tests and Playwright use the literal string
+- Repeated components share an ID; pick one by order (`.nth()`, `getAllByTestId(...)[i]`) or by text
+- State is never part of an ID. Expose it through ARIA (`aria-pressed`, `aria-expanded`, `aria-current`) or `data-state` / `data-highlighted`
+- In tests, query by role and name first. Use test IDs to scope to a component or to pick one of many repeats
+- The "data-testid catalog" artboard on the design canvas lists the IDs for every screen
+
 ### Example components
 
 Static:

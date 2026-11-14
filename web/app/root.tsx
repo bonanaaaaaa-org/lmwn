@@ -1,11 +1,26 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { RouterProvider } from "react-aria-components";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useHref,
+  useNavigate,
+  type NavigateOptions,
+} from "react-router";
 
-import "modern-normalize/modern-normalize.css";
 import "@/styles/globals.css";
 
+import { AppShell } from "@/components/layout/AppShell";
 import { Providers } from "@/lib/Providers";
 
-import styles from "./root.module.css";
+// Lets React Aria links pass React Router options (e.g. `replace`) via `routerOptions`.
+declare module "react-aria-components" {
+  interface RouterConfig {
+    routerOptions: NavigateOptions;
+  }
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,11 +42,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
+  const navigate = useNavigate();
   return (
-    <Providers>
-      <main className={styles.Main}>
-        <Outlet />
-      </main>
-    </Providers>
+    // React Aria links (Link, ButtonLink, TagLink) navigate client-side through React Router.
+    <RouterProvider
+      navigate={(to, options) => void navigate(to, options)}
+      useHref={useHref}
+    >
+      <Providers>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </Providers>
+    </RouterProvider>
   );
 }

@@ -3,7 +3,6 @@ import type { Decorator, Preview } from "@storybook/react-vite";
 import { createElement } from "react";
 import { INITIAL_VIEWPORTS } from "storybook/viewport";
 
-import "modern-normalize/modern-normalize.css";
 import "@/styles/globals.css";
 
 // Every story gets a QueryClient, so components using TanStack Query render without a
