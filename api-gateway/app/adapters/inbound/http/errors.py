@@ -7,15 +7,18 @@ from fastapi.responses import JSONResponse
 from app.application.errors import (
     InvalidSourceData,
     NotFound,
+    PhotoNotFound,
     SourceError,
     SourceTimeout,
     SourceUnavailable,
 )
 
 GUIDE_NOT_FOUND = "Guide not found"
+PHOTO_NOT_FOUND = "Photo not found"
 INVALID_REQUEST = "Invalid request parameters"
 
 _RESPONSES: tuple[tuple[type[SourceError], int, str], ...] = (
+    (PhotoNotFound, 404, PHOTO_NOT_FOUND),
     (NotFound, 404, GUIDE_NOT_FOUND),
     (SourceTimeout, 504, "An upstream service timed out"),
     (SourceUnavailable, 502, "An upstream service is unavailable"),
@@ -23,8 +26,8 @@ _RESPONSES: tuple[tuple[type[SourceError], int, str], ...] = (
 )
 
 
-def not_found() -> JSONResponse:
-    return JSONResponse(status_code=404, content={"detail": GUIDE_NOT_FOUND})
+def not_found(detail: str = GUIDE_NOT_FOUND) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": detail})
 
 
 async def _source_error(_request: Request, error: Exception) -> JSONResponse:

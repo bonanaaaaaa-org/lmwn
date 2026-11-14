@@ -9,6 +9,7 @@ malformed time makes one Restaurant unavailable instead of failing a Guide.
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel, StrictInt
 from pydantic.alias_generators import to_camel
 
+from app.adapters.outbound.data_server.photo_urls import PhotoUrl, keep_photo_url
 from app.domain.guide import Guide, GuideItem, Photo
 from app.domain.restaurant import Restaurant
 from app.domain.working_hours import WorkingHoursEntry, normalise_working_hours
@@ -23,8 +24,12 @@ class PhotoPayload(_Payload):
     small_url: str
     large_url: str
 
-    def to_domain(self) -> Photo:
-        return Photo(id=self.id, small_url=self.small_url, large_url=self.large_url)
+    def to_domain(self, photo_url: PhotoUrl = keep_photo_url) -> Photo:
+        return Photo(
+            id=self.id,
+            small_url=photo_url(self.small_url),
+            large_url=photo_url(self.large_url),
+        )
 
 
 class GuideIdsPayload(RootModel[list[str]]):
@@ -44,14 +49,14 @@ class GuidePayload(_Payload):
     write_date: AwareDatetime
     items: list[str]
 
-    def to_domain(self) -> Guide:
+    def to_domain(self, photo_url: PhotoUrl = keep_photo_url) -> Guide:
         return Guide(
             id=self.id,
             title=self.title,
             social_title=self.social_title,
             short_description=self.short_description,
             description=self.description,
-            cover_photo=self.cover_photo.to_domain(),
+            cover_photo=self.cover_photo.to_domain(photo_url),
             tags=tuple(self.tags),
             write_date=self.write_date,
             item_ids=tuple(self.items),
@@ -64,12 +69,12 @@ class GuideItemPayload(_Payload):
     restaurant_id: str
     photos: list[PhotoPayload]
 
-    def to_domain(self) -> GuideItem:
+    def to_domain(self, photo_url: PhotoUrl = keep_photo_url) -> GuideItem:
         return GuideItem(
             id=self.id,
             description=self.description,
             restaurant_id=self.restaurant_id,
-            photos=tuple(photo.to_domain() for photo in self.photos),
+            photos=tuple(photo.to_domain(photo_url) for photo in self.photos),
         )
 
 
