@@ -28,6 +28,7 @@ type MessageKey =
   | "notFound_backLink_label"
   | "openStatus_open_label"
   | "openStatus_closed_todayLabel"
+  | "openStatus_closed_forTheDayLabel"
   | "restaurantCard_workingHours_title"
   | "restaurantCard_workingHours_closed_body"
   | "restaurantCard_workingHours_toggle_expandedLabel"
@@ -67,6 +68,7 @@ interface FormatParams {
     total: number;
   };
   openStatus_closed_opensAtLabel: { time: string };
+  openStatus_closed_notOpenYetLabel: { time: string };
   restaurantCard_workingHours_today_body: { hours: string };
   restaurantCard_workingHours_toggle_closedDaysLabel: { days: string };
   restaurantCard_workingHours_week_todayLabel: { day: string };

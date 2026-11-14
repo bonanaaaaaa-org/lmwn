@@ -20,6 +20,7 @@ const LMWN_CAFE_INDEX = 3;
 const THU_NOON_BANGKOK = new Date("2026-11-12T05:00:00Z"); // Wed 21:00 in Los Angeles
 const TUE_0859_BANGKOK = new Date("2026-11-10T01:59:00Z");
 const MON_NOON_BANGKOK = new Date("2026-11-09T05:00:00Z");
+const TUE_1800_BANGKOK = new Date("2026-11-10T11:00:00Z");
 
 const DAY_NAMES = [
   message("restaurantCard_workingHours_monday_label"),
@@ -34,8 +35,8 @@ const OPEN = message("openStatus_open_label");
 const CLOSED = message("restaurantCard_workingHours_closed_body");
 const todayHours = (hours: string) =>
   format("restaurantCard_workingHours_today_body", { hours });
-const opensAt = (time: string) =>
-  format("openStatus_closed_opensAtLabel", { time });
+const notOpenYet = (time: string) =>
+  format("openStatus_closed_notOpenYetLabel", { time });
 const closedMonSunToggle = format(
   "restaurantCard_workingHours_toggle_closedDaysLabel",
   { days: `${DAY_NAMES[0]}, ${DAY_NAMES[6]}` },
@@ -154,7 +155,7 @@ test.describe("Working Hours - Live update", () => {
   }) => {
     const card = await openGuideAt(page, TUE_0859_BANGKOK);
     const hours = workingHours(card);
-    await expect(hours).toContainText(opensAt("09:00"));
+    await expect(hours).toContainText(notOpenYet("09:00"));
     await expect(hours).toContainText(todayHours("09:00–17:00"));
 
     let navigations = 0;
@@ -187,6 +188,19 @@ test.describe("Working Hours - Closed day", () => {
     // A neighbour open every day is unaffected (ONIBUS COFFEE, 08:00–17:00).
     const onibus = workingHours(cards(page).first());
     await expect(onibus).toContainText(OPEN);
+    await expect(onibus).toContainText(todayHours("08:00–17:00"));
+  });
+
+  test("after today's last opening, reads closed for the day, not closed today", async ({
+    page,
+  }) => {
+    await openGuideAt(page, TUE_1800_BANGKOK);
+    // ONIBUS COFFEE is open 08:00–17:00 every day, so at 18:00 it has closed for the day.
+    const onibus = workingHours(cards(page).first());
+    await expect(badge(onibus)).toHaveText(
+      message("openStatus_closed_forTheDayLabel"),
+    );
+    await expect(badge(onibus)).toHaveAttribute("data-state", "closed");
     await expect(onibus).toContainText(todayHours("08:00–17:00"));
   });
 });

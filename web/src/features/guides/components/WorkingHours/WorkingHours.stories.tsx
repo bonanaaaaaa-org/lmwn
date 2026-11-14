@@ -72,6 +72,11 @@ export const Expanded: Story = {
 export const ClosedOpensLater: Story = {
   args: { workingHours: tuesdayToSaturday, now: thursday("07:30:00") },
 };
+/** Thursday 20:00, after 09:00–17:00: closed for the day. */
+export const ClosedForTheDay: Story = {
+  args: { workingHours: tuesdayToSaturday, now: thursday("20:00:00") },
+};
+/** Monday, with no hours at all: closed today. */
 export const ClosedToday: Story = {
   args: {
     workingHours: tuesdayToSaturday,
