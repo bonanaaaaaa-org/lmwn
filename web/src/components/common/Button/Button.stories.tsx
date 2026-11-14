@@ -24,6 +24,27 @@ export const Inverse: Story = { args: { variant: "inverse" } };
 export const Text: Story = {
   args: { variant: "text", children: m.restaurantCard_readMore_label() },
 };
+/** Round and translucent, for dark surfaces such as the lightbox. */
+export const Overlay: Story = {
+  args: {
+    variant: "overlay",
+    "aria-label": m.lightbox_next_ariaLabel(),
+    children: <Icon name="chevron-right" size={20} strokeWidth={2.2} />,
+  },
+  decorators: [
+    (Story) => (
+      <div
+        style={{
+          padding: "1.5rem",
+          borderRadius: "1rem",
+          background: "var(--color-surface-inverse)",
+        }}
+      >
+        <Story />
+      </div>
+    ),
+  ],
+};
 export const Compact: Story = { args: { variant: "ghost", size: "compact" } };
 export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };

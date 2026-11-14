@@ -96,7 +96,7 @@ Dependencies point inward. `tests/test_architecture.py` enforces the domain and 
       async def get_guide_item(self, item_id: str) -> GuideItem: ...
   ```
 
-- **Application errors** (`app/application/errors.py`): `SourceError` and its subclasses: `NotFound` (`GuideNotFound`, `GuideItemNotFound`, `RestaurantNotFound`), `SourceUnavailable`, `SourceTimeout`, `InvalidSourceData`. Outbound adapters raise them; the inbound adapter maps them to HTTP.
+- **Application errors** (`app/application/errors.py`): `SourceError` and its subclasses: `NotFound` (`GuideNotFound`, `GuideItemNotFound`, `RestaurantNotFound`, `PhotoNotFound`), `SourceUnavailable`, `SourceTimeout`, `InvalidSourceData`. Outbound adapters raise them; the inbound adapter maps them to HTTP.
 - **Use cases** (`app/application/<use_case>.py`): one module per use case, built by a factory that takes its ports as keyword arguments and returns a callable. The type alias documents behavior and errors.
 
   ```python
@@ -121,8 +121,8 @@ Dependencies point inward. `tests/test_architecture.py` enforces the domain and 
 
 ### Inbound adapter: HTTP (`app/adapters/inbound/http/`)
 
-- `router_<resource>.py` per resource (`router_health.py`, `router_guides.py`), `schemas.py` for Pydantic response models, `errors.py` for exception handlers, `dependencies.py` for FastAPI `Depends` providers that hand routers their use cases.
-- Routers are thin: validate input (typed path/query params — `UUID`, `Annotated[int, Query(ge=1)]`), call one use case, map the domain result to a response model. No orchestration, no httpx.
+- `router_<resource>.py` per resource (`router_health.py`, `router_guides.py`, `router_photos.py`), `schemas.py` for Pydantic response models, `errors.py` for exception handlers, `dependencies.py` for FastAPI `Depends` providers that hand routers their use cases.
+- Routers are thin: validate input (typed path/query params — `UUID`, `Annotated[int, Query(ge=1)]`), call one use case, map the domain result to a response model. No orchestration, no httpx. A pure pass-through with nothing to orchestrate may call its port directly (`router_photos.py` → `PhotoSource`).
 - Every route declares a `response_model`; response models use `ConfigDict(alias_generator=to_camel, populate_by_name=True)` so JSON is camelCase, and contain only fields the web app uses.
 - Error mapping (in `errors.py`, registered by `main.py`):
 
@@ -137,14 +137,14 @@ Dependencies point inward. `tests/test_architecture.py` enforces the domain and 
 
 ### Outbound adapter: data server (`app/adapters/outbound/data_server/`)
 
-- One adapter per port: `guide_client.py` implements `GuideSource`, `restaurant_client.py` implements `RestaurantSource`. Construct them with a factory taking the shared `httpx.AsyncClient` and base URL: `create_guide_source(client, base_url) -> GuideSource`.
+- One adapter per port: `guide_client.py` implements `GuideSource`, `restaurant_client.py` implements `RestaurantSource`, `photo_client.py` implements `PhotoSource` (the image service, :7777). `photo_urls.py` rewrites upstream photo URLs to `{PUBLIC_BASE_URL}/photos/...` when that setting is set. Construct them with a factory taking the shared `httpx.AsyncClient` and base URL: `create_guide_source(client, base_url) -> GuideSource`.
 - `payloads.py` holds Pydantic models mirroring the upstream contract exactly as delivered (camelCase, optional `branch`/`line`/`instagram`/`facebook`, `rating` 0–5, `day` 1–7, `HH:MM` times). Validate with `Model.model_validate(response.json())`, then convert to domain values.
 - Translate every failure into an application error: HTTP 404 or a `null` body → `*NotFound`; `httpx.TimeoutException` → `SourceTimeout`; other `httpx.RequestError` (transport and decoding errors) / non-200 → `SourceUnavailable`; `pydantic.ValidationError` or a `DomainError` while building domain values → `InvalidSourceData`. Percent-encode IDs from upstream before putting them in a URL. Log the upstream status and id at WARNING, without response bodies.
 
 ### Composition root (`app/composition.py`) and entry point (`app/main.py`)
 
 - `composition.py` is the only module that knows which adapter implements which port: settings + shared `httpx.AsyncClient` → outbound adapters → use cases (e.g. a `UseCases` dataclass).
-- `main.py` builds the FastAPI app: lifespan creates the shared client and the use cases through `composition.py` and stores them on `app.state`; registers CORS (web origin, `GET` only), exception handlers and routers (all at the root, matching the spec's paths: `/guides`, `/guides/{guideId}`, `/health`).
+- `main.py` builds the FastAPI app: lifespan creates the shared client and the use cases through `composition.py` and stores them on `app.state`; registers CORS (web origin, `GET` only), exception handlers and routers (all at the root, matching the spec's paths: `/guides`, `/guides/{guideId}`, `/health`, plus `/photos/r/{width}/{height}/{file}` for the deployed app's photos).
 - Tests swap the composition by overriding the `dependencies.py` providers with use cases built over in-memory fakes.
 
 ### Adding a feature

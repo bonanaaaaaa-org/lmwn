@@ -16,7 +16,7 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 ## System
 
 - **No database.** The gateway is stateless apart from an in-memory cache.
-- **The web app talks only to the gateway.** Images are the one exception: they load directly from :7777.
+- **The web app talks only to the gateway.** Locally, images are the one exception: they load directly from :7777. When deployed, the gateway serves them too (see Deployment).
 
 ## API gateway (FastAPI, ports and adapters)
 
@@ -77,6 +77,31 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **One locale setting.** Paraglide's base locale `th` drives `<html lang="th">`, React Aria's `I18nProvider` (`th-TH`) and every `Intl` formatter.
 - **Formatting goes through one module on `Intl`.** Dates use the Buddhist calendar in `Asia/Bangkok` ("10 มี.ค. 2567"), and numbers and counts use `th-TH`. The module is `web/src/lib/format.ts`; components never call `toLocaleString` or build `Intl` objects themselves. The one exception is a number placed inside a message with Paraglide's `{x: number}`, which Paraglide formats for the same base locale. Dates are never formatted inside messages: format them with `formatDate` (which applies the Buddhist calendar and `Asia/Bangkok`) and pass the result in as a string.
 - **Guard:** CI fails on any Thai character in `web/app` or `web/src` code. Two places are exempt: `web/src/test-utils/fixtures/`, which holds gateway-like sample data and layout stress copy for tests and stories (oxlint stops production code from importing `@/test-utils`), and the generated `web/src/paraglide/`. Tests and stories assert UI copy through the same `m.*()` functions, never a re-typed literal.
+
+## Deployment
+
+Settled in #22; the details are in [infra/README.md](../infra/README.md).
+
+- **GCP with Terraform**, following bonanaaaaaa-org/personal-finance's `infra/`.
+  - repo-management provides the projects, the deploy identity (workload identity federation, no keys), the R2 state bucket and the zone-scoped Cloudflare token.
+  - `infra/` defines everything else.
+  - Only prod deploys: the `pr` project isn't billed, so pull requests run offline infrastructure checks (`fmt`, `validate`, `terraform test` with mock providers).
+- **The gateway and the data server share one Cloud Run service.**
+  - The gateway is the ingress container. The provided data server is a sidecar, because it listens on three ports and a service exposes one. The gateway reaches it on `localhost`.
+  - The data server's MongoDB binary is baked into its image at build time.
+  - The service scales to zero.
+- **Photos go through the gateway.**
+  - The data server's photo URLs point at `localhost:7777`. When `PUBLIC_BASE_URL` is set, the gateway rewrites them to `{PUBLIC_BASE_URL}/photos/r/{width}/{height}/{file}` and serves that route by proxying the sidecar.
+  - The route accepts only the four sizes the data server's photos use and plain image file names, before calling upstream. It sends the right image type and `Cache-Control: public, max-age=86400`, and answers 404 for a missing image.
+  - When `PUBLIC_BASE_URL` is unset (local dev), URLs pass through unchanged.
+- **The web app is on Firebase Hosting.**
+  - It is a static SPA build: every route except `/assets/**` is rewritten to `/index.html`, the hashed `/assets/**` are cached as immutable, and everything else is `no-cache`.
+  - It is built in the deploy job with `VITE_API_BASE_URL` set to the API domain.
+- **Domains on `bonanaaaaaa.dev`.**
+  - The web app is `hidden-gems.bonanaaaaaa.dev` (a Hosting custom domain) and the gateway is `api-hidden-gems.bonanaaaaaa.dev` (a Cloud Run domain mapping).
+  - Their Cloudflare records are DNS only, so Google issues the certificates. The deploy identity verifies the zone with its own TXT record.
+- **CORS allows only the web domain.** While its certificate is pending, the gateway also allows the site's `web.app` origin.
+- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app, then runs a smoke test and the Playwright suite against the live site. Re-running it for the same commit plans no changes (apart from the one-off CORS change once the web domain is ready).
 
 ## Non-goals
 

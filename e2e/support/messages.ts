@@ -8,9 +8,13 @@ type MessageKey =
   | "header_backLink_ariaLabel"
   | "app_footer_body"
   | "guideIndex_title"
+  | "guideIndex_emptyState_body"
+  | "guideIndex_emptyState_action_label"
+  | "searchField_label"
   | "guide_backLink_label"
   | "guide_notFound_title"
   | "guide_errorPanel_title"
+  | "guideIndex_skeleton_label"
   | "errorPanel_retry_label"
   | "restaurantCard_readMore_label"
   | "restaurantCard_readMore_expandedLabel"
@@ -23,6 +27,11 @@ type MessageKey =
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
+  guideIndex_resultCount_body: { count: number };
+  guideIndex_emptyState_searchTitle: { query: string };
+  guideIndex_errorPanel_searchBody: { query: string };
+  guideIndex_search_tooLongMessage: { max: number };
+  guideCard_restaurantCount_body: { count: number };
   restaurantCard_photoStrip_photo_alt: {
     position: number;
     total: number;
@@ -34,6 +43,7 @@ interface FormatParams {
   };
   restaurantCard_share_ariaLabel: { restaurant: string };
   restaurantCard_share_copiedBody: { restaurant: string };
+  lightbox_counter_body: { position: number; total: number };
 }
 
 const catalog = JSON.parse(

@@ -277,6 +277,7 @@ export function RestaurantCard({
         restaurantName={restaurant?.name}
         layout={layout}
         parentTestId={testId}
+        lightboxParentTestId={parentTestId}
       />
 
       <div
