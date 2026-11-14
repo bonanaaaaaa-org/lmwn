@@ -11,6 +11,7 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { Rating } from "@/components/common/Rating";
 import { PhotoStrip } from "@/features/guides/components/PhotoStrip";
+import { WorkingHours } from "@/features/guides/components/WorkingHours";
 import { formatPhoneNumber } from "@/features/guides/lib/format";
 import {
   facebookUrl,
@@ -20,7 +21,11 @@ import {
   safeWebUrl,
   telHref,
 } from "@/features/guides/lib/links";
-import type { GuideItem, Restaurant } from "@/features/guides/lib/types";
+import {
+  THAILAND_TIME_ZONE,
+  type GuideItem,
+  type Restaurant,
+} from "@/features/guides/lib/types";
 import { joinTestId } from "@/lib/testIds";
 
 import styles from "./RestaurantCard.module.css";
@@ -34,6 +39,8 @@ export interface RestaurantCardProps {
   layout?: RestaurantCardLayout;
   /** Position in the Guide, from 1. */
   index: number;
+  /** The Guide's `timeZone`, in which Working Hours and Open Now are read. */
+  timeZone?: string;
   /** Show the Unavailable Restaurant state. Defaults to whether the Restaurant failed to load. */
   unavailable?: boolean;
   /** Start with the write-up cut to about 4 lines, with "อ่านเพิ่มเติม" (read more) to expand it. */
@@ -175,6 +182,7 @@ export function RestaurantCard({
   item,
   layout = "desktop",
   index,
+  timeZone = THAILAND_TIME_ZONE,
   unavailable = item.restaurant === null,
   clamp = false,
   className,
@@ -281,6 +289,11 @@ export function RestaurantCard({
 
       {restaurant && (
         <dl className={styles.RestaurantCard__Details}>
+          <WorkingHours
+            workingHours={restaurant.workingHours}
+            timeZone={timeZone}
+            parentTestId={testId}
+          />
           <div className={styles.RestaurantCard__Detail}>
             <dt className={styles.RestaurantCard__Term}>ที่อยู่</dt>
             <dd>{restaurant.address}</dd>

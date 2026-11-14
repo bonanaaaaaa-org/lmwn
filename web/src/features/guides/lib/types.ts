@@ -5,6 +5,9 @@ import { z } from "zod";
  * api-gateway/app/adapters/inbound/http/schemas.py). TypeScript types are inferred from them.
  */
 
+/** Thailand time: the gateway's `timeZone` for Working Hours and Open Now. */
+export const THAILAND_TIME_ZONE = "Asia/Bangkok";
+
 export const photoSchema = z.object({
   id: z.string(),
   smallUrl: z.string(),
@@ -69,7 +72,7 @@ export const guideSchema = z.object({
   tags: z.array(z.string()),
   /** ISO 8601 date-time. */
   writeDate: z.iso.datetime({ offset: true }),
-  timeZone: z.literal("Asia/Bangkok"),
+  timeZone: z.literal(THAILAND_TIME_ZONE),
   /** Guide Items in the editor's order. */
   items: z.array(guideItemSchema),
 });

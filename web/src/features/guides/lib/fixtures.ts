@@ -1,4 +1,4 @@
-import type { Guide, GuideItem, Photo, Restaurant } from "./types";
+import type { Guide, GuideItem, Photo, Restaurant, WorkingDay } from "./types";
 
 /**
  * Gateway-shaped sample data for tests and stories, modelled on the provided Data Server's
@@ -19,7 +19,8 @@ export function makePhoto(n: number, overrides: Partial<Photo> = {}): Photo {
   };
 }
 
-const everyDay = (opensAt: number, closesAt: number) =>
+/** The same single range on all seven days. */
+export const everyDay = (opensAt: number, closesAt: number): WorkingDay[] =>
   [1, 2, 3, 4, 5, 6, 7].map((day) => ({
     day,
     ranges: [{ opensAt, closesAt }],

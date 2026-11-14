@@ -12,6 +12,31 @@ import { needsClamp, RestaurantCard } from "./RestaurantCard";
 const card = () => screen.getByTestId("guide/restaurant-card");
 
 describe("RestaurantCard", () => {
+  it("shows today's Working Hours and Open Now, with the week behind a toggle", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    // Wednesday 12:00 in Bangkok; the fixture opens 08:00–17:00 every day.
+    vi.setSystemTime(new Date("2026-11-18T12:00:00+07:00"));
+    const user = userEvent.setup();
+    render(
+      <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
+    );
+
+    const hours = within(card()).getByTestId(
+      "guide/restaurant-card/working-hours",
+    );
+    expect(within(hours).getByText("เปิดอยู่")).toBeInTheDocument();
+    expect(within(hours).getByText("วันนี้ 08:00–17:00")).toBeInTheDocument();
+    await user.click(
+      within(hours).getByTestId("guide/restaurant-card/working-hours/toggle"),
+    );
+    expect(
+      within(hours).getByRole("row", { name: "พุธ (วันนี้) 08:00–17:00" }),
+    ).toHaveAttribute("aria-current", "date");
+  });
+
   it("names the Restaurant with its branch, Rating, Categories and badges", () => {
     render(
       <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,

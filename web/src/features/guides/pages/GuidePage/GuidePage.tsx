@@ -64,6 +64,7 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
               <RestaurantCard
                 item={item}
                 index={index + 1}
+                timeZone={guide.timeZone}
                 layout={layout}
                 clamp={needsClamp(item.description, layout)}
                 parentTestId={GUIDE_PAGE_TEST_ID}
