@@ -10,8 +10,9 @@
 
   .NotFound__Code {
     color: var(--color-accent-text);
-    font-size: var(--font-size-600);
-    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-700);
+    font-weight: var(--font-weight-display);
     line-height: 1;
   }
 

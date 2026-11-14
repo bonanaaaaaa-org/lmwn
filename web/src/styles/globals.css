@@ -8,14 +8,19 @@
 @import url("modern-normalize/modern-normalize.css") layer(reset);
 
 /*
- * IBM Plex Sans Thai, self-hosted through Fontsource: Vite bundles the woff2 files, so
- * the font is served from the app's own origin. Only the Thai and Latin subsets are
- * loaded; `unicode-range` means a page downloads just the subsets it actually uses.
+ * Looped Thai (มีหัว) faces, self-hosted through Fontsource: Vite bundles the woff2 files, so
+ * fonts come from the app's own origin. Sarabun for body text, Krub for headings and display.
+ * Only the Thai and Latin subsets are loaded; `unicode-range` means a page downloads just the
+ * subsets it actually uses.
  */
-@import url("@fontsource/ibm-plex-sans-thai/thai-400.css");
-@import url("@fontsource/ibm-plex-sans-thai/latin-400.css");
-@import url("@fontsource/ibm-plex-sans-thai/thai-600.css");
-@import url("@fontsource/ibm-plex-sans-thai/latin-600.css");
+@import url("@fontsource/sarabun/thai-400.css");
+@import url("@fontsource/sarabun/latin-400.css");
+@import url("@fontsource/sarabun/thai-600.css");
+@import url("@fontsource/sarabun/latin-600.css");
+@import url("@fontsource/krub/thai-600.css");
+@import url("@fontsource/krub/latin-600.css");
+@import url("@fontsource/krub/thai-700.css");
+@import url("@fontsource/krub/latin-700.css");
 
 @layer base {
   :root {
@@ -54,7 +59,10 @@
     --color-placeholder: #ebebe9;
     --color-placeholder-icon: #8a8a87;
 
-    /* Spacing: a 0.25rem (4px) base scale. */
+    /*
+     * 8-point grid: spacing, control heights and radii are multiples of 8px (0.5rem), with
+     * 4px and 12px as the only half steps. Type sizes and Thai line heights are not snapped.
+     */
     --space-50: 0.25rem;
     --space-100: 0.5rem;
     --space-150: 0.75rem;
@@ -65,7 +73,8 @@
     --space-800: 4rem;
 
     /* Type scale: about 1.125–1.25 steps; display sizes grow with the viewport. */
-    --font-family-base: "IBM Plex Sans Thai", system-ui, sans-serif;
+    --font-family-base: "Sarabun", system-ui, sans-serif;
+    --font-family-display: "Krub", "Sarabun", system-ui, sans-serif;
     --font-size-75: 0.8125rem;
     --font-size-100: 0.875rem;
     --font-size-200: 1rem;
@@ -79,23 +88,27 @@
     --font-weight-regular: 400;
     --font-weight-semibold: 600;
     --font-weight-bold: 600;
+    --font-weight-display: 700;
 
     /* Thai stacks tone marks above and vowels below, so it needs roomier leading. */
     --line-height-tight: 1.35;
     --line-height-base: 1.65;
     --radius-100: 0.25rem;
-    --radius-200: 0.75rem;
+    --radius-200: 0.5rem;
     --radius-300: 1rem;
-    --radius-400: 1.25rem;
+    --radius-400: 1.5rem;
     --radius-pill: 62.5rem;
-    --shadow-100: 0 0.0625rem 0.125rem rgb(31 26 21 / 8%);
-    --shadow-200: 0 0.25rem 0.75rem rgb(31 26 21 / 10%);
+    --shadow-100: 0 0.0625rem 0.125rem rgb(17 17 17 / 8%);
+    --shadow-200: 0 0.25rem 0.75rem rgb(17 17 17 / 10%);
     --focus-ring-width: 0.1875rem;
     --focus-ring-offset: 0.125rem;
     --focus-ring: var(--focus-ring-width) solid var(--color-focus);
     --duration-fast: 120ms;
     --duration-base: 200ms;
     --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --control-height: 3rem;
+    --control-height-compact: 2.5rem;
+    --header-height: 3.5rem;
     --layout-max-width: 75rem;
     --layout-gutter: var(--space-200);
 
@@ -111,6 +124,7 @@
   @media (width >= 48rem) {
     :root {
       --layout-gutter: 2.5rem;
+      --header-height: 4rem;
     }
   }
 
@@ -119,6 +133,7 @@
   h3,
   h4 {
     margin: 0;
+    font-family: var(--font-family-display);
     line-height: var(--line-height-tight);
     font-weight: var(--font-weight-bold);
   }

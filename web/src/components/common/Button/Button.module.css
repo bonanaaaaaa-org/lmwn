@@ -4,7 +4,7 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-100);
-    min-height: 2.75rem;
+    min-height: var(--control-height);
     padding: var(--space-100) var(--space-300);
     border: 1px solid transparent;
     border-radius: var(--radius-200);
