@@ -15,13 +15,15 @@
     "build-storybook": "turbo run build-storybook",
     "test:storybook": "turbo run test:storybook",
     "test:e2e": "turbo run test:e2e",
-    "lighthouse": "pnpm --filter web lighthouse"
+    "lighthouse": "pnpm --filter web lighthouse",
+    "allure": "allure generate --clean --open"
   },
   "engines": {
     "node": ">=26"
   },
   "packageManager": "pnpm@12.18.0",
   "devDependencies": {
+    "allure": "^3.33.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "turbo": "^2.11.11"

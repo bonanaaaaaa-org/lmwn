@@ -78,3 +78,15 @@ Both checks fail on any axe violation, of any impact, against the WCAG 2.2 A and
 
 - **Pages (e2e):** `pnpm test:e2e` runs the Playwright specs on the desktop and mobile projects. Specs call `expectNoAxeViolations(page)` from `e2e/support/axe.ts` once a state has rendered; the full axe results are attached to the HTML report (`pnpm --filter e2e report`). Scope a run with `pnpm --filter e2e test:e2e specs/home.spec.ts`.
 - **Components (Storybook):** `pnpm test:storybook` renders every story with Vitest browser mode and runs the a11y addon's axe scan (`a11y.test: "error"` in `web/.storybook/preview.ts`). To see a violation in context, run `pnpm --filter web storybook` and open the story's Accessibility panel.
+
+## Test reports (Allure)
+
+Every suite also writes [Allure](https://allurereport.org/) results into its own package: the Playwright e2e on desktop and mobile (`e2e/allure-results`, with the trace, screenshot and video of a failed test attached), Vitest unit and Storybook story tests (`web/allure-results/unit` and `storybook`), and the gateway's pytest (`api-gateway/allure-results`). `pnpm test`, `pnpm test:storybook` and `pnpm test:e2e` replace their suite's results on each run.
+
+```bash
+pnpm allure   # combines whatever results exist into one report (allure-report/index.html) and opens it
+```
+
+Run the suites you care about first, for example `pnpm test` and `pnpm test:e2e`. The report's configuration is `allurerc.mjs`. Both `allure-results/` and `allure-report/` are git-ignored.
+
+CI combines the results of every run into one report, after failed runs too, and uploads it to the shared report host from repo-management: `https://allure-reports.bonanaaaaaa.workers.dev/lmwn/<report>/`, signed in through Cloudflare Access. A pull request's report is `pr-<number>` and a push to `main` replaces `main`. The run's summary (the **Allure report** job) links to it, and `https://allure-reports.bonanaaaaaa.workers.dev/lmwn/` lists every report. The upload authenticates with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, the job only warns: the test jobs alone decide whether CI passes.

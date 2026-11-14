@@ -19,13 +19,13 @@
     "gen:css-types": "tcm -p \"{app,src}/**/*.module.css\" --silent",
     "gen:i18n": "paraglide-js compile --project ./project.inlang --silent",
     "type-check": "pnpm gen:i18n && react-router typegen && tsc --noEmit",
-    "test": "vitest run",
+    "test": "rm -rf allure-results/unit && vitest run",
     "test:watch": "vitest",
     "test:scripts": "node --test scripts/",
     "test:coverage": "vitest run --coverage",
     "storybook": "STORYBOOK=true storybook dev -p 6006 --no-open",
     "build-storybook": "STORYBOOK=true storybook build --quiet",
-    "test:storybook": "STORYBOOK=true vitest run --config vitest.storybook.config.ts --passWithNoTests"
+    "test:storybook": "rm -rf allure-results/storybook && STORYBOOK=true vitest run --config vitest.storybook.config.ts --passWithNoTests"
   },
   "dependencies": {
     "@fontsource/mali": "^5.3.0",
@@ -60,6 +60,7 @@
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/browser-playwright": "^5.1.0",
     "@vitest/coverage-v8": "^5.1.0",
+    "allure-vitest": "^3.14.0",
     "chrome-launcher": "^1.2.3",
     "jsdom": "^31.0.0",
     "lighthouse": "^13.6.0",
