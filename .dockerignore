@@ -11,6 +11,8 @@
 **/storybook-static
 **/.env
 **/.env.*
+# google-github-actions/auth writes its credentials file into the workspace.
+gha-creds-*.json
 .git
 .claude
 .loop

@@ -18,7 +18,8 @@ Settings come from env vars (see `app/settings.py`), e.g.
 served from memory).
 
 Photos: `PHOTO_SERVICE_URL` (default `http://localhost:7777`) is the data server's
-image service, proxied at `GET /photos/r/{width}/{height}/{file}` (sizes 1-2048,
+image service, proxied at `GET /photos/r/{width}/{height}/{file}` (only the four sizes the data
+server's photos use, 480x854, 854x480, 1080x1920 and 1920x1080, and
 plain `.jpg`/`.jpeg`/`.png`/`.webp` names only). Set `PUBLIC_BASE_URL` (e.g.
 `https://api-hidden-gems.bonanaaaaaa.dev`) to rewrite photo URLs in responses to
 `{PUBLIC_BASE_URL}/photos/r/...`; unset, they pass through unchanged.

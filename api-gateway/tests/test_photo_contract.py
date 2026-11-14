@@ -198,6 +198,10 @@ async def test_serves_the_image_with_its_media_type_and_cache_headers(
         "/photos/r/0480/854/x.jpg",
         "/photos/r/abc/854/x.jpg",
         "/photos/r/99999/854/x.jpg",
+        "/photos/r/1/1/x.jpg",
+        "/photos/r/2048/2048/x.jpg",
+        "/photos/r/481/854/x.jpg",
+        "/photos/r/480/1920/x.jpg",
         "/photos/r/480/854/..%2F..%2Fetc%2Fpasswd",
         "/photos/r/480/854/..%2F..%2Fetc%2Fx.jpg",
         "/photos/r/480/854/%2e%2e",
@@ -228,11 +232,15 @@ async def test_rejected_requests_are_404_without_calling_upstream(
 @pytest.mark.parametrize(
     ("path", "upstream_url"),
     [
-        ("/photos/r/1/2048/X.JPG", f"{PHOTO_SERVICE}/r/1/2048/X.JPG"),
-        ("/photos/r/2048/1/a_b-c.d.webp", f"{PHOTO_SERVICE}/r/2048/1/a_b-c.d.webp"),
+        ("/photos/r/854/480/X.JPG", f"{PHOTO_SERVICE}/r/854/480/X.JPG"),
+        ("/photos/r/1080/1920/a.png", f"{PHOTO_SERVICE}/r/1080/1920/a.png"),
+        (
+            "/photos/r/1920/1080/a_b-c.d.webp",
+            f"{PHOTO_SERVICE}/r/1920/1080/a_b-c.d.webp",
+        ),
     ],
 )
-async def test_boundary_sizes_and_names_are_forwarded(
+async def test_each_photo_size_and_plain_names_are_forwarded(
     gateway: httpx.AsyncClient, upstream: respx.MockRouter, path: str, upstream_url: str
 ) -> None:
     upstream.get(upstream_url).respond(content=JPEG)

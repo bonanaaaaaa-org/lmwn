@@ -27,10 +27,9 @@ build=web/build/client
 if [[ ! -f $build/index.html ]]; then
   fail "$build/index.html is missing; build the web app first (VITE_API_BASE_URL=\$API_URL pnpm turbo run build --filter=web)."
 fi
-# The bundle must call the gateway's public origin, never the localhost default.
-if grep -rqs 'http://localhost:4000' "$build/assets"; then
-  fail "the built bundle still calls http://localhost:4000; build it with VITE_API_BASE_URL=$API_URL."
-fi
+# The bundle must call the gateway's public origin. (It always contains the
+# http://localhost:4000 fallback of web/src/lib/env.ts, so only the presence
+# of API_URL is checked.)
 if ! grep -rqsF "$API_URL" "$build/assets"; then
   fail "the built bundle does not contain $API_URL; build it with VITE_API_BASE_URL=$API_URL."
 fi

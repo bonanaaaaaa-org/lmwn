@@ -2,7 +2,8 @@
 
 Browsers can't reach the image service in production, so photo URLs point here
 when `PUBLIC_BASE_URL` is set. The image service joins `file` into a filesystem
-path, so only a plain image file name at a bounded size is ever forwarded.
+path, so only a plain image file name is ever forwarded. Each size costs the
+sidecar a resize, so only the sizes the data server's photos use are served.
 """
 
 import re
@@ -18,7 +19,9 @@ from app.application.ports.photo_source import PhotoSource
 
 router = APIRouter(tags=["photos"])
 
-MAX_DIMENSION = 2048
+# (width, height) of the small and large photo URLs the data server returns, in
+# portrait and landscape.
+ALLOWED_SIZES = frozenset({(480, 854), (854, 480), (1080, 1920), (1920, 1080)})
 _DIMENSION = re.compile(r"[1-9][0-9]{0,3}")
 _FILE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(?:jpg|jpeg|png|webp)", re.IGNORECASE)
 
@@ -28,11 +31,11 @@ _PHOTO_HEADERS = {
 }
 
 
-def _dimension(value: str) -> int | None:
-    if _DIMENSION.fullmatch(value) is None:
+def _size(width: str, height: str) -> tuple[int, int] | None:
+    if _DIMENSION.fullmatch(width) is None or _DIMENSION.fullmatch(height) is None:
         return None
-    number = int(value)
-    return number if number <= MAX_DIMENSION else None
+    size = (int(width), int(height))
+    return size if size in ALLOWED_SIZES else None
 
 
 def _file(value: str) -> str | None:
@@ -55,8 +58,8 @@ def _file(value: str) -> str | None:
         404: {
             "model": ErrorResponse,
             "description": (
-                "Unknown photo, a size outside 1-2048, or a file that isn't a plain"
-                " .jpg, .jpeg, .png or .webp name"
+                "Unknown photo, a size the data server doesn't use, or a file that"
+                " isn't a plain .jpg, .jpeg, .png or .webp name"
             ),
         },
         502: {"model": ErrorResponse, "description": "An upstream error"},
@@ -64,21 +67,22 @@ def _file(value: str) -> str | None:
     },
 )
 async def get_photo(
-    width: Annotated[str, Path(description="Width in pixels, 1-2048.")],
-    height: Annotated[str, Path(description="Height in pixels, 1-2048.")],
+    width: Annotated[str, Path(description="Width in pixels: 480, 854, 1080 or 1920.")],
+    height: Annotated[
+        str,
+        Path(
+            description="Height in pixels, paired with the width: 854, 480, 1920 or 1080."
+        ),
+    ],
     file: Annotated[str, Path(description="The image's file name, e.g. `x.jpg`.")],
     photo_source: Annotated[PhotoSource, Depends(get_photo_source)],
 ) -> Response:
     """Served under the gateway's origin with a media type from the file extension."""
-    valid_width, valid_height, valid_file = (
-        _dimension(width),
-        _dimension(height),
-        _file(file),
-    )
-    if valid_width is None or valid_height is None or valid_file is None:
+    size, valid_file = _size(width, height), _file(file)
+    if size is None or valid_file is None:
         # A rejected request never reaches upstream.
         return not_found(PHOTO_NOT_FOUND)
-    photo = await photo_source.get_photo(valid_width, valid_height, valid_file)
+    photo = await photo_source.get_photo(*size, valid_file)
     return Response(
         content=photo.content, media_type=photo.media_type, headers=_PHOTO_HEADERS
     )

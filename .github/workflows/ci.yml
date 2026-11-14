@@ -27,8 +27,9 @@ env:
   # The provided data server's MongoDB binary is only needed by `pnpm dev`, never by these checks.
   MONGOMS_DISABLE_POSTINSTALL: "1"
 
-# A newer push to the same PR cancels the run it supersedes. Runs on main are never cancelled, so a
-# deploy never stops half-way (Deploy prod also checks that main is still at its commit).
+# A newer push to the same PR cancels the run it supersedes. A running run on main is never
+# cancelled, so a deploy never stops half-way. GitHub keeps one pending run per group, so a queued
+# main run can still be replaced by a newer push; Deploy prod also stops if main has moved on.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -211,11 +212,19 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
-      # Installs run before any credential exists in the job.
+      # Installs and the web build run before any credential exists in the job. The API domain
+      # is the one in infra/env/prod.tfvars (deploy-hosting.sh checks the bundle against
+      # Terraform's api_url output).
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Install Playwright Chromium (post-deploy tests)
         run: pnpm --filter e2e exec playwright install --with-deps chromium
+      - name: Build the web app against the API domain
+        run: |
+          set -euo pipefail
+          api_domain=$(sed -n 's/^api_domain *= *"\(.*\)"$/\1/p' infra/env/prod.tfvars)
+          [[ -n $api_domain ]] || { echo "::error::no api_domain in infra/env/prod.tfvars"; exit 1; }
+          VITE_API_BASE_URL="https://$api_domain" pnpm turbo run build --filter=web
       - uses: docker/setup-buildx-action@v4.4.1
       - uses: google-github-actions/auth@v3.0.0
         with:
@@ -247,10 +256,11 @@ jobs:
       - name: Public URLs
         id: urls
         run: echo "web_url=$WEB_URL" >>"$GITHUB_OUTPUT"
-      - name: Build the web app against the API domain
-        run: VITE_API_BASE_URL="$API_URL" pnpm turbo run build --filter=web
       - name: Deploy the web app to Firebase Hosting
         run: infra/scripts/deploy-hosting.sh
+      # The checks below need no cloud access: drop the credentials file before running them.
+      - name: Remove the Google credentials
+        run: rm -f "$GOOGLE_APPLICATION_CREDENTIALS" gha-creds-*.json
       - name: Smoke-test the deploy
         run: infra/scripts/smoke-test.sh "$API_URL" "$WEB_URL"
       - name: E2E against the deployed site (Playwright + axe, desktop + mobile)

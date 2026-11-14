@@ -73,7 +73,7 @@ Settled in #22; the details are in [infra/README.md](../infra/README.md).
   - The service scales to zero.
 - **Photos go through the gateway.**
   - The data server's photo URLs point at `localhost:7777`. When `PUBLIC_BASE_URL` is set, the gateway rewrites them to `{PUBLIC_BASE_URL}/photos/r/{width}/{height}/{file}` and serves that route by proxying the sidecar.
-  - The route checks the size and file name before calling upstream. It sends the right image type and `Cache-Control: public, max-age=86400`, and answers 404 for a missing image.
+  - The route accepts only the four sizes the data server's photos use and plain image file names, before calling upstream. It sends the right image type and `Cache-Control: public, max-age=86400`, and answers 404 for a missing image.
   - When `PUBLIC_BASE_URL` is unset (local dev), URLs pass through unchanged.
 - **The web app is on Firebase Hosting.**
   - It is a static SPA build: every route is rewritten to `/index.html`, the hashed `/assets/**` are cached as immutable, and everything else is `no-cache`.
@@ -82,7 +82,7 @@ Settled in #22; the details are in [infra/README.md](../infra/README.md).
   - The web app is `hidden-gems.bonanaaaaaa.dev` (a Hosting custom domain) and the gateway is `api-hidden-gems.bonanaaaaaa.dev` (a Cloud Run domain mapping).
   - Their Cloudflare records are DNS only, so Google issues the certificates. The deploy identity verifies the zone with its own TXT record.
 - **CORS allows only the web domain.** While its certificate is pending, the gateway also allows the site's `web.app` origin.
-- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app, then runs a smoke test and the Playwright suite against the live site. Re-running it for the same commit plans no changes.
+- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app, then runs a smoke test and the Playwright suite against the live site. Re-running it for the same commit plans no changes (apart from the one-off CORS change once the web domain is ready).
 
 ## Non-goals
 

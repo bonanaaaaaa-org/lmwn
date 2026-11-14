@@ -35,6 +35,7 @@ The provided data server listens on three ports (guides `:8888`, restaurants `:9
 
 - **`api-gateway`** (`api-gateway/Dockerfile`) is the ingress container on port 8080. Its startup probe is `GET /health`, and it starts after the sidecar is ready (`depends_on`). Settings: `GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL` and `PHOTO_SERVICE_URL` point at `localhost`; `PUBLIC_BASE_URL` is the API domain; `CORS_ALLOWED_ORIGINS` is set as below.
 - **`data-server`** (`api-gateway/data-server.Dockerfile`) is the sidecar and exposes no port. Its MongoDB binary is downloaded when the image is built, so a cold start never downloads it. Each instance seeds its own in-memory copy of the sample data. Its startup probe is a TCP check on 8888.
+- **Second-generation execution environment**, for mongod and sharp.
 - **Scaling:** zero instances when idle, at most `max_instances` (2). CPU runs only during requests, with startup CPU boost. The gateway gets 1 vCPU and 512 MiB, the data server 1 vCPU and 1 GiB (for mongod). The request timeout is 30 s.
 - **Anyone may invoke it** (`invoker_iam_disabled`): it is a public read-only API for a browser app.
 - **Images** are tagged with the commit and pushed before the apply (`scripts/build-images.sh`). Terraform runs them (`TF_VAR_gateway_image`, `TF_VAR_data_server_image`). A tag that is already in the registry is not rebuilt, so re-running a deploy for the same commit plans no changes.
@@ -45,7 +46,7 @@ The provided data server listens on three ports (guides `:8888`, restaurants `:9
 
 ## Firebase Hosting
 
-Hosting serves `web/build/client`, built in the deploy job with `VITE_API_BASE_URL` set to the API domain. `web/firebase.json` rewrites every path to `/index.html` (the SPA). It sends `Cache-Control: no-cache` everywhere, and `public, max-age=31536000, immutable` for the content-hashed `/assets/**` (the later matching rule wins), plus `X-Content-Type-Options: nosniff` and `Referrer-Policy`. Terraform only creates the site. The Firebase CLI (pinned in `scripts/deploy-hosting.sh`) uploads the files, authenticated through the same workload identity.
+Hosting serves `web/build/client`, built in the deploy job with `VITE_API_BASE_URL` set to the API domain. `web/firebase.json` rewrites every path except `/assets/**` to `/index.html` (the SPA), so a missing hashed file answers 404 rather than an immutably cached page. It sends `Cache-Control: no-cache` everywhere, and `public, max-age=31536000, immutable` for the content-hashed `/assets/**` (the later matching rule wins), plus `X-Content-Type-Options: nosniff` and `Referrer-Policy`. Terraform only creates the site. The Firebase CLI (pinned in `scripts/deploy-hosting.sh`) uploads the files, authenticated through the same workload identity.
 
 ## Custom domains
 
@@ -70,10 +71,12 @@ The output `custom_domain_dns_records` lists what Hosting and Cloud Run ask for,
   5. makes sure the registry exists (`ensure-registry.sh`, a targeted apply that changes nothing after the first run);
   6. builds and pushes the images;
   7. plans and applies (the plan's changes go to the job summary);
-  8. builds the web app with `VITE_API_BASE_URL` set to the API domain and deploys it to Hosting;
-  9. runs `scripts/smoke-test.sh` and the Playwright suite against the deployed site (`PLAYWRIGHT_BASE_URL`, `API_BASE_URL`).
+  8. deploys the web app to Hosting. It was built before authentication, with `VITE_API_BASE_URL` set to the API domain in `env/prod.tfvars`, and `deploy-hosting.sh` checks the bundle against the `api_url` output;
+  9. removes the Google credentials file, then runs `scripts/smoke-test.sh` and the Playwright suite against the deployed site (`PLAYWRIGHT_BASE_URL`, `API_BASE_URL`).
 
 Only the Terraform steps hold the R2 key pair and the Cloudflare token.
+
+A re-run for the same commit plans no changes. The one exception is the deploy after the web domain becomes ready, which removes the web.app origin from CORS once.
 
 ## Running Terraform locally
 

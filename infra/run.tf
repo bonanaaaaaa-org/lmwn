@@ -48,7 +48,9 @@ resource "google_cloud_run_v2_service" "api" {
   deletion_protection  = var.deletion_protection
 
   template {
-    service_account                  = google_service_account.run.email
+    service_account = google_service_account.run.email
+    # Full Linux compatibility for mongod and sharp in the sidecar.
+    execution_environment            = "EXECUTION_ENVIRONMENT_GEN2"
     timeout                          = "30s"
     max_instance_request_concurrency = 80
 
