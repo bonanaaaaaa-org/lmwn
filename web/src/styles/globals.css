@@ -64,6 +64,13 @@
     --color-text-inverse-muted: #c9c9c6;
     --color-overlay: rgb(255 255 255 / 16%);
     --color-overlay-hover: rgb(255 255 255 / 28%);
+
+    /* Overlay controls that can sit on a photo: a grey that shows on ink and on white. */
+    --color-overlay-strong: rgb(64 64 62 / 72%);
+    --color-overlay-strong-hover: rgb(96 96 94 / 84%);
+
+    /* The lightbox's shade behind its title and thumbnails: muted text on it over white is 7:1. */
+    --color-shade: rgb(17 17 17 / 85%);
     --color-focus-inverse: #fff;
 
     /*

@@ -56,7 +56,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Prev and next flank the photo; the current thumbnail is outlined. */
+/** The photo fills the screen; the title, prev and next, and thumbnails float over it. */
 export const Desktop: Story = {};
 
 /** Full screen; prev and next sit either side of the thumbnails. Swipe to move. */

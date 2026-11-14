@@ -83,7 +83,7 @@ Everything is **required** unless marked _Deferred_.
   - a link to the Restaurant on Wongnai
   - delivery, pickup and official badges where they apply
 - **Given** an Unrated Restaurant, **then** the card shows "ยังไม่มีรีวิว" (no reviews yet) instead of stars.
-- **When** the diner taps a photo, **then** a lightbox opens on that photo. It can be swiped, used with the keyboard (arrows, Esc) and closed, and focus returns to the photo afterwards.
+- **When** the diner taps a photo, **then** a lightbox opens on that photo, covering the whole screen at every size with the photo as large as fits without cropping. It can be swiped, used with the keyboard (arrows, Esc) and closed, and focus returns to the photo afterwards.
 - **When** the diner shares a card, **then** the shared link opens that Guide, scrolls to the card and briefly highlights it. The share text includes the Restaurant name and Guide title. Without native sharing, the link is copied with a toast.
 
 ### Guide page: filtering and sorting
