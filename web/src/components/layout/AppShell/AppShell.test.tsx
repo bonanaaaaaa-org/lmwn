@@ -1,9 +1,25 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { showToast, toastQueue } from "@/components/common/Toast";
 
 import { AppShell, guidePageTestIdFrom } from "./AppShell";
 
 describe("AppShell", () => {
+  it("shows toasts as app/toast, in a region React Aria keeps at the end of the body", () => {
+    render(<AppShell>content</AppShell>);
+
+    act(() => showToast({ message: "คัดลอกลิงก์แล้ว" }));
+
+    expect(screen.getByTestId("app/toast")).toHaveTextContent("คัดลอกลิงก์แล้ว");
+    expect(
+      screen.getByRole("region", { name: "การแจ้งเตือน" }).parentElement,
+    ).toBe(document.body);
+    act(() => {
+      for (const toast of toastQueue.visibleToasts) toastQueue.close(toast.key);
+    });
+  });
+
   it("links the header to the Guide Index and renders the page in main", () => {
     render(
       <AppShell>

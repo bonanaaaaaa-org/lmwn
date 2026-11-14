@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { ButtonLink } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -12,6 +12,11 @@ import {
   RestaurantCard,
 } from "@/features/guides/components/RestaurantCard";
 import { useGuide } from "@/features/guides/hooks/useGuide";
+import { useGuideItemHashTarget } from "@/features/guides/hooks/useGuideItemHashTarget";
+import {
+  guideItemShareTarget,
+  guideShareTarget,
+} from "@/features/guides/lib/share";
 import type { Guide } from "@/features/guides/lib/types";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useIsPhone } from "@/hooks/useMediaQuery";
@@ -29,6 +34,12 @@ export interface GuidePageProps {
 type Layout = "desktop" | "phone";
 
 function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
+  const guideItemIds = useMemo(
+    () => guide.items.map((item) => item.id),
+    [guide.items],
+  );
+  // A shared `#item-{guideItemId}` link scrolls to its card once the cards are on screen.
+  const highlightedId = useGuideItemHashTarget(guideItemIds);
   return (
     <>
       {layout === "desktop" && (
@@ -46,6 +57,7 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
       <GuideHeader
         guide={guide}
         layout={layout}
+        share={guideShareTarget(guide)}
         className={styles.GuidePage__Top}
         parentTestId={GUIDE_PAGE_TEST_ID}
       />
@@ -66,6 +78,8 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
                 index={index + 1}
                 layout={layout}
                 clamp={needsClamp(item.description, layout)}
+                share={guideItemShareTarget(guide, item)}
+                highlighted={item.id === highlightedId}
                 parentTestId={GUIDE_PAGE_TEST_ID}
               />
             </li>

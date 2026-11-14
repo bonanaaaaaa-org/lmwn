@@ -9,6 +9,13 @@ import {
 
 import { needsClamp, RestaurantCard } from "./RestaurantCard";
 
+const share = {
+  title: "ONIBUS COFFEE",
+  text: "socialTitle",
+  url: "/guides/g1#item-i1",
+  copiedMessage: "คัดลอกลิงก์แล้ว",
+};
+
 const card = () => screen.getByTestId("guide/restaurant-card");
 
 describe("RestaurantCard", () => {
@@ -231,5 +238,53 @@ describe("needsClamp", () => {
 
   it("does not count Thai vowels and tone marks above or below the line", () => {
     expect(needsClamp("กิ่".repeat(100), "phone")).toBe(false);
+  });
+
+  it("offers a share button named after the Restaurant", () => {
+    render(
+      <RestaurantCard
+        item={makeGuideItem()}
+        index={1}
+        share={share}
+        parentTestId="guide"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "แชร์ร้าน ONIBUS COFFEE" }),
+    ).toHaveAttribute("data-testid", "guide/restaurant-card/share");
+  });
+
+  it("has no share button for an Unavailable Restaurant", () => {
+    render(
+      <RestaurantCard
+        item={makeGuideItem({ restaurant: null })}
+        index={1}
+        share={share}
+        parentTestId="guide"
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("guide/restaurant-card/share"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("marks the highlighted state on the card", () => {
+    const { rerender } = render(
+      <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
+    );
+    expect(card()).not.toHaveAttribute("data-highlighted");
+
+    rerender(
+      <RestaurantCard
+        item={makeGuideItem()}
+        index={1}
+        highlighted
+        parentTestId="guide"
+      />,
+    );
+
+    expect(card()).toHaveAttribute("data-highlighted");
   });
 });

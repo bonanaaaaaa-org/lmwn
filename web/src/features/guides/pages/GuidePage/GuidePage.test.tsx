@@ -176,4 +176,61 @@ describe("GuidePage", () => {
     await waitFor(() => expect(consoleError).toHaveBeenCalled());
     consoleError.mockRestore();
   });
+
+  describe("sharing", () => {
+    // jsdom has no scrollIntoView; the tests that need it install a mock.
+    afterEach(() => {
+      window.history.replaceState(null, "", "/");
+      Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+    });
+
+    it("shares the Guide and each available card", async () => {
+      serveGuide();
+      renderPage();
+
+      expect(
+        await screen.findByRole("button", { name: "แชร์ไกด์" }),
+      ).toBeInTheDocument();
+      expect(
+        screen
+          .getAllByTestId("guide/restaurant-card/share")
+          .map((button) => button.getAttribute("aria-label")),
+      ).toEqual(["แชร์ร้าน ONIBUS COFFEE", "แชร์ร้าน KFC", "แชร์ร้าน % Arabica"]);
+    });
+
+    it("scrolls to and highlights the card in a shared #item- link once the Guide renders", async () => {
+      const guide = makeGuide();
+      const target = guide.items[1];
+      if (!target) throw new Error("fixture needs 2 items");
+      window.history.replaceState(
+        null,
+        "",
+        `/guides/${GUIDE_ID}#item-${target.id}`,
+      );
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      serveGuide(guide);
+      renderPage();
+
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+      const cards = screen.getAllByTestId("guide/restaurant-card");
+      expect(scrollIntoView.mock.contexts[0]).toBe(cards[1]);
+      expect(cards[1]).toHaveAttribute("data-highlighted");
+      expect(cards[0]).not.toHaveAttribute("data-highlighted");
+    });
+
+    it("opens normally for an unknown #item-", async () => {
+      window.history.replaceState(null, "", `/guides/${GUIDE_ID}#item-nope`);
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      serveGuide();
+      renderPage();
+
+      await screen.findAllByTestId("guide/restaurant-card");
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      for (const card of screen.getAllByTestId("guide/restaurant-card")) {
+        expect(card).not.toHaveAttribute("data-highlighted");
+      }
+    });
+  });
 });

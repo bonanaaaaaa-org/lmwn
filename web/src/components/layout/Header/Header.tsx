@@ -4,13 +4,15 @@ import { Icon } from "@/components/common/Icon";
 import { joinTestId } from "@/lib/testIds";
 
 import styles from "./Header.module.css";
+import { HeaderSlotTarget } from "./HeaderSlot";
 
 export type HeaderLayout = "desktop" | "phone-index" | "phone-guide";
 
 export interface HeaderProps {
   /**
    * `desktop` (64px, logo and tagline) and `phone-index` (56px, logo only) show the brand;
-   * `phone-guide` (56px) is the Guide page on a phone: a back arrow, then the brand.
+   * `phone-guide` (56px) is the Guide page on a phone: a back arrow, the brand, then the
+   * page's action from `HeaderSlotPortal` (the Guide's share button).
    */
   layout?: HeaderLayout;
   /** The Guide Index. */
@@ -69,8 +71,8 @@ export function Header({
           >
             <span lang="en">Guide to Hidden Gems</span>
           </Link>
-          {/* Balances the back arrow so the brand stays centred; the share button (#14) goes here. */}
-          <span className={styles.Header__Spacer} aria-hidden="true" />
+          {/* The page's action (the Guide's share button); it balances the back arrow so the brand stays centred. */}
+          <HeaderSlotTarget className={styles.Header__Spacer} />
         </div>
       </header>
     );
