@@ -183,7 +183,8 @@ Everything is **required** unless marked _Deferred_.
 
 - Server-side rendering and real Open Graph link previews (`socialTitle` is used for the tab title and share text only).
 - Pagination, and searching restaurants across Guides (deferred until there are enough Guides to need it).
-- A database, user accounts, and saved or favourite restaurants.
+- A database, user accounts, and saved or favourite restaurants. The PWA's offline copy of Guides already opened (#43) is a cache, not a saved list: the diner can't choose what it keeps.
+- For the PWA: push notifications, background sync, app-store packaging (TWA), and offline access to Guides never opened.
 - i18n beyond Thai: Thai only; no second locale or language switcher (UI copy still lives in one catalog behind an i18n layer).
 - Per-Guide or per-photo theming, high-contrast themes, and syncing the theme choice across devices.
 - Replacing, modifying or testing the provided Data Server.

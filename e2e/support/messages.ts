@@ -19,6 +19,7 @@ type MessageKey =
   | "guide_errorPanel_title"
   | "guideIndex_skeleton_label"
   | "errorPanel_retry_label"
+  | "errorPanel_offlineBody"
   | "restaurantCard_readMore_label"
   | "restaurantCard_readMore_expandedLabel"
   | "restaurantCard_unavailable_body"

@@ -22,9 +22,13 @@
       border-radius: var(--radius-100);
     }
 
+    /* A definite height equal to the width, and no flexing: with `height: auto` and
+       `aspect-ratio: 1`, a flex row's default `align-items: stretch` stretched the circle
+       to the row's height (an oval), and flex-shrink could narrow it. */
     &[data-shape="circle"] {
+      flex: none;
       width: var(--skeleton-width, 2.5rem);
-      height: auto;
+      height: var(--skeleton-width, 2.5rem);
       aspect-ratio: 1;
       border-radius: 50%;
     }

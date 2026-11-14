@@ -6,6 +6,7 @@
 #     The same for the first Guide's Guide Item photos;
 #   - the web app: / and a deep link serve the SPA with Cache-Control:
 #     no-cache, a hashed /assets/ file is immutable, and a missing one is 404;
+#     sw.js and manifest.webmanifest are no-cache, and photos allow the web origin (CORS);
 #   - the Storybook (when given): / and iframe.html are served with
 #     Cache-Control: no-cache and X-Robots-Tag: noindex, index.json lists
 #     stories, a hashed /assets/ file is immutable, and a missing one is 404.
@@ -87,6 +88,10 @@ photo=$(jq -r '.items[0].coverPhoto.smallUrl' <<<"$guides")
 photo_ok() { [[ $(header "$photo" Content-Type) == image/* ]]; }
 retry photo_ok || fail "GET $photo is not an image."
 echo "ok: $photo is an image"
+# The web app's service worker fetches photos in CORS mode, so it can tell a photo from an error.
+photo_cors=$(header "$photo" Access-Control-Allow-Origin -H "Origin: $web")
+[[ $photo_cors == "$web" ]] || fail "GET $photo does not allow $web (Access-Control-Allow-Origin: '$photo_cors')."
+echo "ok: $photo allows $web (CORS)"
 
 allowed=$(header "$api/guides" Access-Control-Allow-Origin -H "Origin: $web")
 [[ $allowed == "$web" ]] || fail "the gateway does not allow $web (Access-Control-Allow-Origin: '$allowed')."
@@ -106,6 +111,14 @@ echo "ok: $web$asset is immutable"
 missing=$(curl -sS --max-time 15 -o /dev/null -w '%{http_code}' "$web/assets/missing-00000000.js")
 [[ $missing == 404 ]] || fail "a missing /assets/ file answers $missing, not 404 (it must not get index.html)."
 echo "ok: a missing /assets/ file is 404"
+
+# The PWA (#43): the service worker and the manifest are never cached, so a deploy reaches
+# installed apps on their next check.
+sw_ok() { [[ $(header "$web/sw.js" Cache-Control) == no-cache ]] && [[ $(header "$web/sw.js" Content-Type) == *javascript* ]]; }
+retry sw_ok || fail "GET $web/sw.js is not JavaScript with Cache-Control: no-cache."
+manifest_ok() { [[ $(header "$web/manifest.webmanifest" Cache-Control) == no-cache ]] && [[ $(header "$web/manifest.webmanifest" Content-Type) == application/manifest+json* ]]; }
+retry manifest_ok || fail "GET $web/manifest.webmanifest is not application/manifest+json with Cache-Control: no-cache."
+echo "ok: $web/sw.js and $web/manifest.webmanifest are served, not cached"
 
 [[ -n $storybook ]] || exit 0
 

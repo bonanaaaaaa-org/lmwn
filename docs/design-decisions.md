@@ -60,6 +60,59 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
 
+## PWA (#43)
+
+The web app is an installable Progressive Web App, and Guides a diner has opened reopen offline.
+
+- **Library: `vite-plugin-pwa` with Workbox, `injectManifest` strategy.**
+  - It builds the web app manifest and compiles our own worker (`web/src/sw.ts`) with the precache list injected. We picked `injectManifest` over the issue's suggested `generateSW` because the worker needs two things `generateSW` can't express:
+    - photos fetched in CORS mode, so errors are visible and never cached (see below)
+    - a `CACHE_URLS` warm-up through the same routes
+  - React Router writes the SPA's `index.html` after Vite's bundle hooks, where the plugin builds the precache list. So `index.html` is added by hand, with a revision hashed from the hashed asset names (`indexHtmlRevision` in `web/vite.config.ts`). The root route renders every byte of `index.html`, so any change to it renames an asset. `@vite-pwa/remix` only supports Remix, not React Router 8.
+  - The Workbox modules (`workbox-*` 7.4) are runtime dependencies of the worker and of the page's registration. `workbox-window` is the only one the page loads.
+- **Cost.**
+  - JS loaded on every page grows by about 1.5 KB gzipped (the offline copy, the toast action and the head tags).
+  - The registration code (`web/src/lib/serviceWorker.ts`, with `workbox-window`) is a separate 2.5 KB gzipped chunk. It loads once the page has settled (see below).
+  - `sw.js` is about 9 KB gzipped.
+  - The precache is 28 files, about 980 KB raw and 380 KB gzipped: the hashed JS and CSS, the six Mali woff2 files (not the .woff fallbacks), `index.html`, the favicon and the icons. It downloads once, in the background once the page has settled, and most of it is already in the HTTP cache from the page itself.
+  - Lighthouse stays at the #16 targets (median of 5): desktop 100 everywhere. Mobile Performance is 94 on the Guide Index and 91 on a Guide page, the same as before the PWA.
+- **Nothing PWA-related runs before the cover paints.**
+  - A static `<link rel="manifest">` cost about 2 mobile points. Chrome fetches the manifest and an icon as soon as the link exists, and Lighthouse's slow-4G simulation counts those requests before the cover paints.
+  - So the page adds the link itself (`addManifestLink`) and registers the worker only once the page has settled (`whenPageSettled`). That means after `load`, after a Largest Contentful Paint for an image (the cover or the first card) or 3 s, and then after an idle moment.
+  - `load` alone isn't late enough: it fires before the fonts and the cover arrive.
+  - Waiting on `document.fonts.ready` was tried and dropped: it pushed FCP from 0.75 s to 1.25 s.
+  - Browsers read a manifest added later when the diner installs, and Chrome's installability check passes (e2e).
+  - With the link added late, both pages are back at their pre-PWA scores.
+- **What is cached.**
+  - The app shell is precached. Same-origin page navigations, apart from files such as `/robots.txt`, are answered with `index.html`, so every route opens offline.
+  - Gateway `GET /guides` (with or without a search) and `GET /guides/{guideId}` are network-first. After 3 s, or when there's no network, the last good response is used. At most 60 entries, for 30 days.
+  - Gateway `GET /photos/**` is cache-first. At most 150 entries, for 30 days, with old ones purged if the quota runs out.
+    - `<img>` requests are no-cors, and their opaque responses hide the status and cost megabytes of quota each. So the worker refetches them in CORS mode: the gateway allows the web origin on every route, and the smoke test checks it on a photo.
+    - If that CORS request fails, the page gets the plain response, uncached.
+  - Only 200 responses are stored, never errors. Nothing from any other origin is cached: no analytics, no third parties, and not the Data Server's `:7777` photos in local dev.
+- **First visit.** The first worker claims the page as soon as it activates. The page then sends it the gateway URLs it already loaded (from Resource Timing, as a `CACHE_URLS` message), so the Guide Index and Guide opened before the worker existed are cached too.
+- **Updates: ask, don't force.**
+  - A new deploy's worker installs and waits, and a toast says "มีเวอร์ชันใหม่" with an "อัปเดต" action. The toast has no timeout, because it has an action. Tapping it activates the new worker and reloads the page.
+  - Until then the page keeps running the version it loaded, with its lazy chunks still in the old precache. When a new worker takes over, from this tab or another one, every open tab reloads into the new version, so no page asks for chunks a deploy has deleted. If the toast is closed, or replaced by another toast, it is offered again when the diner comes back to the tab. `autoUpdate` was rejected because it reloads the page under the diner without asking.
+  - Browsers check `sw.js` on every page load, and the page also checks when the tab becomes visible again (installed apps stay open for days).
+  - `sw.js` and `manifest.webmanifest` are served `Cache-Control: no-cache` (`web/firebase.json`, checked by the smoke test).
+- **Offline state.**
+  - Queries use TanStack's `networkMode: "always"`, so they run offline instead of pausing, and the worker can answer from its cache. They don't retry while `navigator.onLine` is false.
+  - When nothing is cached, the existing error panel says the diner is offline (`errorPanel_offlineBody`). Its retry works once they're back online.
+- **Manifest.**
+  - The Thai `name` and `short_name` come from the catalog (`app_manifest_*`), with `lang: "th"`, `start_url: "/"` and `display: "standalone"`.
+  - The theme colour is saffron (#f2b705) and the background is ink (#111). In the page, `theme-color` follows the theme (see Dark mode).
+  - Icons are drawn from the app's own gem mark by `web/scripts/generate-icons.mjs`: 192, 512, a maskable 512 and the 180 px `apple-touch-icon`. The head also has the iOS status-bar meta.
+- **Dev and tests.**
+  - The worker is registered only in production builds (`import.meta.env.PROD`). `pnpm dev`, Storybook (where the plugin is disabled) and Vitest never have one, and MSW stays the only mock.
+  - The PWA e2e specs (`e2e/specs/pwa.spec.ts`, projects `pwa-desktop` and `pwa-mobile`) run against `vite preview` of a production build on :4173. Its own gateway on :4300 serves the photos as the deployed one does. In the post-deploy run, they run against the live site.
+  - They check:
+    - the manifest and icons, with Chrome's own manifest and installability checks reporting nothing
+    - that the worker registers
+    - an offline reload of a visited Guide (photos included) and of the Guide Index
+    - the offline error panel for an unvisited Guide
+    - an axe scan in both offline states
+
 ## Dark mode
 
 Settled in #47.
@@ -125,7 +178,8 @@ Settled in #22; the details are in [infra/README.md](../infra/README.md).
 ## Non-goals
 
 - Server-side rendering and real Open Graph tags. `socialTitle` is used for `document.title` and share text only.
-- Pagination, and searching restaurants across Guides.
+- Pagination, and searching restaurants across Guides. Offline, too: only Guides already opened are available (#43).
+- Push notifications, background sync and app-store packaging (TWA) for the PWA.
 - i18n beyond Thai: Thai only; no second locale or language switcher (see i18n above). Also user accounts and saved restaurants.
 - High-contrast themes, per-Guide theming, and syncing the theme choice across devices (see Dark mode).
 - Replacing or testing the provided Data Server.

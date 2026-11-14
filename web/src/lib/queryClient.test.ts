@@ -18,6 +18,14 @@ describe("shouldRetry", () => {
     expect(shouldRetry(1, new TypeError("Failed to fetch"))).toBe(true);
     expect(shouldRetry(2, serverError)).toBe(false);
   });
+
+  it("never retries while the browser is offline", () => {
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    expect(shouldRetry(0, new TypeError("Failed to fetch"))).toBe(false);
+    expect(shouldRetry(0, new ApiError(503, undefined))).toBe(false);
+    vi.restoreAllMocks();
+  });
 });
 
 describe("createQueryClient", () => {
@@ -27,6 +35,7 @@ describe("createQueryClient", () => {
     expect(queries?.staleTime).toBe(60_000);
     expect(queries?.refetchOnWindowFocus).toBe(false);
     expect(queries?.retry).toBe(shouldRetry);
+    expect(queries?.networkMode).toBe("always");
   });
 });
 

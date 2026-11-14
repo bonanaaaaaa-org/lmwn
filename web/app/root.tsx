@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { RouterProvider } from "react-aria-components";
 import {
   Links,
@@ -14,8 +14,11 @@ import {
 
 import "@/styles/globals.css";
 
+import { showToast } from "@/components/common/Toast";
 import { AppShell, guidePageTestIdFrom } from "@/components/layout/AppShell";
 import { env } from "@/lib/env";
+import { addManifestLink } from "@/lib/manifestLink";
+import { whenPageSettled } from "@/lib/whenPageSettled";
 import { appLocale } from "@/lib/locale";
 import {
   preloadPageScript,
@@ -32,6 +35,35 @@ declare module "react-aria-components" {
   interface RouterConfig {
     routerOptions: NavigateOptions;
   }
+}
+
+/**
+ * The installable PWA, in production builds, once the page has settled (whenPageSettled): links
+ * the web app manifest (see addManifestLink for why it isn't in the head) and registers the
+ * service worker, so neither competes with the first paint. A new deploy's worker waits until the
+ * diner taps the update toast.
+ */
+function usePwa() {
+  useEffect(() => {
+    if (!import.meta.env.PROD) return;
+    let cancelled = false;
+    void whenPageSettled().then(async () => {
+      if (cancelled) return;
+      addManifestLink();
+      if (!("serviceWorker" in navigator)) return;
+      const { registerServiceWorker } = await import("@/lib/serviceWorker");
+      registerServiceWorker({
+        onUpdateReady: (update) =>
+          showToast({
+            message: m.app_updateToast_body(),
+            action: { label: m.app_updateToast_label(), onAction: update },
+          }),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 }
 
 /** Route IDs (from app/routes/) of the pages the head script preloads. */
@@ -73,6 +105,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <title>{m.app_title()}</title>
         <meta name="description" content={m.app_description()} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/*
+          Installable PWA (#43). The manifest link is added after load (usePwa); the
+          `theme-color` metas come from the head script below (dark mode, #47).
+        */}
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta
+          name="apple-mobile-web-app-title"
+          content={m.app_manifest_shortTitle()}
+        />
         {/* Every page's data comes from the gateway (CORS), and when deployed its photos do too (no CORS). */}
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />
         <link rel="preconnect" href={env.apiBaseUrl} />
@@ -102,6 +146,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   const navigate = useNavigate();
+  usePwa();
   const guidePageTestId = guidePageTestIdFrom(useMatches());
   return (
     // React Aria links (Link, ButtonLink, TagLink) navigate client-side through React Router.
