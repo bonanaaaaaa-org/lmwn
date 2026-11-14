@@ -16,3 +16,9 @@ Settings come from env vars (see `app/settings.py`), e.g.
 `GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL`, `UPSTREAM_TIMEOUT_SECONDS`,
 `CACHE_TTL_SECONDS` (default 60: how long a successful upstream read is
 served from memory).
+
+Photos: `PHOTO_SERVICE_URL` (default `http://localhost:7777`) is the data server's
+image service, proxied at `GET /photos/r/{width}/{height}/{file}` (sizes 1-2048,
+plain `.jpg`/`.jpeg`/`.png`/`.webp` names only). Set `PUBLIC_BASE_URL` (e.g.
+`https://api-hidden-gems.bonanaaaaaa.dev`) to rewrite photo URLs in responses to
+`{PUBLIC_BASE_URL}/photos/r/...`; unset, they pass through unchanged.

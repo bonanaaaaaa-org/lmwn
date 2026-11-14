@@ -1,11 +1,11 @@
 ---
 name: devops
-description: Devops skill for the Guide to Hidden Gems repo. Owns the pnpm + Turborepo workspace, the uv workspace, build/lint/test tooling config (Vite, React Router, Vitest, oxlint, Stylelint, ruff, pyrefly, pytest), dependency and lockfile hygiene, local dev orchestration, CI/CD workflows, and Dockerfiles if added.
+description: Devops skill for the Guide to Hidden Gems repo. Owns the pnpm + Turborepo workspace, the uv workspace, build/lint/test tooling config (Vite, React Router, Vitest, oxlint, Stylelint, ruff, pyrefly, pytest), dependency and lockfile hygiene, local dev orchestration, CI/CD workflows, the Dockerfiles, the GCP infrastructure in infra/ (Terraform, Cloud Run, Firebase Hosting, Cloudflare DNS) and web/firebase.json.
 ---
 
-This assignment runs locally and has no cloud infrastructure; the skill covers the workspace tooling, local dev, and CI/Docker if they are added.
+The app runs locally with `pnpm dev`, and is deployed to GCP (prod only) from `main` by Terraform in `infra/` (#22; `infra/README.md`). The skill covers the workspace tooling, local dev, CI/CD, the container images and that infrastructure.
 
-Use this skill when changing workspace or tooling configuration, editing root scripts, adding dependencies across packages, wiring local dev, adding CI workflows, or adding Dockerfiles.
+Use this skill when changing workspace or tooling configuration, editing root scripts, adding dependencies across packages, wiring local dev, changing CI workflows, Dockerfiles, `infra/` or `web/firebase.json`.
 
 ---
 
@@ -18,8 +18,9 @@ Use this skill when changing workspace or tooling configuration, editing root sc
 | **Web tooling** | `web/vite.config.ts`, `web/react-router.config.ts`, `web/vitest.config.ts`, `web/vitest.setup.tsx`, `web/tsconfig.json`, `web/.oxlintrc.json`, `web/stylelint.config.mjs`, `web/stylelint-plugins/` |
 | **Gateway tooling** | `[tool.ruff]`, `[tool.pyrefly]`, `[tool.pytest.ini_options]`, `[tool.coverage]` in `api-gateway/pyproject.toml`; `api-gateway/package.json` scripts |
 | **Local dev** | Root `pnpm dev` (turbo) → `api-gateway` dev (uvicorn :4000 + the provided data server :8888/:9999/:7777) and `web` dev (:3000); `.claude/launch.json` |
-| **CI/CD** | `.github/workflows/*.yml` (if added) |
-| **Runtime** | Dockerfiles next to their app (if added) |
+| **CI/CD** | `.github/workflows/*.yml` |
+| **Runtime** | `api-gateway/Dockerfile` (gateway), `api-gateway/data-server.Dockerfile` (the provided data server, MongoDB binary baked in), root `.dockerignore` |
+| **Infrastructure** | `infra/` (Terraform: Cloud Run, Artifact Registry, Firebase Hosting, custom domains, Cloudflare DNS; `infra/scripts/` deploy scripts; `infra/tests/`), `web/firebase.json` |
 | **Git hooks** | `.husky/pre-commit` → `lint-staged.config.mjs` (lint with auto-fix, then format, staged files only); installed by the root `prepare` script |
 | **Repo hygiene** | `.gitignore`, `.env.example` files, README "Getting started" / "Common tasks" |
 
@@ -65,8 +66,23 @@ actionlint .github/workflows/*.yml 2>/dev/null || echo "actionlint not installed
 ### Docker (any `Dockerfile` change)
 
 ```bash
-docker build -f api-gateway/Dockerfile -t api-gateway:verify .
+docker build --platform linux/amd64 -f api-gateway/Dockerfile -t api-gateway:verify .
+docker build --platform linux/amd64 -f api-gateway/data-server.Dockerfile -t data-server:verify .
+# Run them as Cloud Run does (shared localhost), then check /guides and a photo:
+docker run -d --name ds -p 8080:8080 data-server:verify
+docker run -d --name gw --network container:ds -e PUBLIC_BASE_URL=http://localhost:8080 api-gateway:verify
+curl -s localhost:8080/guides   # photo URLs on http://localhost:8080/photos/...
 ```
+
+### Infrastructure (any `infra/` change)
+
+```bash
+terraform fmt -check -recursive infra
+terraform -chdir=infra init -backend=false && terraform -chdir=infra validate && terraform -chdir=infra test
+uvx --from shellcheck-py shellcheck infra/scripts/*.sh
+```
+
+A new provider version needs `terraform -chdir=infra providers lock -platform=linux_amd64 -platform=darwin_arm64 -platform=darwin_amd64`. For a deploy-shape change, rehearse locally: build the web app with `VITE_API_BASE_URL` pointing at the containers, serve it with the Firebase Hosting emulator (a `demo-` project needs no login), then run `infra/scripts/smoke-test.sh <api> <web>` and `PLAYWRIGHT_BASE_URL=<web> API_BASE_URL=<api> pnpm --filter e2e test:e2e`.
 
 **Do NOT skip these.** Fix every failure before marking work done; report any gate you could not run, and why.
 
@@ -103,6 +119,7 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 - Workflows live in `.github/workflows/` — kebab-case filenames matching their purpose. `ci.yml` (job **Verify**) runs format check, lint, type-check, test, build, `build-storybook` and `test:storybook` (story tests with axe, after installing Playwright Chromium) through turbo; job **E2E** runs Playwright with axe page scans on every PR, push to main and by hand
 - `pr-title.yml` requires Conventional Commit PR titles (`<type>(scope)!: description`; types feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert) via `.github/actions/pr-title` → `scripts/validate-pr-title.mjs`, whose `node:test` suite runs as the root turbo task `//#test:scripts` inside `pnpm test`
 - `actionlint.yml` lints workflow and composite-action files on PRs that touch them; run it locally with `uvx --from actionlint-py actionlint`
+- `ci.yml` job **Infrastructure checks** runs `terraform fmt -check`, `validate`, `test` (mock providers) and `shellcheck` on every PR. Job **Deploy prod** (`environment: prod`, push to `main` only, never cancelled) builds and pushes the images, applies `infra/`, deploys the web app to Firebase Hosting, then smoke-tests and runs Playwright against the live site. No PR job declares `environment: prod`, and the pr project isn't billed, so nothing deploys from PRs
 - `auto-assign.yml` assigns new issues and PRs to the maintainer when nobody is assigned; it uses `pull_request_target` so fork PRs work too, and must never check out or run PR code
 - Jobs run on GitHub-hosted runners (`runs-on: ubuntu-24.04`); setup actions install Node, pnpm and uv on top of the image
 - Node comes from `.nvmrc`, pnpm from `packageManager`, Python from `.python-version`; `MONGOMS_DISABLE_POSTINSTALL=1` skips the data server's MongoDB download where `pnpm dev` isn't run
@@ -110,23 +127,25 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 - Least-privilege `permissions:` (default `contents: read`), `timeout-minutes` on every job, `concurrency` to cancel superseded runs
 - Use `pnpm/action-setup` + `actions/setup-node` (pnpm cache) and `astral-sh/setup-uv` (uv cache, keyed on `uv.lock`)
 - E2E only where a browser and the data server can run
-- Secrets only via `${{ secrets.* }}` — never echo them, never commit them
+- Secrets only via `${{ secrets.* }}` — never echo them, never commit them; give them only to the steps that need them (the R2 key pair and `CLOUDFLARE_API_TOKEN` reach only the Terraform steps)
+- Cloud access only through workload identity federation (`google-github-actions/auth`); no service account keys
 
 ---
 
-## Runtime (Docker, if added)
+## Runtime (Docker)
 
 - Dockerfiles live next to their app (e.g. `api-gateway/Dockerfile`), built from the repo root so the uv workspace and lockfile are available
 - Multi-stage builds: builder stage for deps (`uv sync --frozen --no-dev --package api-gateway`), slim final stage for runtime
 - Non-root user in the final stage
-- Read the port from env; do not hardcode it
+- Read the port from env; do not hardcode it (Cloud Run sets `PORT` for the ingress container)
+- Images run on Cloud Run as `linux/amd64`; build with `--platform linux/amd64` on an arm64 Mac
 - `.dockerignore` excludes `node_modules`, `.venv`, caches and build output
 
 ---
 
 ## Environment and Secrets
 
-- Gateway config: env vars read by `api-gateway/app/settings.py` (`GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL`, `UPSTREAM_TIMEOUT_SECONDS`, `CORS_ALLOWED_ORIGINS`)
+- Gateway config: env vars read by `api-gateway/app/settings.py` (`GUIDE_SERVICE_URL`, `RESTAURANT_SERVICE_URL`, `PHOTO_SERVICE_URL`, `PUBLIC_BASE_URL`, `UPSTREAM_TIMEOUT_SECONDS`, `CACHE_TTL_SECONDS`, `CORS_ALLOWED_ORIGINS`); in prod `infra/run.tf` sets them
 - Web config: `VITE_*` vars (`VITE_API_BASE_URL`), documented in `web/.env.example`; turbo `globalEnv` includes `VITE_*` so builds re-hash when they change
 - `.env` files stay git-ignored; every new variable gets an `.env.example` entry and a README line
 
@@ -140,7 +159,8 @@ docker build -f api-gateway/Dockerfile -t api-gateway:verify .
 - Root scripts that bypass turbo for workspace tasks
 - Running servers with ad hoc background shell commands when a launch configuration exists
 - Disabling an existing required CI check
-- Deploying or creating cloud resources without explicit user authorization — prepare configuration, don't provision
+- Deploying or creating cloud resources without explicit user authorization — prepare configuration, don't provision. Never `terraform apply` prod from a laptop; the Deploy prod job applies it
+- Adding DNS records in the Cloudflare zone by hand for names Terraform manages (Cloudflare refuses the duplicate)
 
 ---
 

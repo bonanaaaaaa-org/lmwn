@@ -16,7 +16,7 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 ## System
 
 - **No database.** The gateway is stateless apart from an in-memory cache.
-- **The web app talks only to the gateway.** Images are the one exception: they load directly from :7777.
+- **The web app talks only to the gateway.** Locally, images are the one exception: they load directly from :7777. When deployed, the gateway serves them too (see Deployment).
 
 ## API gateway (FastAPI, ports and adapters)
 
@@ -58,6 +58,31 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **axe:**
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
+
+## Deployment
+
+Settled in #22; the details are in [infra/README.md](../infra/README.md).
+
+- **GCP with Terraform**, following bonanaaaaaa-org/personal-finance's `infra/`.
+  - repo-management provides the projects, the deploy identity (workload identity federation, no keys), the R2 state bucket and the zone-scoped Cloudflare token.
+  - `infra/` defines everything else.
+  - Only prod deploys: the `pr` project isn't billed, so pull requests run offline infrastructure checks (`fmt`, `validate`, `terraform test` with mock providers).
+- **The gateway and the data server share one Cloud Run service.**
+  - The gateway is the ingress container. The provided data server is a sidecar, because it listens on three ports and a service exposes one. The gateway reaches it on `localhost`.
+  - The data server's MongoDB binary is baked into its image at build time.
+  - The service scales to zero.
+- **Photos go through the gateway.**
+  - The data server's photo URLs point at `localhost:7777`. When `PUBLIC_BASE_URL` is set, the gateway rewrites them to `{PUBLIC_BASE_URL}/photos/r/{width}/{height}/{file}` and serves that route by proxying the sidecar.
+  - The route checks the size and file name before calling upstream. It sends the right image type and `Cache-Control: public, max-age=86400`, and answers 404 for a missing image.
+  - When `PUBLIC_BASE_URL` is unset (local dev), URLs pass through unchanged.
+- **The web app is on Firebase Hosting.**
+  - It is a static SPA build: every route is rewritten to `/index.html`, the hashed `/assets/**` are cached as immutable, and everything else is `no-cache`.
+  - It is built in the deploy job with `VITE_API_BASE_URL` set to the API domain.
+- **Domains on `bonanaaaaaa.dev`.**
+  - The web app is `hidden-gems.bonanaaaaaa.dev` (a Hosting custom domain) and the gateway is `api-hidden-gems.bonanaaaaaa.dev` (a Cloud Run domain mapping).
+  - Their Cloudflare records are DNS only, so Google issues the certificates. The deploy identity verifies the zone with its own TXT record.
+- **CORS allows only the web domain.** While its certificate is pending, the gateway also allows the site's `web.app` origin.
+- **CI/CD.** Each push to `main` runs one deploy job (`environment: prod`, never cancelled half-way). It builds and pushes the images, applies Terraform, deploys the web app, then runs a smoke test and the Playwright suite against the live site. Re-running it for the same commit plans no changes.
 
 ## Non-goals
 

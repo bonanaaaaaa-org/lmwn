@@ -5,6 +5,7 @@ import pytest
 import respx
 
 from app.adapters.outbound.data_server.guide_client import create_guide_source
+from app.adapters.outbound.data_server.photo_urls import create_photo_url
 from app.application.errors import (
     GuideItemNotFound,
     GuideNotFound,
@@ -54,6 +55,34 @@ async def test_get_guide_item_returns_its_write_up_restaurant_and_photos(
     assert [photo.small_url for photo in item.photos] == [
         "http://localhost:7777/r/480/854/20250205_121420.jpg",
         "http://localhost:7777/r/480/854/20250205_121425.jpg",
+    ]
+
+
+async def test_photo_urls_are_rewritten_on_the_cover_and_guide_item_photos(
+    upstream: respx.MockRouter, http_client: httpx.AsyncClient
+) -> None:
+    upstream.get(f"{fx.GUIDE_SERVICE}/guides/{fx.GUIDE_ID}").respond(json=fx.guide())
+    upstream.get(f"{fx.GUIDE_SERVICE}/guide-items/{fx.ITEM_IDS[0]}").respond(
+        json=fx.guide_item(0)
+    )
+    source = create_guide_source(
+        http_client,
+        fx.GUIDE_SERVICE,
+        create_photo_url("http://localhost:7777/", "https://api.example/"),
+    )
+
+    guide = await source.get_guide(fx.GUIDE_ID)
+    item = await source.get_guide_item(fx.ITEM_IDS[0])
+
+    assert guide.cover_photo.small_url == (
+        "https://api.example/photos/r/854/480/20240902_091058.jpg"
+    )
+    assert guide.cover_photo.large_url == (
+        "https://api.example/photos/r/1920/1080/20240902_091058.jpg"
+    )
+    assert [photo.large_url for photo in item.photos] == [
+        "https://api.example/photos/r/1080/1920/20250205_121420.jpg",
+        "https://api.example/photos/r/1080/1920/20250205_121425.jpg",
     ]
 
 
