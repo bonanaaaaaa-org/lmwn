@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { RouterProvider } from "react-aria-components";
 import {
   Links,
@@ -14,6 +14,7 @@ import {
 
 import "@/styles/globals.css";
 
+import { showToast } from "@/components/common/Toast";
 import { AppShell, guidePageTestIdFrom } from "@/components/layout/AppShell";
 import { env } from "@/lib/env";
 import { appLocale } from "@/lib/locale";
@@ -31,6 +32,37 @@ declare module "react-aria-components" {
   interface RouterConfig {
     routerOptions: NavigateOptions;
   }
+}
+
+/** The browser UI colour: the saffron accent (--color-accent), as in the web app manifest. */
+const THEME_COLOR = "#f2b705";
+
+/**
+ * Registers the service worker in production builds, once the page has loaded, so neither the
+ * worker nor its precache competes with the first paint. A new deploy's worker waits until the
+ * diner taps the update toast.
+ */
+function useServiceWorker() {
+  useEffect(() => {
+    if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
+    const register = () => {
+      void import("@/lib/serviceWorker").then(({ registerServiceWorker }) =>
+        registerServiceWorker({
+          onUpdateReady: (update) =>
+            showToast({
+              message: m.app_updateToast_body(),
+              action: { label: m.app_updateToast_label(), onAction: update },
+            }),
+        }),
+      );
+    };
+    if (document.readyState === "complete") {
+      register();
+      return;
+    }
+    window.addEventListener("load", register, { once: true });
+    return () => window.removeEventListener("load", register);
+  }, []);
 }
 
 /** Route IDs (from app/routes/) of the pages the head script preloads. */
@@ -71,6 +103,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <title>{m.app_title()}</title>
         <meta name="description" content={m.app_description()} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* Installable PWA (#43): the manifest is built by vite-plugin-pwa (see vite.config.ts). */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content={THEME_COLOR} />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta
+          name="apple-mobile-web-app-title"
+          content={m.app_manifest_shortName()}
+        />
         {/* Every page's data comes from the gateway (CORS), and when deployed its photos do too (no CORS). */}
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />
         <link rel="preconnect" href={env.apiBaseUrl} />
@@ -97,6 +140,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   const navigate = useNavigate();
+  useServiceWorker();
   const guidePageTestId = guidePageTestIdFrom(useMatches());
   return (
     // React Aria links (Link, ButtonLink, TagLink) navigate client-side through React Router.

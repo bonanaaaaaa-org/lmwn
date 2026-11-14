@@ -58,6 +58,30 @@
     }
   }
 
+  /* Saffron fill under ink text, like a primary button, sized to the pill. */
+  .Toast__Action {
+    flex: none;
+    min-height: var(--control-height-compact);
+    padding: 0 var(--space-200);
+    border: 0;
+    border-radius: var(--radius-200);
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+
+    &[data-hovered],
+    &[data-pressed] {
+      background: var(--color-accent-hover);
+    }
+
+    &[data-focus-visible] {
+      outline: 0.125rem solid var(--color-surface);
+      outline-offset: 0.125rem;
+    }
+  }
+
   .Toast__Close {
     display: flex;
     flex: none;
