@@ -69,6 +69,9 @@ port_holder() {
 step "Checking ports"
 ports="8888 9999 7777 4000 3000"
 [ "$storybook" = true ] && ports="$ports 6006"
+# The suite also starts its own PWA preview (:4173) and a second gateway (:4300); see
+# e2e/playwright.config.ts.
+[ "$e2e" = true ] && ports="$ports 4173 4300"
 busy=0
 for port in $ports; do
   holder=$(port_holder "$port")
