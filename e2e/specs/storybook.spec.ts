@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { DEVICE_TAGS } from "#support/devices";
+
 // The deployed Storybook (#35): every story renders, and loads nothing but the Storybook's own
 // files. Stories use fixtures only, so a request to any other origin (the gateway, the Data
 // Server, a CDN) or a failed request fails the story. Runs only when STORYBOOK_URL is set (the
@@ -29,9 +31,9 @@ const entries: IndexEntry[] = storybookUrl
   ? await loadEntries(storybookUrl)
   : [];
 
-test.describe("Storybook", () => {
+// Runs once, on the desktop project.
+test.describe("Storybook", { tag: DEVICE_TAGS.desktopOnly }, () => {
   test.skip(!storybookUrl, "STORYBOOK_URL is not set");
-  test.skip(({ isMobile }) => isMobile, "runs once, on the desktop project");
 
   test("lists stories", () => {
     expect(

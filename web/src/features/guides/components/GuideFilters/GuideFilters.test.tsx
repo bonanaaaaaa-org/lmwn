@@ -152,6 +152,62 @@ describe("GuideFilters", () => {
     });
   });
 
+  // The parent updates `filters` from the URL in a transition, so a quick second press can
+  // arrive before the first press's filters come back as props.
+  it("builds a quick second press on the first, before the props catch up", async () => {
+    const user = userEvent.setup();
+    const { onChange } = renderFilters();
+
+    await user.click(chip(c.coffee));
+    await user.click(chip(m.guideFilters_delivery_label()));
+    await user.click(screen.getByTestId("guide/filters/sort-select/trigger"));
+    await user.click(
+      screen.getByRole("option", { name: m.sortSelect_rating_label() }),
+    );
+
+    expect(onChange.mock.calls.map(([filters]) => filters)).toEqual([
+      { ...NO_RESTAURANT_FILTERS, categories: [c.coffee] },
+      { ...NO_RESTAURANT_FILTERS, categories: [c.coffee], delivery: true },
+      {
+        ...NO_RESTAURANT_FILTERS,
+        categories: [c.coffee],
+        delivery: true,
+        sort: "rating",
+      },
+    ]);
+  });
+
+  it("starts again from new filters props (Back, or a link)", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const props = {
+      categories: CATEGORIES,
+      shown: 4,
+      total: 4,
+      onChange,
+      layout: "desktop",
+      parentTestId: "guide",
+    } as const;
+    const { rerender } = renderWithProviders(
+      <GuideFilters {...props} filters={NO_RESTAURANT_FILTERS} />,
+    );
+
+    await user.click(chip(c.coffee));
+    rerender(
+      <GuideFilters
+        {...props}
+        filters={{ ...NO_RESTAURANT_FILTERS, pickup: true }}
+      />,
+    );
+    await user.click(chip(m.guideFilters_delivery_label()));
+
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...NO_RESTAURANT_FILTERS,
+      pickup: true,
+      delivery: true,
+    });
+  });
+
   it("shows how many Restaurants are shown out of all, politely announced", () => {
     renderFilters({}, { shown: 1, total: 4 });
 

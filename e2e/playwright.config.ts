@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { DEVICE_TAGS } from "./support/devices";
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const isCI = Boolean(process.env.CI);
 
@@ -23,7 +25,7 @@ export default defineConfig({
     isCI ? ["github"] : ["list"],
     ["html", { open: "never" }],
     // Results for the combined Allure report (root `pnpm allure`, CI). It attaches what Playwright
-    // keeps for a failed test below: its trace, screenshot and video.
+    // keeps below: a failed test's trace, screenshot and video, and a flaky test's trace.
     [
       "allure-playwright",
       {
@@ -34,31 +36,40 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    trace: "retain-on-failure",
+    // Keep the trace of every failed attempt, and of a flaky test that passed on retry, for
+    // replaying in Allure's trace viewer. Not every test: at ~5 MB each the report would be
+    // too big to upload. The video and screenshot stay failure-only.
+    trace: "retain-on-failure-and-retries",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
   projects: [
+    // A test tagged for one device only is never scheduled on the other device's projects, so
+    // it doesn't show up as skipped (Allure reports a runtime skip as an error message).
     // Against a deployed site the service worker would answer requests the specs mock with
     // page.route (Playwright can't route a worker's requests), so these projects block it.
     {
       name: "chromium-desktop",
       testIgnore: PWA_SPECS,
+      grepInvert: new RegExp(DEVICE_TAGS.phoneOnly),
       use: { ...devices["Desktop Chrome"], serviceWorkers: "block" },
     },
     {
       name: "chromium-mobile",
       testIgnore: PWA_SPECS,
+      grepInvert: new RegExp(DEVICE_TAGS.desktopOnly),
       use: { ...devices["Pixel 7"], serviceWorkers: "block" },
     },
     {
       name: "pwa-desktop",
       testMatch: PWA_SPECS,
+      grepInvert: new RegExp(DEVICE_TAGS.phoneOnly),
       use: { ...devices["Desktop Chrome"], baseURL: pwaBaseURL },
     },
     {
       name: "pwa-mobile",
       testMatch: PWA_SPECS,
+      grepInvert: new RegExp(DEVICE_TAGS.desktopOnly),
       use: { ...devices["Pixel 7"], baseURL: pwaBaseURL },
     },
   ],
