@@ -6,7 +6,7 @@ Working Hours times stay plain strings here: the domain validates them, so a
 malformed time makes one Restaurant unavailable instead of failing a Guide.
 """
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictInt
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel, StrictInt
 from pydantic.alias_generators import to_camel
 
 from app.domain.guide import Guide, GuideItem, Photo
@@ -25,6 +25,12 @@ class PhotoPayload(_Payload):
 
     def to_domain(self) -> Photo:
         return Photo(id=self.id, small_url=self.small_url, large_url=self.large_url)
+
+
+class GuideIdsPayload(RootModel[list[str]]):
+    """`GET /guides`: every Guide's ID, in upstream order."""
+
+    model_config = ConfigDict(frozen=True, strict=True)
 
 
 class GuidePayload(_Payload):

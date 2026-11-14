@@ -6,6 +6,7 @@ Each fake counts the calls in flight across both sources through a shared
 
 import asyncio
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 from app.application.errors import GuideItemNotFound, GuideNotFound, RestaurantNotFound
 from app.domain.guide import Guide, GuideItem
@@ -30,6 +31,11 @@ class InFlight:
 
 @dataclass
 class FakeGuideSource:
+    LIST: ClassVar[str] = "list"
+    """Key in `failures` that makes `list_guide_ids` fail."""
+
+    guide_ids: list[str] = field(default_factory=list)
+    """What `list_guide_ids` returns, in upstream order."""
     guides: dict[str, Guide] = field(default_factory=dict)
     items: dict[str, GuideItem] = field(default_factory=dict)
     failures: dict[str, Exception] = field(default_factory=dict)
@@ -38,8 +44,16 @@ class FakeGuideSource:
     delays: dict[str, float] = field(default_factory=dict)
     """Per-ID delays, overriding `delay`, to make calls finish out of order."""
 
+    async def list_guide_ids(self) -> list[str]:
+        await self.in_flight.call("guides", self.delay)
+        if self.LIST in self.failures:
+            raise self.failures[self.LIST]
+        return list(self.guide_ids)
+
     async def get_guide(self, guide_id: str) -> Guide:
-        await self.in_flight.call(f"guide:{guide_id}", self.delay)
+        await self.in_flight.call(
+            f"guide:{guide_id}", self.delays.get(guide_id, self.delay)
+        )
         if guide_id in self.failures:
             raise self.failures[guide_id]
         if guide_id not in self.guides:

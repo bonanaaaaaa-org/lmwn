@@ -5,8 +5,16 @@ import logging
 import httpx
 from pydantic import ValidationError
 
-from app.adapters.outbound.data_server._http import get_record, resource_url
-from app.adapters.outbound.data_server.payloads import GuideItemPayload, GuidePayload
+from app.adapters.outbound.data_server._http import (
+    collection_url,
+    get_record,
+    resource_url,
+)
+from app.adapters.outbound.data_server.payloads import (
+    GuideIdsPayload,
+    GuideItemPayload,
+    GuidePayload,
+)
 from app.application.errors import GuideItemNotFound, GuideNotFound, InvalidSourceData
 from app.application.ports.guide_source import GuideSource
 from app.domain.guide import Guide, GuideItem
@@ -18,6 +26,19 @@ class _DataServerGuideSource:
     def __init__(self, client: httpx.AsyncClient, base_url: str) -> None:
         self._client = client
         self._base_url = base_url
+
+    async def list_guide_ids(self) -> list[str]:
+        url = collection_url(self._base_url, "guides")
+        body = await get_record(self._client, url, not_found=None)
+        try:
+            return list(GuideIdsPayload.model_validate_json(body).root)
+        except ValidationError as invalid:
+            logger.warning(
+                "Invalid Guide list payload: GET %s (%d errors)",
+                url,
+                invalid.error_count(),
+            )
+            raise InvalidSourceData("invalid Guide list payload") from invalid
 
     async def get_guide(self, guide_id: str) -> Guide:
         url = resource_url(self._base_url, "guides", guide_id)
