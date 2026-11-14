@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { DEVICE_TAGS } from "./support/devices";
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const isCI = Boolean(process.env.CI);
 
@@ -28,8 +30,18 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   projects: [
-    { name: "chromium-desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "chromium-mobile", use: { ...devices["Pixel 7"] } },
+    // A test tagged for one device only is never scheduled on the other project, so it
+    // doesn't show up as skipped (Allure reports a runtime skip as an error message).
+    {
+      name: "chromium-desktop",
+      use: { ...devices["Desktop Chrome"] },
+      grepInvert: new RegExp(DEVICE_TAGS.phoneOnly),
+    },
+    {
+      name: "chromium-mobile",
+      use: { ...devices["Pixel 7"] },
+      grepInvert: new RegExp(DEVICE_TAGS.desktopOnly),
+    },
   ],
   // The whole stack from the repo root: data server (:8888/:9999/:7777), gateway (:4000), web (:3000).
   // Reuses an already-running `pnpm dev` locally; CI always starts its own.
