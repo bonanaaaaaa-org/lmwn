@@ -75,7 +75,9 @@ The web app is an installable Progressive Web App, and Guides a diner has opened
   - The registration code (`web/src/lib/serviceWorker.ts`, with `workbox-window`) is a separate 2.5 KB gzipped chunk. It loads after the page's `load` event.
   - `sw.js` is about 9 KB gzipped.
   - The precache is 28 files, about 980 KB raw and 380 KB gzipped: the hashed JS and CSS, the six Mali woff2 files (not the .woff fallbacks), `index.html`, the favicon and the icons. It downloads once, in the background after load, and most of it is already in the HTTP cache from the page itself.
-  - Lighthouse doesn't register the worker in its run, and its scores stay at the #16 targets.
+  - Lighthouse stays at the #16 targets (median of 5): desktop 100 everywhere. Mobile Performance goes from 94 to 92 on the Guide Index and from 91 to 90 on a Guide page.
+    - The drop isn't the worker, which registers after load (deferring it to idle time changed nothing). It's the `<link rel="manifest">`: Chrome fetches the manifest and an icon during load, and Lighthouse's slow-4G simulation counts them before the cover paints (mobile LCP 3.4 s → 3.7 s on a Guide page). Without the link, the scores are 94 and 91 again.
+    - We keep the standard static link. Adding it from script after load would win the points back, at the cost of a non-standard install path. A Guide page on mobile now sits at the 90 floor.
 - **What is cached.**
   - The app shell is precached. Same-origin page navigations, apart from files such as `/robots.txt`, are answered with `index.html`, so every route opens offline.
   - Gateway `GET /guides` (with or without a search) and `GET /guides/{guideId}` are network-first. After 3 s, or when there's no network, the last good response is used. At most 60 entries, for 30 days.
@@ -86,7 +88,7 @@ The web app is an installable Progressive Web App, and Guides a diner has opened
 - **First visit.** The first worker claims the page as soon as it activates. The page then sends it the gateway URLs it already loaded (from Resource Timing, as a `CACHE_URLS` message), so the Guide Index and Guide opened before the worker existed are cached too.
 - **Updates: ask, don't force.**
   - A new deploy's worker installs and waits, and a toast says "มีเวอร์ชันใหม่" with an "อัปเดต" action. The toast has no timeout, because it has an action. Tapping it activates the new worker and reloads the page.
-  - Until then the page keeps running the version it loaded. Its lazy chunks stay in the old precache, so it never mixes two deploys. `autoUpdate` was rejected because it reloads under the diner, or leaves an old page asking for chunks a deploy has deleted.
+  - Until then the page keeps running the version it loaded, with its lazy chunks still in the old precache. When a new worker takes over, from this tab or another one, every open tab reloads into the new version, so no page asks for chunks a deploy has deleted. If the toast is closed, or replaced by another toast, it is offered again when the diner comes back to the tab. `autoUpdate` was rejected because it reloads the page under the diner without asking.
   - Browsers check `sw.js` on every page load, and the page also checks when the tab becomes visible again (installed apps stay open for days).
   - `sw.js` and `manifest.webmanifest` are served `Cache-Control: no-cache` (`web/firebase.json`, checked by the smoke test).
 - **Offline state.**

@@ -39,15 +39,17 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   projects: [
+    // Against a deployed site the service worker would answer requests the specs mock with
+    // page.route (Playwright can't route a worker's requests), so these projects block it.
     {
       name: "chromium-desktop",
       testIgnore: PWA_SPECS,
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], serviceWorkers: "block" },
     },
     {
       name: "chromium-mobile",
       testIgnore: PWA_SPECS,
-      use: { ...devices["Pixel 7"] },
+      use: { ...devices["Pixel 7"], serviceWorkers: "block" },
     },
     {
       name: "pwa-desktop",

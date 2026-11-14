@@ -112,7 +112,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta
           name="apple-mobile-web-app-title"
-          content={m.app_manifest_shortName()}
+          content={m.app_manifest_shortTitle()}
         />
         {/* Every page's data comes from the gateway (CORS), and when deployed its photos do too (no CORS). */}
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />

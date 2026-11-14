@@ -65,8 +65,8 @@ export default defineConfig({
       manifestFilename: "manifest.webmanifest",
       manifest: {
         id: "/",
-        name: message("app_manifest_name"),
-        short_name: message("app_manifest_shortName"),
+        name: message("app_manifest_title"),
+        short_name: message("app_manifest_shortTitle"),
         description: message("app_description"),
         lang: "th",
         dir: "ltr",

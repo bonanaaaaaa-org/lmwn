@@ -136,6 +136,21 @@ test.describe("PWA", () => {
       page.getByTestId("guide-index/guide-card").first(),
     ).toBeVisible();
     await waitForServiceWorker(page);
+    // The first card's photo loaded before the worker existed; the page hands it over.
+    const cardPhoto = page
+      .locator('[data-testid="guide-index/guide-card"] img')
+      .first();
+    await expect
+      .poll(() =>
+        imagesLoaded(page, '[data-testid="guide-index/guide-card"] img'),
+      )
+      .toBe(true);
+    const cardPhotoSrc = await cardPhoto.evaluate(
+      (image) => (image as HTMLImageElement).currentSrc,
+    );
+    await expect
+      .poll(() => cachedUrls(page))
+      .toEqual(expect.arrayContaining([`${GATEWAY}/guides`, cardPhotoSrc]));
     await page.goto(`/guides/${CAFE_GUIDE_ID}`);
     const title = page.getByRole("heading", { level: 1 });
     await expect(title).toBeVisible();
@@ -171,11 +186,23 @@ test.describe("PWA", () => {
       .toBe(true);
     await expectNoAxeViolations(page);
 
-    // The Guide Index too.
+    // The Guide Index too, with the card photo seen on the first visit.
     await page.goto("/");
     await expect(
       page.getByTestId("guide-index/guide-card").first(),
     ).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-testid="guide-index/guide-card"] img')
+          .first()
+          .evaluate(
+            (image) =>
+              (image as HTMLImageElement).complete &&
+              (image as HTMLImageElement).naturalWidth > 0,
+          ),
+      )
+      .toBe(true);
 
     // A Guide never opened: the error panel says the diner is offline.
     await page.goto(`/guides/${OTHER_GUIDE_ID}`);

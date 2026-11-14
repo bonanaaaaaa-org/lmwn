@@ -86,7 +86,14 @@ router.registerRoute(guides);
 const corsPhotoRequest: WorkboxPlugin = {
   requestWillFetch: async ({ request }) =>
     request.mode === "no-cors"
-      ? new Request(request.url, { mode: "cors", credentials: "omit" })
+      ? // `reload`: the HTTP cache may hold this photo from the page's own no-cors request,
+        // stored without CORS headers (the gateway sends no `Vary: Origin`), which would fail
+        // the CORS check. Fetch it fresh, and refresh that entry with CORS headers.
+        new Request(request.url, {
+          mode: "cors",
+          credentials: "omit",
+          cache: "reload",
+        })
       : request,
   // If that CORS request fails (offline, or an origin the gateway doesn't allow), hand the
   // page the plain request's result, uncached, rather than a broken image.
