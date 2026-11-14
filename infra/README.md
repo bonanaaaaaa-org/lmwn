@@ -4,7 +4,7 @@ Terraform for lmwn's prod Google Cloud project, and the scripts CI runs to deplo
 
 - Web app: https://hidden-gems.bonanaaaaaa.dev (Firebase Hosting)
 - Gateway: https://api-hidden-gems.bonanaaaaaa.dev (Cloud Run)
-- Storybook: https://storybook-hidden-gems.bonanaaaaaa.dev (Firebase Hosting, its own site)
+- Storybook: https://storybook-lmwn.bonanaaaaaa.dev (Firebase Hosting, its own site)
 
 ## Who provides what
 
@@ -56,7 +56,7 @@ Hosting serves `web/build/client`, built in the deploy job with `VITE_API_BASE_U
 Terraform creates the Hosting custom domains (`web_domain`, `storybook_domain`), the Cloud Run domain mapping (`api_domain`), and their records in the Cloudflare zone `bonanaaaaaa.dev`. All records are **DNS only**, not proxied, so Google can issue the certificates:
 
 - `hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136"` (Firebase Hosting);
-- `storybook-hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136-storybook"` (Firebase Hosting, the Storybook's site);
+- `storybook-lmwn`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136-storybook"` (Firebase Hosting, the Storybook's site);
 - `api-hidden-gems`: `CNAME ghs.googlehosted.com` (Cloud Run);
 - a `google-site-verification=…` TXT at the apex, for lmwn's deploy identity. It sits beside personal-finance's own TXT. With it, the identity verifies `bonanaaaaaa.dev` through the Site Verification API, which Cloud Run requires before it maps `api-hidden-gems`.
 

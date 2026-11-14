@@ -62,7 +62,7 @@ variable "api_domain" {
 }
 
 variable "storybook_domain" {
-  description = "The Storybook's custom domain on its own Firebase Hosting site, such as storybook-hidden-gems.example.dev (domains.tf). Empty: none."
+  description = "The Storybook's custom domain on its own Firebase Hosting site, such as storybook-lmwn.example.dev (domains.tf). Empty: none."
   type        = string
   default     = ""
 

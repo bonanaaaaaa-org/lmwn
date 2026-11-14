@@ -15,7 +15,7 @@ LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway
 
 - Web app: https://hidden-gems.bonanaaaaaa.dev
 - API gateway: https://api-hidden-gems.bonanaaaaaa.dev (`/health`, `/docs`)
-- Storybook: https://storybook-hidden-gems.bonanaaaaaa.dev (shared and page components and their states, with fixtures only)
+- Storybook: https://storybook-lmwn.bonanaaaaaa.dev (shared and page components and their states, with fixtures only)
 
 Every push to `main` deploys to Google Cloud (Cloud Run and Firebase Hosting) through Terraform in [`infra/`](infra/README.md).
 
