@@ -1,0 +1,36 @@
+{
+  "name": "Guide to Hidden Gems",
+  "build": {
+    "dockerfile": "Dockerfile",
+    // The repo root, so the Dockerfile can read package.json's pnpm pin.
+    "context": "..",
+    // NODE_VERSION matches .nvmrc; UV_VERSION matches api-gateway/Dockerfile.
+    "args": { "NODE_VERSION": "26.13.1", "UV_VERSION": "0.12.21" },
+    // The provided Data Server's MongoDB has no Linux arm64 build of its pinned version.
+    "options": ["--platform=linux/amd64"]
+  },
+  "runArgs": ["--platform=linux/amd64"],
+  "remoteUser": "node",
+  // --with-deps: also apt-get installs Chromium's and MongoDB's system libraries (sudo).
+  "postCreateCommand": "./setup.sh --with-deps",
+  "forwardPorts": [3000, 4000, 8888, 9999, 7777, 6006],
+  "portsAttributes": {
+    "3000": { "label": "Web app", "onAutoForward": "openBrowser" },
+    "4000": { "label": "API gateway" },
+    "8888": { "label": "Data Server: guides", "onAutoForward": "silent" },
+    "9999": { "label": "Data Server: restaurants", "onAutoForward": "silent" },
+    "7777": { "label": "Data Server: images", "onAutoForward": "silent" },
+    "6006": { "label": "Storybook" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "oxc.oxc-vscode",
+        "stylelint.vscode-stylelint",
+        "ms-playwright.playwright",
+        "ms-python.python",
+        "charliermarsh.ruff"
+      ]
+    }
+  }
+}
