@@ -24,6 +24,10 @@ class RestaurantNotFound(NotFound):
     """No Restaurant has this ID."""
 
 
+class PhotoNotFound(NotFound):
+    """The photo service has no such image (it answered 404 or an empty body)."""
+
+
 class SourceUnavailable(SourceError):
     """The source could not be reached, or answered with a server error."""
 

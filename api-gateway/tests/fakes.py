@@ -1,4 +1,4 @@
-"""In-memory GuideSource and RestaurantSource, seeded per test.
+"""In-memory GuideSource, RestaurantSource and PhotoSource, seeded per test.
 
 Each fake counts the calls in flight across both sources through a shared
 `InFlight` meter, so tests can check the use case's concurrency bound.
@@ -8,7 +8,13 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import ClassVar
 
-from app.application.errors import GuideItemNotFound, GuideNotFound, RestaurantNotFound
+from app.application.errors import (
+    GuideItemNotFound,
+    GuideNotFound,
+    PhotoNotFound,
+    RestaurantNotFound,
+)
+from app.application.ports.photo_source import PhotoImage
 from app.domain.guide import Guide, GuideItem
 from app.domain.restaurant import Restaurant
 
@@ -95,3 +101,21 @@ class FakeClock:
 
     def __call__(self) -> float:
         return self.now
+
+
+@dataclass
+class FakePhotoSource:
+    """Serves `photos` keyed by `(width, height, file)`; records every call."""
+
+    photos: dict[tuple[int, int, str], PhotoImage] = field(default_factory=dict)
+    calls: list[tuple[int, int, str]] = field(default_factory=list)
+    failure: Exception | None = None
+    """Raised by every call when set."""
+
+    async def get_photo(self, width: int, height: int, file: str) -> PhotoImage:
+        self.calls.append((width, height, file))
+        if self.failure is not None:
+            raise self.failure
+        if (width, height, file) not in self.photos:
+            raise PhotoNotFound(file)
+        return self.photos[(width, height, file)]

@@ -1,10 +1,12 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button as AriaButton } from "react-aria-components";
 
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { ResponsiveImage } from "@/components/common/ResponsiveImage";
-import { photoSources } from "@/features/guides/lib/photos";
+import { Lightbox } from "@/features/guides/components/Lightbox";
+import { photoAlt, photoSources } from "@/features/guides/lib/photos";
 import type { Photo } from "@/features/guides/lib/types";
 import { joinTestId } from "@/lib/testIds";
 import { m } from "@/paraglide/messages.js";
@@ -18,8 +20,13 @@ export interface PhotoStripProps {
   /** `desktop`: 3 square photos in view. `phone`: 4:5 photos at 78% width, the next one peeking in. */
   layout?: "desktop" | "phone";
   className?: string;
-  /** The card's test ID; the strip is `{parent}/photo-strip`, its button `{parent}/photo-strip/next`. */
+  /**
+   * The card's test ID; the strip is `{parent}/photo-strip`, each photo `{parent}/photo-strip/photo`
+   * and its button `{parent}/photo-strip/next`.
+   */
   parentTestId?: string;
+  /** The page's test ID: the lightbox is a page-level dialog, `{lightboxParentTestId}/lightbox`. */
+  lightboxParentTestId?: string;
 }
 
 const PHOTOS_IN_VIEW = { desktop: 3, phone: 1 } as const;
@@ -28,21 +35,15 @@ const SIZES = {
   phone: "78vw",
 } as const;
 
-/** Photo `position` (from 1) of `total`, named by the Restaurant when it is known. */
-function photoAlt(position: number, total: number, restaurant?: string) {
-  return restaurant
-    ? m.restaurantCard_photoStrip_photo_alt({ position, total, restaurant })
-    : m.restaurantCard_photoStrip_photo_unnamedAlt({ position, total });
-}
-
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /**
  * A horizontal strip of a Guide Item's photos that snaps to each photo. It scrolls by
- * swipe, trackpad or (once focused) the arrow keys; on desktop a button pages through
- * photos beyond the first three. Missing or broken photos keep their box as a placeholder.
+ * swipe or trackpad, and tabbing through the photos brings each into view; on desktop a
+ * button pages through photos beyond the first three. Each photo is a button that opens
+ * the lightbox on it. Missing or broken photos keep their box as a placeholder.
  */
 export function PhotoStrip({
   photos,
@@ -50,17 +51,18 @@ export function PhotoStrip({
   layout = "desktop",
   className,
   parentTestId,
+  lightboxParentTestId,
 }: PhotoStripProps) {
   const testId = joinTestId(parentTestId, "photo-strip");
   const listRef = useRef<HTMLUListElement>(null);
-  const [overflows, setOverflows] = useState(false);
   const [atEnd, setAtEnd] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxPhoto, setLightboxPhoto] = useState(0);
 
   const measure = useCallback(() => {
     const list = listRef.current;
     if (!list) return;
     const scrollable = list.scrollWidth > list.clientWidth + 1;
-    setOverflows(scrollable);
     setAtEnd(
       scrollable && list.scrollLeft + list.clientWidth >= list.scrollWidth - 1,
     );
@@ -102,23 +104,28 @@ export function PhotoStrip({
         ref={listRef}
         className={styles.PhotoStrip__List}
         aria-label={label}
-        // A scrolling region must be reachable by keyboard so it can be scrolled with the
-        // arrow keys (WCAG 2.1.1; axe `scrollable-region-focusable`). Until the photos become
-        // buttons (lightbox, #12) nothing inside it can take focus.
-        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-        tabIndex={overflows ? 0 : undefined}
         onScroll={measure}
       >
         {photos.map((photo, index) => (
           // Upstream can reuse one photo ID for different photos, so the position is part of the key.
           <li key={`${index}:${photo.id}`} className={styles.PhotoStrip__Item}>
-            <ResponsiveImage
-              className={styles.PhotoStrip__Photo}
-              sources={photoSources(photo)}
-              alt={photoAlt(index + 1, photos.length, restaurantName)}
-              aspectRatio={layout === "desktop" ? "1 / 1" : "4 / 5"}
-              sizes={SIZES[layout]}
-            />
+            {/* Named by its image's alt text; focus returns here when the lightbox closes. */}
+            <AriaButton
+              className={styles.PhotoStrip__PhotoButton}
+              onPress={() => {
+                setLightboxPhoto(index);
+                setLightboxOpen(true);
+              }}
+              data-testid={`${testId}/photo`}
+            >
+              <ResponsiveImage
+                className={styles.PhotoStrip__Photo}
+                sources={photoSources(photo)}
+                alt={photoAlt(index + 1, photos.length, restaurantName)}
+                aspectRatio={layout === "desktop" ? "1 / 1" : "4 / 5"}
+                sizes={SIZES[layout]}
+              />
+            </AriaButton>
           </li>
         ))}
       </ul>
@@ -141,6 +148,15 @@ export function PhotoStrip({
           />
         </Button>
       )}
+      <Lightbox
+        name={restaurantName}
+        photos={photos}
+        current={lightboxPhoto}
+        onCurrentChange={setLightboxPhoto}
+        isOpen={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+        parentTestId={lightboxParentTestId}
+      />
     </div>
   );
 }

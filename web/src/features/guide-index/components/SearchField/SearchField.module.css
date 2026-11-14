@@ -1,0 +1,105 @@
+@layer components {
+  .SearchField__Root {
+    margin: 0;
+  }
+
+  .SearchField__Field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-100);
+  }
+
+  .SearchField__Label {
+    font-size: var(--font-size-100);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  /* 56px box: 16px in front of the icon, 8px after the clear button. */
+  .SearchField__Box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-150);
+    min-height: 3.5rem;
+    padding: 0 var(--space-100) 0 var(--space-200);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-200);
+    background: var(--color-surface);
+
+    &[data-hovered] {
+      border-color: var(--color-text);
+    }
+
+    /* The ring sits on the box, since typing focus is always visible on a text field. */
+    &[data-focus-within] {
+      border-color: var(--color-text);
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+
+    /* 2px edge without shifting the content: the extra pixel comes out of the padding on each side. */
+    [data-invalid] > & {
+      padding: 0 calc(var(--space-100) - 1px) 0 calc(var(--space-200) - 1px);
+      border: 0.125rem solid var(--color-danger);
+    }
+  }
+
+  .SearchField__Icon {
+    flex: none;
+    color: var(--color-text-muted);
+  }
+
+  /* 16px text so iOS doesn't zoom in on focus. */
+  .SearchField__Input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--control-height-compact);
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-200);
+
+    &::placeholder {
+      color: var(--color-text-muted);
+      opacity: 1;
+    }
+
+    /* React Aria draws its own clear button. */
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+      appearance: none;
+    }
+  }
+
+  .SearchField__Clear {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-height-compact);
+    height: var(--control-height-compact);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-200);
+    background: var(--color-surface-sunken);
+    color: var(--color-text);
+    cursor: pointer;
+
+    &[data-hovered],
+    &[data-pressed] {
+      background: var(--color-border);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  .SearchField__Error {
+    color: var(--color-danger);
+    font-size: var(--font-size-75);
+  }
+}
