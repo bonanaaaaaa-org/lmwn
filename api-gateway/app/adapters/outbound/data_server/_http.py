@@ -40,7 +40,8 @@ async def get_record(
     except httpx.TimeoutException as timeout:
         logger.warning("Upstream timeout: GET %s", url)
         raise SourceTimeout("upstream timed out") from timeout
-    except httpx.TransportError as error:
+    except httpx.RequestError as error:
+        # Transport errors, and decoding errors such as a broken gzip body.
         logger.warning("Upstream unreachable: GET %s (%s)", url, type(error).__name__)
         raise SourceUnavailable("upstream unreachable") from error
     if response.status_code == httpx.codes.NOT_FOUND:

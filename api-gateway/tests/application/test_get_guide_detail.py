@@ -38,8 +38,8 @@ def seeded(
 
 async def test_returns_every_guide_item_with_its_restaurant_in_guide_order() -> None:
     guides, restaurants = seeded(5)
-    # Later items answer first; the order must still follow the Guide.
-    guides.items = dict(reversed(list(guides.items.items())))
+    # The first items answer last; the order must still follow the Guide.
+    guides.delays = {f"item-{n}": 0.002 * (5 - n) for n in range(5)}
     get_guide_detail = create_get_guide_detail(
         guide_source=guides, restaurant_source=restaurants
     )

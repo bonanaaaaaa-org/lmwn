@@ -35,6 +35,8 @@ class FakeGuideSource:
     failures: dict[str, Exception] = field(default_factory=dict)
     in_flight: InFlight = field(default_factory=InFlight)
     delay: float = 0
+    delays: dict[str, float] = field(default_factory=dict)
+    """Per-ID delays, overriding `delay`, to make calls finish out of order."""
 
     async def get_guide(self, guide_id: str) -> Guide:
         await self.in_flight.call(f"guide:{guide_id}", self.delay)
@@ -45,7 +47,9 @@ class FakeGuideSource:
         return self.guides[guide_id]
 
     async def get_guide_item(self, item_id: str) -> GuideItem:
-        await self.in_flight.call(f"item:{item_id}", self.delay)
+        await self.in_flight.call(
+            f"item:{item_id}", self.delays.get(item_id, self.delay)
+        )
         if item_id in self.failures:
             raise self.failures[item_id]
         if item_id not in self.items:

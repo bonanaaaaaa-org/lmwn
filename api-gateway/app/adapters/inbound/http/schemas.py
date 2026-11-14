@@ -9,6 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from pydantic.json_schema import SkipJsonSchema
 
 from app.application.get_guide_detail import GuideDetail, GuideDetailItem
 from app.domain.guide import Photo
@@ -74,7 +75,7 @@ def _working_days(working_hours: WorkingHours) -> list[WorkingDayResponse]:
 class RestaurantResponse(_Response):
     id: str
     name: str
-    branch: str | None = Field(
+    branch: str | SkipJsonSchema[None] = Field(
         default=None,
         exclude_if=_is_none,
         description="Left out when the Restaurant has no branch.",
@@ -95,17 +96,17 @@ class RestaurantResponse(_Response):
     official: bool
     delivery: bool
     pickup: bool
-    line: str | None = Field(
+    line: str | SkipJsonSchema[None] = Field(
         default=None,
         exclude_if=_is_none,
         description="Left out when the Restaurant has no LINE account.",
     )
-    instagram: str | None = Field(
+    instagram: str | SkipJsonSchema[None] = Field(
         default=None,
         exclude_if=_is_none,
         description="Left out when the Restaurant has no Instagram.",
     )
-    facebook: str | None = Field(
+    facebook: str | SkipJsonSchema[None] = Field(
         default=None,
         exclude_if=_is_none,
         description="Left out when the Restaurant has no Facebook page.",

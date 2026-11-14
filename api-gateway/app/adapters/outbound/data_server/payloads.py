@@ -1,6 +1,7 @@
 """Pydantic models of the data server's payloads, as delivered.
 
 Unknown keys (the storage internals `_id` and `__v`, `createdAt`, ...) are ignored.
+Validation is strict: `"4.5"` is not a Rating and `"yes"` is not a bool.
 Working Hours times stay plain strings here: the domain validates them, so a
 malformed time makes one Restaurant unavailable instead of failing a Guide.
 """
@@ -14,7 +15,7 @@ from app.domain.working_hours import WorkingHoursEntry, normalise_working_hours
 
 
 class _Payload(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, frozen=True)
+    model_config = ConfigDict(alias_generator=to_camel, frozen=True, strict=True)
 
 
 class PhotoPayload(_Payload):

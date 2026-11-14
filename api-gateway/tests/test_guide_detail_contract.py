@@ -163,6 +163,12 @@ async def test_an_unknown_guide_is_404(
         (httpx.Response(500, text="Traceback at http://guides.test/internal"), 502),
         (httpx.ConnectError("refused"), 502),
         (httpx.Response(200, json={"_id": "x", "title": 1}), 502),
+        (
+            httpx.Response(
+                200, headers={"content-encoding": "gzip"}, stream=httpx.ByteStream(b"x")
+            ),
+            502,
+        ),
     ],
 )
 @pytest.mark.parametrize("failing", ["guide", "guide item"])
@@ -209,6 +215,12 @@ def _malformed_hours() -> dict[str, object]:
         pytest.param(httpx.ReadTimeout("slow"), id="timeout"),
         pytest.param(httpx.Response(503), id="5xx"),
         pytest.param(httpx.Response(200, json={"id": "x"}), id="invalid body"),
+        pytest.param(
+            httpx.Response(
+                200, headers={"content-encoding": "gzip"}, stream=httpx.ByteStream(b"x")
+            ),
+            id="undecodable body",
+        ),
         pytest.param(
             httpx.Response(200, json=_malformed_hours()), id="malformed hours"
         ),

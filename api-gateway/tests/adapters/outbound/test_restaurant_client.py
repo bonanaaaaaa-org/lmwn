@@ -118,6 +118,9 @@ def _with_first_hours(**changes: object) -> dict[str, object]:
         pytest.param(_with(0, rating=5.1), id="rating above 5"),
         pytest.param(_with(0, numberOfReviews=-1), id="negative reviews"),
         pytest.param(_with(0, name=None), id="null name"),
+        pytest.param(_with(0, rating="4.5"), id="rating as a string"),
+        pytest.param(_with(0, official="yes"), id="bool as a string"),
+        pytest.param(_with(0, lat="13.7"), id="lat as a string"),
     ],
 )
 async def test_malformed_restaurants_raise_invalid_source_data(
@@ -135,6 +138,14 @@ async def test_malformed_restaurants_raise_invalid_source_data(
         (httpx.ReadTimeout("slow"), SourceTimeout),
         (httpx.RemoteProtocolError("bad"), SourceUnavailable),
         (httpx.Response(502), SourceUnavailable),
+        (
+            httpx.Response(
+                200,
+                headers={"content-encoding": "gzip"},
+                stream=httpx.ByteStream(b"not gzip"),
+            ),
+            SourceUnavailable,
+        ),
     ],
 )
 async def test_transport_failures_become_application_errors(

@@ -187,5 +187,6 @@ async def test_the_endpoint_and_its_models_are_documented(client: AsyncClient) -
     assert {"branch", "line", "instagram", "facebook"}.isdisjoint(
         schemas["RestaurantResponse"]["required"]
     )
+    assert restaurant["branch"]["type"] == "string"
     assert "timeZone" in schemas["GuideDetailResponse"]["required"]
     assert "_id" not in str(schemas)
