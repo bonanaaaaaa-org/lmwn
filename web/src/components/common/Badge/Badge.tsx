@@ -12,7 +12,7 @@ export interface BadgeProps {
   children: ReactNode;
 }
 
-/** A small static label, e.g. "Official", "เดลิเวอรี่" (delivery), "รับเองที่ร้าน" (pickup). */
+/** A small static label, e.g. "Official", delivery or pickup (`m.restaurantCard_badges_*`). */
 export function Badge({
   variant = "neutral",
   className,

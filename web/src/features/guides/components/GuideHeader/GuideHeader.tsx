@@ -2,13 +2,11 @@ import clsx from "clsx";
 
 import { ResponsiveImage } from "@/components/common/ResponsiveImage";
 import { TagLink } from "@/components/common/TagLink";
-import {
-  formatThaiDate,
-  photoSources,
-  toIsoDate,
-} from "@/features/guides/lib/format";
+import { photoSources } from "@/features/guides/lib/photos";
 import type { Guide } from "@/features/guides/lib/types";
+import { formatDate, toIsoDate } from "@/lib/format";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuideHeader.module.css";
 
@@ -54,7 +52,10 @@ export function GuideHeader({
       />
       <div className={styles.GuideHeader__Body}>
         {guide.tags.length > 0 && (
-          <ul className={styles.GuideHeader__Tags} aria-label="แท็ก">
+          <ul
+            className={styles.GuideHeader__Tags}
+            aria-label={m.guideHeader_tags_ariaLabel()}
+          >
             {guide.tags.map((tag) => (
               <li key={tag}>
                 <TagLink tag={tag} variant="filled" testId={`${testId}/tag`} />
@@ -64,11 +65,11 @@ export function GuideHeader({
         )}
         <h1 className={styles.GuideHeader__Title}>{guide.title}</h1>
         <p className={styles.GuideHeader__Meta}>
-          เขียนเมื่อ{" "}
+          {m.guideHeader_writeDate_label()}{" "}
           <time dateTime={toIsoDate(guide.writeDate, guide.timeZone)}>
-            {formatThaiDate(guide.writeDate, guide.timeZone)}
+            {formatDate(guide.writeDate, { timeZone: guide.timeZone })}
           </time>{" "}
-          · {guide.items.length} ร้าน
+          · {m.guideHeader_restaurantCount_body({ count: guide.items.length })}
         </p>
         <p className={styles.GuideHeader__Description}>{guide.description}</p>
       </div>

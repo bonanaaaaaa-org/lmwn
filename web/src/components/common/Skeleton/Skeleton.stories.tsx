@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
+import { m } from "@/paraglide/messages.js";
 
 import { Skeleton, SkeletonGroup } from "./Skeleton";
 
@@ -31,7 +31,7 @@ export const Circle: Story = { args: { shape: "circle" } };
 /** How building blocks combine into a card-shaped loading state. */
 export const CardComposition: Story = {
   render: () => (
-    <SkeletonGroup label={sampleOverrides.guideLoadingLabel}>
+    <SkeletonGroup label={m.guidePageSkeleton_label()}>
       <div style={{ display: "grid", gap: "0.75rem" }}>
         <Skeleton aspectRatio="16 / 9" />
         <Skeleton width="80%" height="1.5rem" />

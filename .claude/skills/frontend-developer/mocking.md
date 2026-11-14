@@ -35,7 +35,7 @@ server.use(
 );
 ```
 
-Render with `renderWithQueryClient` from `@/test-utils/queryClient` — a fresh `QueryClient` per test with `retry: false`, so error states show immediately. The shared msw server lives in `@/test-utils/server`; unhandled requests fail the test.
+Render with `renderWithProviders` from `@/test-utils/renderWithProviders` — a fresh `QueryClient` per test with `retry: false`, so error states show immediately, plus React Aria's `I18nProvider` (`th-TH`). Gateway-shaped data comes from `@/test-utils/fixtures/guides` (`makeGuide`, `toGatewayJson`). The shared msw server lives in `@/test-utils/server`; unhandled requests fail the test.
 
 **2. Don't mock to avoid rendering**
 

@@ -2,6 +2,7 @@ import clsx from "clsx";
 
 import { Skeleton, SkeletonGroup } from "@/components/common/Skeleton";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuidePageSkeleton.module.css";
 
@@ -46,7 +47,7 @@ export function GuidePageSkeleton({
 }: GuidePageSkeletonProps) {
   return (
     <SkeletonGroup
-      label="กำลังโหลดไกด์…"
+      label={m.guidePageSkeleton_label()}
       className={clsx(styles.GuidePageSkeleton__Root, className)}
     >
       <div

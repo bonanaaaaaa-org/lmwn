@@ -98,6 +98,10 @@
           {
             "group": ["**/*/index"],
             "message": "index imports are not allowed."
+          },
+          {
+            "group": ["@/test-utils/**"],
+            "message": "Test utilities and fixtures (with their allowlisted Thai sample data) are for tests and stories only; production code takes copy from m.*()."
           }
         ]
       }
@@ -298,6 +302,32 @@
       "files": ["**/*.mjs", "**/*.config.*"],
       "env": {
         "node": true
+      }
+    },
+    {
+      "files": [
+        "**/*.test.{ts,tsx}",
+        "**/*.stories.{ts,tsx}",
+        "src/test-utils/**",
+        ".storybook/**",
+        "vitest.setup.tsx"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["../**"],
+                "message": "Relative imports are not allowed."
+              },
+              {
+                "group": ["**/*/index"],
+                "message": "index imports are not allowed."
+              }
+            ]
+          }
+        ]
       }
     }
   ]

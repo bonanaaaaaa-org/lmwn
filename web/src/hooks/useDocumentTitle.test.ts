@@ -1,5 +1,7 @@
 import { renderHook } from "@testing-library/react";
 
+import { makeGuide } from "@/test-utils/fixtures/guides";
+
 import { useDocumentTitle } from "./useDocumentTitle";
 
 describe("useDocumentTitle", () => {
@@ -13,8 +15,9 @@ describe("useDocumentTitle", () => {
     );
     expect(document.title).toBe("Guide to Hidden Gems");
 
-    rerender({ title: "ไม่อยากจะเชื่อ" });
-    expect(document.title).toBe("ไม่อยากจะเชื่อ");
+    const { socialTitle } = makeGuide();
+    rerender({ title: socialTitle });
+    expect(document.title).toBe(socialTitle);
 
     unmount();
     expect(document.title).toBe("Guide to Hidden Gems");

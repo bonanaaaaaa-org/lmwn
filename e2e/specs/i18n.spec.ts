@@ -22,7 +22,7 @@ test.describe("Shell - Thai copy", () => {
       page.getByRole("link", { name: message("app_skipLink_label") }),
     ).toHaveAttribute("href", "#main-content");
     await expect(page.getByRole("banner")).toContainText(
-      message("app_header_tagline_body"),
+      message("header_tagline_body"),
     );
     await expect(page.getByRole("contentinfo")).toContainText(
       message("app_footer_body"),
@@ -41,6 +41,8 @@ test.describe("Shell - Thai copy", () => {
       name: message("app_skipLink_label"),
     });
 
+    // Under load (dev server, parallel workers) a Tab sent before the app has hydrated is lost.
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Tab");
     await expect(skipLink).toBeFocused();
     await expect(skipLink).toBeInViewport();

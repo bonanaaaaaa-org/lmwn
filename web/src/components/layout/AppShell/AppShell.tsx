@@ -46,7 +46,7 @@ export interface AppShellProps {
 /**
  * The frame around every page: a skip link, the Header linking to the Guide Index, `<main>`
  * and a footer. Its root is `app`, the header `app/header`, and their links `app/skip-link` and
- * `app/header/logo`. Its copy is the `app_*` messages, keyed by those test ID paths.
+ * `app/header/logo`. Its own copy is the `app_*` messages; the Header's is `header_*`.
  */
 export function AppShell({ guidePageTestId, children }: AppShellProps) {
   const isPhone = useIsPhone();

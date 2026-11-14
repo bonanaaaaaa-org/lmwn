@@ -21,7 +21,9 @@ export const Primary: Story = {};
 export const Secondary: Story = { args: { variant: "secondary" } };
 export const Ghost: Story = { args: { variant: "ghost" } };
 export const Inverse: Story = { args: { variant: "inverse" } };
-export const Text: Story = { args: { variant: "text", children: "อ่านเพิ่มเติม" } };
+export const Text: Story = {
+  args: { variant: "text", children: m.restaurantCard_readMore_label() },
+};
 export const Compact: Story = { args: { variant: "ghost", size: "compact" } };
 export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };
@@ -35,7 +37,7 @@ export const InverseLink: Story = {
   render: () => (
     <ButtonLink href="tel:0939164541" variant="inverse">
       <Icon name="phone" size={18} />
-      โทร 093 916 4541
+      {m.restaurantCard_call_label({ phone: "093 916 4541" })}
     </ButtonLink>
   ),
 };

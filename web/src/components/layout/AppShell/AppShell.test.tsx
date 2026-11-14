@@ -16,7 +16,7 @@ describe("AppShell", () => {
 
     expect(
       within(screen.getByRole("banner")).getByRole("link", {
-        name: m.app_header_logo_label(),
+        name: m.header_logo_label(),
       }),
     ).toHaveAttribute("href", "/");
     expect(
@@ -58,7 +58,7 @@ describe("AppShell", () => {
     render(<AppShell guidePageTestId="guide">content</AppShell>);
 
     expect(screen.getByTestId("guide/back-link")).toHaveAccessibleName(
-      "กลับไปไกด์ทั้งหมด",
+      m.header_backLink_ariaLabel(),
     );
     vi.restoreAllMocks();
   });
@@ -66,7 +66,7 @@ describe("AppShell", () => {
   it("has no back link on other pages", () => {
     render(<AppShell>content</AppShell>);
     expect(
-      screen.queryByRole("link", { name: "กลับไปไกด์ทั้งหมด" }),
+      screen.queryByRole("link", { name: m.header_backLink_ariaLabel() }),
     ).not.toBeInTheDocument();
   });
 

@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 
 import { m } from "@/paraglide/messages.js";
-import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
 
 import { NotFound } from "./NotFound";
 
@@ -16,12 +15,12 @@ describe("NotFound", () => {
   });
 
   it("names what is missing as the page heading", () => {
-    render(<NotFound title={sampleOverrides.guideNotFoundTitle} />);
+    render(<NotFound title={m.guide_notFound_title()} />);
 
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: sampleOverrides.guideNotFoundTitle,
+        name: m.guide_notFound_title(),
       }),
     ).toBeInTheDocument();
   });

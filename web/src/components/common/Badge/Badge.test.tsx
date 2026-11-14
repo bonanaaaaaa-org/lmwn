@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
+import { m } from "@/paraglide/messages.js";
+
 import { Badge } from "./Badge";
 
 describe("Badge", () => {
@@ -13,7 +15,9 @@ describe("Badge", () => {
   });
 
   it("has no icon when neutral", () => {
-    const { container } = render(<Badge>เดลิเวอรี่</Badge>);
+    const { container } = render(
+      <Badge>{m.restaurantCard_badges_delivery_label()}</Badge>,
+    );
     expect(container.querySelector("svg")).not.toBeInTheDocument();
   });
 });

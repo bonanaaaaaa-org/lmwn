@@ -2,21 +2,20 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { m } from "@/paraglide/messages.js";
-import { sampleOverrides } from "@/test-utils/fixtures/sampleContent";
 
 import { ErrorPanel } from "./ErrorPanel";
 
 describe("ErrorPanel", () => {
   it("is announced as an alert with its title", () => {
-    render(<ErrorPanel title={sampleOverrides.guideErrorTitle} />);
+    render(<ErrorPanel title={m.guide_errorPanel_title()} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      sampleOverrides.guideErrorTitle,
+      m.guide_errorPanel_title(),
     );
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: sampleOverrides.guideErrorTitle,
+        name: m.guide_errorPanel_title(),
       }),
     ).toBeInTheDocument();
   });

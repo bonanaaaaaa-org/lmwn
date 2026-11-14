@@ -6,8 +6,13 @@ import { after, test } from "node:test";
 
 import {
   findBadCatalogKeys,
+  findBracketAccess,
+  findMissingModules,
   findThaiViolations,
+  isDotAccessPath,
   isScannedPath,
+  KEY_HINT,
+  listDotAccessFiles,
   listScannedFiles,
   readCatalog,
   runCli,
@@ -30,6 +35,21 @@ const CATALOG = JSON.stringify({
   $schema: "https://inlang.com/schema/inlang-message-format",
   notFound_title: THAI,
 });
+
+/** Inlang settings whose only local plugin is PLUGIN_PATH. */
+const PLUGIN_PATH =
+  "./node_modules/@inlang/plugin-message-format/dist/index.js";
+const SETTINGS = JSON.stringify({
+  baseLocale: "th",
+  locales: ["th"],
+  modules: [PLUGIN_PATH, "https://cdn.example.com/plugin.js"],
+});
+/** The files every full CLI run also checks: catalog, settings and the plugin they name. */
+const PROJECT = {
+  "messages/th.json": CATALOG,
+  "project.inlang/settings.json": SETTINGS,
+  [PLUGIN_PATH.slice(2)]: "export default {};\n",
+};
 
 const tempDirs = [];
 after(() => {
@@ -86,6 +106,9 @@ test("flags Thai in comments and in every scanned extension", () => {
     ".jsx",
     ".mjs",
     ".cjs",
+    ".mts",
+    ".cts",
+    ".json",
     ".mdx",
     ".css",
     ".html",
@@ -128,7 +151,6 @@ test("allowlists only the test fixtures", () => {
 
 test("ignores non-scanned extensions and paths outside app/ and src/", () => {
   const files = [
-    { path: "src/data.json", content: THAI },
     { path: "src/notes.md", content: THAI },
     { path: "src/image.svg", content: THAI },
     { path: "messages/th.json", content: THAI },
@@ -138,25 +160,45 @@ test("ignores non-scanned extensions and paths outside app/ and src/", () => {
   assert.deepEqual(findThaiViolations(files), []);
 });
 
-test("ignores node_modules and build output", () => {
+test("ignores node_modules and .react-router at any depth", () => {
   for (const path of [
     "src/node_modules/pkg/index.js",
-    "app/build/client/index.js",
-    "src/dist/out.js",
+    "src/features/x/node_modules/pkg/index.js",
     "app/.react-router/types/x.ts",
-    "src/coverage/lcov.js",
   ]) {
     assert.equal(isScannedPath(path), false, path);
   }
 
   const root = makeTree({
     "src/node_modules/pkg/index.js": THAI,
-    "app/build/client/index.js": THAI,
-    "build/server/index.js": THAI,
     "node_modules/pkg/index.js": THAI,
+    "build/server/index.js": THAI,
     "src/ok.ts": "export const ok = true;\n",
   });
   assert.deepEqual(listScannedFiles(root), ["src/ok.ts"]);
+});
+
+test("skips build, dist and coverage only at the web root", () => {
+  for (const path of ["build/client/x.js", "dist/x.js", "coverage/x.js"]) {
+    assert.equal(isScannedPath(path), false, path);
+  }
+  // Folders with those names inside app/ or src/ are source code and are scanned.
+  for (const path of [
+    "app/build/client/index.js",
+    "src/dist/out.js",
+    "src/features/coverage/Coverage.tsx",
+  ]) {
+    assert.equal(isScannedPath(path), true, path);
+  }
+  const root = makeTree({
+    "app/build/client/index.js": THAI,
+    "src/dist/out.js": "export const ok = true;\n",
+    "build/server/index.js": THAI,
+  });
+  assert.deepEqual(listScannedFiles(root), [
+    "app/build/client/index.js",
+    "src/dist/out.js",
+  ]);
 });
 
 test("skips Paraglide's generated src/paraglide/ entirely", () => {
@@ -190,11 +232,91 @@ test("accepts well-formed catalog keys and ignores $-prefixed ones", () => {
     $schema: "https://inlang.com/schema/inlang-message-format",
     $anything: "x",
     notFound_title: "a",
-    appShell_skipLink_label: "b",
+    app_skipLink_label: "b",
     guide_restaurant2_rating: "c",
     errorPanel_retryButton_aria: "d",
   });
   assert.deepEqual(findBadCatalogKeys(text), []);
+});
+
+test("the key hint's example follows the key rule", () => {
+  assert.match(KEY_HINT, /notFound_title, app_skipLink_label/);
+  assert.doesNotMatch(KEY_HINT, /appShell_/);
+});
+
+test("flags bracket access on the messages object in files that import m", () => {
+  const importM = `import { m } from "@/paraglide/messages.js";\n`;
+  const violations = findBracketAccess([
+    {
+      path: "src/components/Title.tsx",
+      content: `${importM}const a = m.notFound_title();\nconst b = m[key]();\nconst c = m?.[key];\n`,
+    },
+    {
+      path: "app/routes/x.ts",
+      content: `import { other, m } from "../paraglide/messages";\nexport const t = m ["a_b"];\n`,
+    },
+  ]);
+  assert.deepEqual(
+    violations.map(({ path, line, column }) => [path, line, column]),
+    [
+      ["src/components/Title.tsx", 3, 11],
+      ["src/components/Title.tsx", 4, 11],
+      ["app/routes/x.ts", 2, 18],
+    ],
+  );
+});
+
+test("dot access check leaves other code alone", () => {
+  const importM = `import { m } from "@/paraglide/messages.js";\n`;
+  assert.deepEqual(
+    findBracketAccess([
+      // No messages import: `m` is some other variable (e.g. a regex match).
+      { path: "src/a.ts", content: "const m = /x/.exec(s); m[1];\n" },
+      // Names that merely end in m, and properties called m.
+      {
+        path: "src/b.ts",
+        content: `${importM}item[0]; obj.m[0]; $m[0]; m.notFound_title();\n`,
+      },
+      // Generated output and non-code files are not checked.
+      { path: "src/paraglide/messages.js", content: `${importM}m[k];\n` },
+      { path: "src/c.css", content: `${importM}m[k];\n` },
+      { path: "scripts/x.mjs", content: `${importM}m[k];\n` },
+    ]),
+    [],
+  );
+  assert.equal(isDotAccessPath("src/x.mts"), true);
+  assert.equal(isDotAccessPath("src/x.json"), false);
+  assert.equal(isDotAccessPath("src/paraglide/x.js"), false);
+  const root = makeTree({
+    "src/a.tsx": importM,
+    "src/paraglide/messages.js": importM,
+    "src/b.css": "",
+  });
+  assert.deepEqual(listDotAccessFiles(root), ["src/a.tsx"]);
+});
+
+test("reports local inlang modules that don't exist; ignores URLs", () => {
+  const settings = JSON.stringify({
+    modules: [
+      "./node_modules/present/index.js",
+      "./node_modules/missing/index.js",
+      "https://cdn.example.com/plugin.js",
+      "../outside.js",
+    ],
+  });
+  const present = new Set(["./node_modules/present/index.js"]);
+  assert.deepEqual(
+    findMissingModules(settings, (module) => present.has(module)),
+    ["./node_modules/missing/index.js"],
+  );
+  assert.deepEqual(
+    findMissingModules("{}", () => false),
+    [],
+  );
+  assert.throws(
+    () => findMissingModules("{ nope", () => true),
+    /not valid JSON/,
+  );
 });
 
 test("reports every malformed catalog key", () => {
@@ -228,8 +350,8 @@ test("catalog errors are clear: missing file, invalid JSON, not an object", () =
 
 test("CLI passes on a clean tree with a one-line summary", () => {
   const root = makeTree({
+    ...PROJECT,
     "app/root.tsx": "export default function Root() { return null; }\n",
-    "messages/th.json": CATALOG,
     "src/paraglide/messages.js": `export const t = () => "${THAI}";\n`,
     "src/test-utils/fixtures/guide.ts": `export const name = "${THAI}";\n`,
     "src/styles.css": ".a { color: red; }\n",
@@ -237,10 +359,70 @@ test("CLI passes on a clean tree with a one-line summary", () => {
   const { code, out, err } = captureCli({ args: [], webRoot: root });
   assert.equal(code, 0);
   assert.equal(err, "");
-  const [thaiLine, keyLine, ...rest] = out.split("\n");
+  const [thaiLine, dotLine, keyLine, pluginLine, ...rest] = out.split("\n");
   assert.deepEqual(rest, []);
   assert.match(thaiLine, /no hardcoded Thai in 2 scanned file\(s\)/);
+  assert.match(dotLine, /no bracket access on m in 2 code file\(s\)/);
   assert.match(keyLine, /every key in web\/messages\/th\.json is well formed/);
+  assert.match(pluginLine, /every local module .* exists/);
+});
+
+test("CLI fails on bracket access on m with path:line:col", () => {
+  const root = makeTree({
+    ...PROJECT,
+    "src/Title.tsx": `import { m } from "@/paraglide/messages.js";\nexport const t = (k) => m[k]();\n`,
+  });
+  const { code, err } = captureCli({ args: [], webRoot: root });
+  assert.equal(code, 1);
+  assert.match(
+    err,
+    /^web\/src\/Title\.tsx:2:25 {2}export const t = \(k\) => m\[k\]\(\);$/m,
+  );
+  assert.match(err, /m\.notFound_title\(\)/);
+});
+
+test("CLI fails when a local inlang plugin is missing", () => {
+  const { [PLUGIN_PATH.slice(2)]: _plugin, ...withoutPlugin } = PROJECT;
+  const root = makeTree({
+    ...withoutPlugin,
+    "src/ok.ts": "export const ok = 1;\n",
+  });
+  const { code, err } = captureCli({ args: [], webRoot: root });
+  assert.equal(code, 1);
+  assert.match(
+    err,
+    /web\/project\.inlang\/settings\.json: module "\.\/node_modules\/@inlang\/plugin-message-format\/dist\/index\.js" not found/,
+  );
+  assert.doesNotMatch(err, /cdn\.example\.com/);
+});
+
+test("CLI fails when the inlang settings are missing", () => {
+  const { "project.inlang/settings.json": _settings, ...withoutSettings } =
+    PROJECT;
+  const root = makeTree({
+    ...withoutSettings,
+    "src/ok.ts": "export const ok = 1;\n",
+  });
+  const { code, err } = captureCli({ args: [], webRoot: root });
+  assert.equal(code, 1);
+  assert.match(
+    err,
+    /Inlang plugin check: web\/project\.inlang\/settings\.json not found/,
+  );
+});
+
+test("CLI with the inlang settings as a file argument runs only the plugin check", () => {
+  const root = makeTree({
+    "project.inlang/settings.json": SETTINGS,
+    "src/bad.tsx": `const a = "${THAI}";\n`,
+  });
+  const { code, err } = captureCli({
+    args: [join(root, "project.inlang/settings.json")],
+    webRoot: root,
+  });
+  assert.equal(code, 1);
+  assert.match(err, /module ".*plugin-message-format.*" not found/);
+  assert.doesNotMatch(err, /bad\.tsx|Catalog key check/);
 });
 
 test("CLI fails when the catalog is missing, even with no Thai", () => {
