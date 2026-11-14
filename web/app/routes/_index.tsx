@@ -1,5 +1,6 @@
-import { m } from "@/paraglide/messages.js";
+import { GuideIndexPage } from "@/features/guide-index/pages/GuideIndexPage";
 
+/** `/`: the Guide Index. */
 export default function IndexRoute() {
-  return <h1>{m.guideIndex_title()}</h1>;
+  return <GuideIndexPage />;
 }

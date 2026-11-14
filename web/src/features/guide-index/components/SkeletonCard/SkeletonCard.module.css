@@ -1,0 +1,40 @@
+@layer components {
+  .SkeletonCard__Root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-300);
+    background: var(--color-surface);
+  }
+
+  /* Beats the Skeleton atom's own radius regardless of stylesheet order. */
+  .SkeletonCard__Root .SkeletonCard__Cover {
+    border-radius: 0;
+  }
+
+  .SkeletonCard__Body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-150);
+    padding: var(--space-300);
+
+    [data-layout="phone"] > & {
+      padding: var(--space-200);
+    }
+  }
+
+  .SkeletonCard__Root .SkeletonCard__Bar {
+    border-radius: var(--radius-100);
+  }
+
+  .SkeletonCard__Tags {
+    display: flex;
+    gap: var(--space-100);
+  }
+
+  .SkeletonCard__Root .SkeletonCard__Tag {
+    border-radius: var(--radius-pill);
+  }
+}
