@@ -3,7 +3,7 @@
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Response
 from fastapi.responses import JSONResponse
 
 from app.adapters.inbound.http.dependencies import (
@@ -34,6 +34,11 @@ _UPSTREAM_ERRORS: dict[int | str, dict[str, object]] = {
 
 MAX_QUERY_LENGTH = 100
 
+CACHE_CONTROL = "public, max-age=60"
+"""Sent only with complete, successful Guide responses: never with an error, nor
+with a Guide that has an Unavailable Restaurant. Fixed by the spec, and set apart
+from the gateway's own upstream cache TTL (`CACHE_TTL_SECONDS`)."""
+
 
 @router.get(
     "/guides",
@@ -48,6 +53,7 @@ MAX_QUERY_LENGTH = 100
     },
 )
 async def list_guides(
+    response: Response,
     use_case: Annotated[ListGuides, Depends(get_list_guides_use_case)],
     q: Annotated[
         str,
@@ -69,9 +75,9 @@ async def list_guides(
     ] = [],  # noqa: B006 - FastAPI copies query defaults per request.
 ) -> GuideListResponse:
     """Text and Tags combine with AND. Guides come in upstream order."""
-    return GuideListResponse.from_domain(
-        await use_case(GuideQuery.create(text=q, tags=tag))
-    )
+    guides = await use_case(GuideQuery.create(text=q, tags=tag))
+    response.headers["Cache-Control"] = CACHE_CONTROL
+    return GuideListResponse.from_domain(guides)
 
 
 @router.get(
@@ -87,6 +93,7 @@ async def list_guides(
     },
 )
 async def get_guide(
+    response: Response,
     guide_id: Annotated[str, Path(alias="guideId", description="The Guide's UUID.")],
     get_guide_detail: Annotated[GetGuideDetail, Depends(get_guide_detail_use_case)],
 ) -> GuideDetailResponse | JSONResponse:
@@ -96,4 +103,8 @@ async def get_guide(
     if _UUID.fullmatch(guide_id) is None:
         # A malformed ID never reaches upstream.
         return not_found()
-    return GuideDetailResponse.from_domain(await get_guide_detail(guide_id))
+    detail = await get_guide_detail(guide_id)
+    if not detail.has_unavailable_restaurant:
+        # A degraded Guide stays uncached so the next request can recover it.
+        response.headers["Cache-Control"] = CACHE_CONTROL
+    return GuideDetailResponse.from_domain(detail)

@@ -113,6 +113,8 @@ async def test_a_failing_restaurant_is_returned_as_an_unavailable_restaurant(
     assert unavailable["restaurant"] is None
     assert unavailable["description"] == "write-up for item-b"
     assert len(unavailable["photos"]) == 2
+    # Degraded, so not cacheable: a retry may load the Restaurant.
+    assert "cache-control" not in response.headers
 
 
 @pytest.mark.parametrize(
@@ -163,6 +165,7 @@ async def test_guide_failures_map_to_safe_error_responses(
 
     assert response.status_code == status_code
     assert list(response.json()) == ["detail"]
+    assert "cache-control" not in response.headers
     assert str(error) not in response.text
     assert "internal" not in response.text
 
@@ -358,6 +361,7 @@ async def test_list_failures_map_to_safe_error_responses(
 
     assert response.status_code == status_code
     assert list(response.json()) == ["detail"]
+    assert "cache-control" not in response.headers
     assert "internal" not in response.text
 
 
@@ -400,3 +404,40 @@ async def test_the_list_endpoint_is_documented(client: AsyncClient) -> None:
         "tags",
         "itemCount",
     }
+
+
+@pytest.mark.parametrize("path", [f"/guides/{GUIDE_ID}", "/guides", "/guides?q=zzz"])
+async def test_successful_guide_responses_may_be_cached_for_60_seconds(
+    client: AsyncClient, path: str
+) -> None:
+    response = await client.get(path)
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "public, max-age=60"
+
+
+@pytest.mark.parametrize(
+    ("path", "status_code"),
+    [
+        ("/guides/not-a-uuid", 404),
+        (f"/guides?q={'x' * 101}", 422),
+    ],
+)
+async def test_rejected_requests_are_not_cacheable(
+    client: AsyncClient, path: str, status_code: int
+) -> None:
+    response = await client.get(path)
+
+    assert response.status_code == status_code
+    assert "cache-control" not in response.headers
+
+
+async def test_a_failing_guide_item_response_is_not_cacheable(
+    client: AsyncClient, guides: FakeGuideSource
+) -> None:
+    guides.failures["item-b"] = SourceUnavailable()
+
+    response = await client.get(f"/guides/{GUIDE_ID}")
+
+    assert response.status_code == 502
+    assert "cache-control" not in response.headers
