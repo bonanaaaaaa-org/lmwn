@@ -47,9 +47,8 @@
     min-height: var(--control-height);
     border-radius: var(--radius-100);
     color: var(--color-text);
-    font-family: var(--font-family-display);
     font-size: var(--font-size-300);
-    font-weight: var(--font-weight-display);
+    font-weight: var(--font-weight-bold);
     line-height: var(--line-height-tight);
     letter-spacing: -0.01em;
     text-decoration: none;

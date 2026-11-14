@@ -210,10 +210,7 @@ importers:
 
   web:
     dependencies:
-      '@fontsource/krub':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/sarabun':
+      '@fontsource/mali':
         specifier: ^5.3.0
         version: 5.3.0
       '@react-router/node':
@@ -820,11 +817,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource/krub@5.3.0':
-    resolution: {integrity: sha512-vJ89vJ0bPNcv0D4DHyRBjTY+WHF9OFGS2g9AvVCInI+mkStbcz+PLWGePS0jkUHYv9VeTmzYq5y6Op3tz9V5ZQ==}
-
-  '@fontsource/sarabun@5.3.0':
-    resolution: {integrity: sha512-8GWxnEIG9g/2JlZxU+APaVwipcLMkZkBps9N1tEyBxXWaJEnAtHpuaDYmFVG7lzTgr28orG7//htD/rfxDlfFg==}
+  '@fontsource/mali@5.3.0':
+    resolution: {integrity: sha512-/H7zdnFcBUdLh7mPUCLWfCoQVgtvnVKrlHjknq90kltPvUcu0nC9ybne4z2rzTghV9ez9N7nRDvRZesODB/YbQ==}
 
   '@hono/node-server@1.19.19':
     resolution: {integrity: sha512-Fy9R7PACOzHU9LDpfnuzVyuVYevKQRcEG2mZhmfc+DRdmayEd3RVfa2XOt2IgGcPNgA77Yk63KBszepcMFK5Ng==}
@@ -5005,9 +4999,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource/krub@5.3.0': {}
-
-  '@fontsource/sarabun@5.3.0': {}
+  '@fontsource/mali@5.3.0': {}
 
   '@hono/node-server@1.19.19(hono@4.13.18)':
     dependencies:

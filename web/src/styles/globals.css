@@ -8,19 +8,15 @@
 @import url("modern-normalize/modern-normalize.css") layer(reset);
 
 /*
- * Looped Thai (มีหัว) faces, self-hosted through Fontsource: Vite bundles the woff2 files, so
- * fonts come from the app's own origin. Sarabun for body text, Krub for headings and display.
- * Only the Thai and Latin subsets are loaded; `unicode-range` means a page downloads just the
- * subsets it actually uses.
+ * Mali, a rounded looped Thai (มีหัว) face, for body text and headings alike. Self-hosted
+ * through Fontsource: Vite bundles the woff2 files, so the font comes from the app's own
+ * origin. Only the Thai and Latin subsets are loaded; `unicode-range` means a page downloads
+ * just the subsets it actually uses.
  */
-@import url("@fontsource/sarabun/thai-400.css");
-@import url("@fontsource/sarabun/latin-400.css");
-@import url("@fontsource/sarabun/thai-600.css");
-@import url("@fontsource/sarabun/latin-600.css");
-@import url("@fontsource/krub/thai-600.css");
-@import url("@fontsource/krub/latin-600.css");
-@import url("@fontsource/krub/thai-700.css");
-@import url("@fontsource/krub/latin-700.css");
+@import url("@fontsource/mali/thai-400.css");
+@import url("@fontsource/mali/latin-400.css");
+@import url("@fontsource/mali/thai-600.css");
+@import url("@fontsource/mali/latin-600.css");
 
 @layer base {
   :root {
@@ -73,8 +69,7 @@
     --space-800: 4rem;
 
     /* Type scale: about 1.125–1.25 steps; display sizes grow with the viewport. */
-    --font-family-base: "Sarabun", system-ui, sans-serif;
-    --font-family-display: "Krub", "Sarabun", system-ui, sans-serif;
+    --font-family-base: "Mali", system-ui, sans-serif;
     --font-size-75: 0.8125rem;
     --font-size-100: 0.875rem;
     --font-size-200: 1rem;
@@ -88,7 +83,6 @@
     --font-weight-regular: 400;
     --font-weight-semibold: 600;
     --font-weight-bold: 600;
-    --font-weight-display: 700;
 
     /* Thai stacks tone marks above and vowels below, so it needs roomier leading. */
     --line-height-tight: 1.35;
@@ -133,7 +127,6 @@
   h3,
   h4 {
     margin: 0;
-    font-family: var(--font-family-display);
     line-height: var(--line-height-tight);
     font-weight: var(--font-weight-bold);
   }
