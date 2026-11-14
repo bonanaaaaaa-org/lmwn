@@ -46,7 +46,7 @@
     }
   }
 
-  /* One row on every phone: below 22.5rem the brand steps down, and truncates if it must. */
+  /* One row on every phone down to 320px: below 22.5rem the brand steps down a size. */
   .Header__Brand {
     display: inline-flex;
     align-items: center;
@@ -83,6 +83,10 @@
     }
   }
 
+  /*
+   * Never wraps. The size step below 22.5rem makes it fit from 320px up; truncating is only a
+   * last resort on anything narrower.
+   */
   .Header__BrandText {
     overflow: hidden;
     text-overflow: ellipsis;
