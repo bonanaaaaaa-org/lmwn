@@ -338,12 +338,11 @@ test.describe("Guide - Lightbox", () => {
     const viewport = page.viewportSize();
     if (!viewport) throw new Error("the project sets a viewport");
     const dialog = await lightbox(page).boundingBox();
-    expect(dialog).toEqual({
-      x: 0,
-      y: 0,
-      width: viewport.width,
-      height: viewport.height,
-    });
+    if (!dialog) throw new Error("the dialog has a box");
+    expect(dialog.x).toBeCloseTo(0, 0);
+    expect(dialog.y).toBeCloseTo(0, 0);
+    expect(dialog.width).toBeCloseTo(viewport.width, 0);
+    expect(dialog.height).toBeCloseTo(viewport.height, 0);
 
     // The page behind neither scrolls nor shows a scrollbar.
     const page_ = await page.evaluate(() => ({

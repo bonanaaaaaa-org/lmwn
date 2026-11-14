@@ -63,6 +63,11 @@
       & > :not(.Lightbox__Stage) {
         position: relative;
       }
+
+      /* The white ring gets an ink gap, so it shows on a light photo as well. */
+      & [data-focus-visible] {
+        box-shadow: 0 0 0 var(--focus-ring-offset) var(--color-surface-inverse);
+      }
     }
   }
 
@@ -72,6 +77,15 @@
     gap: var(--space-200);
     align-items: center;
     justify-content: space-between;
+
+    /* The band spans the photo: let swipes through to the stage, but not to the close button. */
+    @media (width >= 48rem) {
+      pointer-events: none;
+
+      & > * {
+        pointer-events: auto;
+      }
+    }
   }
 
   .Lightbox__Title {
@@ -116,10 +130,12 @@
         position: absolute;
         inset: 0;
         background: linear-gradient(
-          var(--color-scrim),
-          transparent 7rem,
-          transparent calc(100% - 7rem),
-          var(--color-scrim)
+          var(--color-shade),
+          var(--color-shade) 4.5rem,
+          transparent 8rem,
+          transparent calc(100% - 8rem),
+          var(--color-shade) calc(100% - 5rem),
+          var(--color-shade)
         );
         content: "";
         pointer-events: none;
@@ -162,6 +178,12 @@
     overflow-x: auto;
     list-style: none;
     scrollbar-width: none;
+
+    /* Only as wide as the thumbnails, so swipes beside them reach the stage. */
+    @media (width >= 48rem) {
+      justify-self: center;
+      max-width: 100%;
+    }
 
     &::-webkit-scrollbar {
       display: none;
