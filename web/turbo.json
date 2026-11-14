@@ -17,14 +17,14 @@
       "outputs": ["coverage/**"]
     },
     "test": {
-      "outputs": []
+      "outputs": ["allure-results/unit/**"]
     },
     "test:scripts": {
       "inputs": ["scripts/**"],
       "outputs": []
     },
     "test:storybook": {
-      "outputs": [],
+      "outputs": ["allure-results/storybook/**"],
       "env": ["VITE_*"]
     },
     "build-storybook": {

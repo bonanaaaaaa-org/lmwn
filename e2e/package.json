@@ -7,7 +7,7 @@
     "#support/*": "./support/*.ts"
   },
   "scripts": {
-    "test:e2e": "playwright test",
+    "test:e2e": "rm -rf allure-results && playwright test",
     "test:e2e:ui": "playwright test --ui",
     "report": "playwright show-report",
     "lint": "oxlint",
@@ -19,6 +19,7 @@
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
+    "allure-playwright": "^3.14.0",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "typescript": "^7.0.2"

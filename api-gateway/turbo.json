@@ -13,7 +13,7 @@
     },
     "test": {
       "inputs": ["app/**/*.py", "tests/**/*.py", "pyproject.toml"],
-      "outputs": [".coverage"]
+      "outputs": [".coverage", "allure-results/**"]
     }
   }
 }

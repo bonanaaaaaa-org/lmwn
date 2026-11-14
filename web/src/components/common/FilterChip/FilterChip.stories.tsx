@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { ToggleButtonGroup } from "react-aria-components";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { m } from "@/paraglide/messages.js";
 
@@ -30,7 +30,8 @@ export const Hovered: Story = {
   play: async ({ canvasElement }) => {
     const chip = within(canvasElement).getByRole("button");
     await userEvent.hover(chip);
-    await expect(chip).toHaveAttribute("data-hovered");
+    // React Aria sets data-hovered on the next render, which can land after hover() resolves.
+    await waitFor(() => expect(chip).toHaveAttribute("data-hovered"));
   },
 };
 
