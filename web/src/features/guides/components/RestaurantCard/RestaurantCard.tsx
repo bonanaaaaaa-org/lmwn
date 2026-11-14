@@ -17,6 +17,7 @@ import {
   instagramUrl,
   lineUrl,
   mapUrl,
+  safeWebUrl,
   telHref,
 } from "@/features/guides/lib/links";
 import type { GuideItem, Restaurant } from "@/features/guides/lib/types";
@@ -187,6 +188,7 @@ export function RestaurantCard({
   const isDesktop = layout === "desktop";
   const socials = restaurant ? socialsOf(restaurant) : [];
   const phone = restaurant ? formatPhoneNumber(restaurant.phoneNo) : "";
+  const wongnaiUrl = restaurant ? safeWebUrl(restaurant.url) : undefined;
 
   return (
     <article
@@ -196,6 +198,7 @@ export function RestaurantCard({
       data-state={restaurant ? undefined : "unavailable"}
       data-testid={testId}
       aria-labelledby={restaurant ? nameId : undefined}
+      aria-label={restaurant ? undefined : `ร้านที่ ${index}`}
     >
       {!restaurant && (
         <p className={styles.RestaurantCard__Unavailable}>
@@ -320,15 +323,17 @@ export function RestaurantCard({
                     {social.label}
                   </ExternalLink>
                 ))}
-                <ExternalLink
-                  variant="ghost"
-                  size="compact"
-                  href={restaurant.url}
-                  testId={`${testId}/wongnai`}
-                >
-                  ดูร้านบน Wongnai
-                  <Icon name="external" size={14} />
-                </ExternalLink>
+                {wongnaiUrl && (
+                  <ExternalLink
+                    variant="ghost"
+                    size="compact"
+                    href={wongnaiUrl}
+                    testId={`${testId}/wongnai`}
+                  >
+                    ดูร้านบน Wongnai
+                    <Icon name="external" size={14} />
+                  </ExternalLink>
+                )}
               </dd>
             </div>
           )}
@@ -350,14 +355,16 @@ export function RestaurantCard({
             <Icon name="phone" size={18} />
             โทร {phone}
           </ButtonLink>
-          <ExternalLink
-            variant="secondary"
-            href={restaurant.url}
-            testId={`${testId}/wongnai`}
-          >
-            ดูบน Wongnai
-            <Icon name="external" size={14} />
-          </ExternalLink>
+          {wongnaiUrl && (
+            <ExternalLink
+              variant="secondary"
+              href={wongnaiUrl}
+              testId={`${testId}/wongnai`}
+            >
+              ดูบน Wongnai
+              <Icon name="external" size={14} />
+            </ExternalLink>
+          )}
           {socials.map((social) => (
             <ExternalLink
               key={social.key}

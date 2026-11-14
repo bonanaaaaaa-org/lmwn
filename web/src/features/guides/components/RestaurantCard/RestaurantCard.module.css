@@ -193,6 +193,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-100);
 
+    /* The narrowest phones (under 360px) stack the actions so nothing overflows. */
+    @media (width < 22.5rem) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     /* Two columns on a 360px phone: tighter padding keeps "โทร 093 916 4541" on one line. */
     & > a {
       gap: var(--space-50);

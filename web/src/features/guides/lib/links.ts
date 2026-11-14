@@ -31,3 +31,13 @@ export function facebookUrl(account: string): string {
   if (isUrl(account)) return account;
   return `https://www.facebook.com/${encodeURIComponent(account.replace(/^@/, ""))}`;
 }
+
+/** `url` if it is an http(s) URL, else `undefined`: data from upstream never becomes a `javascript:` link. */
+export function safeWebUrl(url: string): string | undefined {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:" ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}

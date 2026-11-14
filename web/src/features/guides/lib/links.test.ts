@@ -1,4 +1,11 @@
-import { facebookUrl, instagramUrl, lineUrl, mapUrl, telHref } from "./links";
+import {
+  facebookUrl,
+  instagramUrl,
+  lineUrl,
+  mapUrl,
+  safeWebUrl,
+  telHref,
+} from "./links";
 
 describe("Restaurant links", () => {
   it("opens Google Maps at the Restaurant's coordinates", () => {
@@ -26,5 +33,13 @@ describe("Restaurant links", () => {
     expect(facebookUrl("https://facebook.com/x")).toBe(
       "https://facebook.com/x",
     );
+  });
+
+  it("only lets http(s) URLs from upstream through", () => {
+    expect(safeWebUrl("https://www.wongnai.com/r/1")).toBe(
+      "https://www.wongnai.com/r/1",
+    );
+    expect(safeWebUrl("javascript:alert(1)")).toBeUndefined();
+    expect(safeWebUrl("not a url")).toBeUndefined();
   });
 });

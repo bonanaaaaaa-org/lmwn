@@ -188,6 +188,7 @@ describe("RestaurantCard", () => {
       />,
     );
     expect(card()).toHaveAttribute("data-state", "unavailable");
+    expect(screen.getByRole("article", { name: "ร้านที่ 3" })).toBe(card());
     expect(
       within(card()).getByText("ไม่สามารถโหลดข้อมูลร้านได้"),
     ).toBeInTheDocument();
@@ -199,6 +200,23 @@ describe("RestaurantCard", () => {
     ).toBeInTheDocument();
     expect(within(card()).queryByRole("heading")).not.toBeInTheDocument();
     expect(within(card()).queryByRole("link")).not.toBeInTheDocument();
+  });
+});
+
+describe("RestaurantCard Wongnai link", () => {
+  it("is left out when upstream sends a URL that isn't http(s)", () => {
+    render(
+      <RestaurantCard
+        item={makeGuideItem({
+          restaurant: makeRestaurant({ url: "javascript:alert(1)" }),
+        })}
+        index={1}
+        parentTestId="guide"
+      />,
+    );
+    expect(
+      screen.queryByTestId("guide/restaurant-card/wongnai"),
+    ).not.toBeInTheDocument();
   });
 });
 
