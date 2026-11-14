@@ -91,7 +91,7 @@ The quickest way to try it is the [deployed app](https://hidden-gems.bonanaaaaaa
 
 ```bash
 pnpm --filter web build
-pnpm --filter web exec vite preview --port 3000   # :3000 is the origin the local gateway allows
+pnpm --filter web exec vite preview --port 3000 --strictPort   # :3000 is the origin the local gateway allows
 ```
 
 Locally, photos come straight from the Data Server on :7777, a different origin, so they aren't cached offline. The PWA e2e specs (in `pnpm test:e2e`) start a second gateway on :4300 that serves photos as the deployed one does. Details: [PWA decisions](docs/design-decisions.md#pwa-43) ([#43](https://github.com/bonanaaaaaa-org/lmwn/issues/43)).
