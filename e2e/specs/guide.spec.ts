@@ -7,6 +7,7 @@ import {
 } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { format, message } from "#support/messages";
 
 const GATEWAY = process.env.API_BASE_URL ?? "http://localhost:4000";
 
@@ -121,7 +122,11 @@ test.describe("Guide - Default", () => {
 
     const photoCount = guide.items[0]?.photos.length ?? 0;
     const firstPhoto = first.getByRole("img", {
-      name: `รูปที่ 1 จาก ${photoCount} ของ ${name}`,
+      name: format("restaurantCard_photoStrip_photo_alt", {
+        position: 1,
+        total: photoCount,
+        restaurant: name,
+      }),
     });
     await expect(firstPhoto).toHaveAttribute("srcset", /\d+w, .+\d+w/);
 
@@ -186,7 +191,9 @@ test.describe("Guide - Default", () => {
     const back = page.getByTestId("guide/back-link");
     await expect(back).toHaveCount(1);
     await expect(back).toHaveAccessibleName(
-      isPhone(testInfo) ? "กลับไปไกด์ทั้งหมด" : /ไกด์ทั้งหมด/,
+      isPhone(testInfo)
+        ? message("header_backLink_ariaLabel")
+        : message("guide_backLink_label"),
     );
     await back.click();
 
@@ -210,11 +217,13 @@ test.describe("Guide - Read more", () => {
       .first()
       .getByTestId("guide/restaurant-card/read-more");
     await expect(readMore).toHaveAttribute("aria-expanded", "false");
-    await expect(readMore).toHaveText("อ่านเพิ่มเติม");
+    await expect(readMore).toHaveText(message("restaurantCard_readMore_label"));
 
     await readMore.click();
     await expect(readMore).toHaveAttribute("aria-expanded", "true");
-    await expect(readMore).toHaveText("แสดงน้อยลง");
+    await expect(readMore).toHaveText(
+      message("restaurantCard_readMore_expandedLabel"),
+    );
     await screenshot(page, testInfo, "02-read-more-expanded");
 
     await readMore.click();
@@ -229,7 +238,10 @@ test.describe("Guide - Not found", () => {
     await page.goto(`/guides/${UNKNOWN_GUIDE_ID}`);
 
     await expect(
-      page.getByRole("heading", { level: 1, name: "ไม่พบไกด์นี้" }),
+      page.getByRole("heading", {
+        level: 1,
+        name: message("guide_notFound_title"),
+      }),
     ).toBeVisible();
     await expect(page.getByTestId("guide/not-found/back-link")).toHaveAttribute(
       "href",
@@ -259,13 +271,16 @@ test.describe("Guide - Error", () => {
     // 1 attempt + 2 retries with backoff (~1s, ~2s). In dev, React StrictMode may add a
     // duplicate first request, so count at least the 3 attempts.
     await expect(
-      page.getByRole("heading", { level: 1, name: "โหลดไกด์ไม่สำเร็จ" }),
+      page.getByRole("heading", {
+        level: 1,
+        name: message("guide_errorPanel_title"),
+      }),
     ).toBeVisible({
       timeout: 15_000,
     });
     expect(calls).toBeGreaterThanOrEqual(3);
     const retry = page.getByTestId("guide/error-panel/retry");
-    await expect(retry).toHaveText("ลองใหม่");
+    await expect(retry).toHaveText(message("errorPanel_retry_label"));
     await screenshot(page, testInfo, "04-error");
     await expectNoAxeViolations(page);
 
@@ -296,10 +311,18 @@ test.describe("Guide - Unavailable Restaurant", () => {
 
     const card = cards(page).nth(1);
     await expect(card).toHaveAttribute("data-state", "unavailable");
-    await expect(card.getByText("ไม่สามารถโหลดข้อมูลร้านได้")).toBeVisible();
+    await expect(
+      card.getByText(message("restaurantCard_unavailable_body")),
+    ).toBeVisible();
     await expect(card.getByText(unavailable?.description ?? "")).toBeVisible();
     await expect(
-      card.getByRole("img", { name: /^รูปที่ 1 จาก \d+$/ }),
+      card.getByRole("img", {
+        name: format("restaurantCard_photoStrip_photo_unnamedAlt", {
+          position: 1,
+          total: unavailable?.photos.length ?? 0,
+        }),
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(card.getByTestId("guide/restaurant-card/call")).toHaveCount(0);
     // Its neighbours are unaffected.

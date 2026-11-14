@@ -2,6 +2,7 @@ import { Link } from "react-aria-components";
 
 import { Icon } from "@/components/common/Icon";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./Header.module.css";
 
@@ -36,7 +37,10 @@ function Mark() {
   );
 }
 
-/** The bar at the top of every page, linking back to the Guide Index. */
+/**
+ * The bar at the top of every page, linking back to the Guide Index. It owns its copy, so its
+ * messages are `header_*` (not `app_header_*`) wherever it is mounted.
+ */
 export function Header({
   layout = "desktop",
   homeHref = "/",
@@ -57,7 +61,7 @@ export function Header({
           <Link
             href={homeHref}
             className={styles.Header__Back}
-            aria-label="กลับไปไกด์ทั้งหมด"
+            aria-label={m.header_backLink_ariaLabel()}
             data-testid={backLinkTestId}
           >
             <Icon name="arrow-left" size={24} />
@@ -67,7 +71,7 @@ export function Header({
             className={styles.Header__Brand}
             data-testid={logoTestId}
           >
-            <span lang="en">Guide to Hidden Gems</span>
+            <span lang="en">{m.header_logo_label()}</span>
           </Link>
           {/* Balances the back arrow so the brand stays centred; the share button (#14) goes here. */}
           <span className={styles.Header__Spacer} aria-hidden="true" />
@@ -89,9 +93,9 @@ export function Header({
           data-testid={logoTestId}
         >
           <Mark />
-          <span lang="en">Guide to Hidden Gems</span>
+          <span lang="en">{m.header_logo_label()}</span>
         </Link>
-        <p className={styles.Header__Tagline}>ไกด์ร้านลับ คัดโดยบรรณาธิการ</p>
+        <p className={styles.Header__Tagline}>{m.header_tagline_body()}</p>
       </div>
     </header>
   );

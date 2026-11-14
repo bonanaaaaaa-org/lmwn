@@ -72,11 +72,11 @@ jobs:
       # (api-gateway, web).
       - name: Format (ruff format)
         run: pnpm run format:check
-      - name: Lint (oxlint, stylelint, ruff)
+      - name: Lint (oxlint, stylelint, Thai copy guard, ruff)
         run: pnpm run lint
       - name: Type check (tsc with typed CSS modules, pyrefly)
         run: pnpm run type-check
-      - name: Test (Vitest; pytest with 90% coverage minimum and the architecture test)
+      - name: Test (Vitest; node:test for repo and web scripts; pytest with 90% coverage minimum and the architecture test)
         run: pnpm run test
       - name: Build
         run: pnpm run build

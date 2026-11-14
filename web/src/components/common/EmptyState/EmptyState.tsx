@@ -13,11 +13,11 @@ import styles from "./EmptyState.module.css";
 export interface EmptyStateProps {
   title: string;
   description?: string;
-  /** A short line above the title, e.g. "0 จาก 10 ร้าน". */
+  /** A short line above the title, e.g. "0 of 10 restaurants". */
   meta?: string;
   /** Show the search icon above the title. */
   icon?: boolean;
-  /** The action's label, e.g. "ล้างการค้นหา" (clear search). No label, no action. */
+  /** The action's label, e.g. "clear search". No label, no action. */
   actionLabel?: string;
   actionVariant?: Extract<ButtonVariant, "primary" | "secondary">;
   /** A button action… */

@@ -1,15 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { m } from "@/paraglide/messages.js";
+
 import { Button, ButtonLink } from "./Button";
 
 describe("Button", () => {
   it("calls onPress when activated by mouse or keyboard", async () => {
     const user = userEvent.setup();
     const onPress = vi.fn();
-    render(<Button onPress={onPress}>ลองใหม่</Button>);
+    render(<Button onPress={onPress}>{m.errorPanel_retry_label()}</Button>);
 
-    await user.click(screen.getByRole("button", { name: "ลองใหม่" }));
+    await user.click(
+      screen.getByRole("button", { name: m.errorPanel_retry_label() }),
+    );
     await user.keyboard("{Enter}");
 
     expect(onPress).toHaveBeenCalledTimes(2);
@@ -20,11 +24,13 @@ describe("Button", () => {
     const onPress = vi.fn();
     render(
       <Button onPress={onPress} isDisabled>
-        ลองใหม่
+        {m.errorPanel_retry_label()}
       </Button>,
     );
 
-    await user.click(screen.getByRole("button", { name: "ลองใหม่" }));
+    await user.click(
+      screen.getByRole("button", { name: m.errorPanel_retry_label() }),
+    );
 
     expect(onPress).not.toHaveBeenCalled();
   });
@@ -32,10 +38,10 @@ describe("Button", () => {
 
 describe("ButtonLink", () => {
   it("renders a real link", () => {
-    render(<ButtonLink href="/">กลับไปหน้าไกด์ทั้งหมด</ButtonLink>);
+    render(<ButtonLink href="/">{m.notFound_backLink_label()}</ButtonLink>);
 
     expect(
-      screen.getByRole("link", { name: "กลับไปหน้าไกด์ทั้งหมด" }),
+      screen.getByRole("link", { name: m.notFound_backLink_label() }),
     ).toHaveAttribute("href", "/");
   });
 });

@@ -19,6 +19,15 @@ export default {
     inWeb("oxfmt --no-error-on-unmatched-pattern"),
   ],
   "web/**/*.{json,jsonc,md}": [inWeb("oxfmt --no-error-on-unmatched-pattern")],
+  // UI copy guard (read-only): no hardcoded Thai outside the catalog. The script
+  // skips files outside web/app and web/src and its own allowlist.
+  "web/{app,src}/**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts,json,mdx,css,html}": (
+    files,
+  ) => `node web/scripts/check-ui-copy.mjs ${quote(files)}`,
+  // Catalog key check (keys mirror test ID paths) and the inlang plugin path check,
+  // when the catalog or the inlang settings change.
+  "web/{messages/th.json,project.inlang/settings.json}": (files) =>
+    `node web/scripts/check-ui-copy.mjs ${quote(files)}`,
   "e2e/**/*.{ts,mts,js,mjs}": [
     inE2e("oxlint --fix"),
     inE2e("oxfmt --no-error-on-unmatched-pattern"),

@@ -9,6 +9,8 @@
     "**/.react-router/**",
     "**/coverage/**",
     "**/*.module.css.d.ts",
+    "src/paraglide/**",
+    "project.inlang/cache/**",
     "public/**"
   ]
 }
