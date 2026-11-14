@@ -149,6 +149,33 @@ test.describe("Guide Index - default", () => {
   });
 });
 
+test.describe("Guide Index - layout", () => {
+  for (const { width, columns } of [
+    { width: 375, columns: 1 },
+    { width: 800, columns: 2 },
+    { width: 1280, columns: 3 },
+  ]) {
+    test(`the grid has ${columns} column(s) at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await openDefault(page);
+
+      const tracks = await page
+        .getByRole("list")
+        .filter({ has: cards(page).first() })
+        .evaluate((list) => getComputedStyle(list).gridTemplateColumns);
+      expect(tracks.split(" ")).toHaveLength(columns);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+        "no horizontal scrolling",
+      ).toBe(true);
+    });
+  }
+});
+
 test.describe("Guide Index - search", () => {
   test("typing commits q to the URL after the debounce and updates the count", async ({
     page,
@@ -189,17 +216,19 @@ test.describe("Guide Index - search", () => {
   test("Enter commits immediately and pushes a history entry", async ({
     page,
   }) => {
+    await page.clock.install();
     await openDefault(page);
+    // Freeze the page's timers: the 300 ms debounce can't fire, so only Enter can commit.
+    await page.clock.pauseAt(Date.now() + 5_000);
     const lengthBefore = await historyLength(page);
 
     await search(page, "ร้านอาหาร");
 
-    // Well inside the 300 ms debounce window.
-    await expect
-      .poll(() => params(page).get("q"), { timeout: 250 })
-      .toBe("ร้านอาหาร");
-    await expect(cards(page)).toHaveCount(1);
+    await expect.poll(() => params(page).get("q")).toBe("ร้านอาหาร");
     expect(await historyLength(page)).toBe(lengthBefore + 1);
+    // TanStack Query batches its UI updates on timers, so let them run for the results.
+    await page.clock.resume();
+    await expect(cards(page)).toHaveCount(1);
   });
 
   test("reload keeps the search text and results", async ({ page }) => {

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useId } from "react";
+import { useId, useRef } from "react";
 
 import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -100,6 +100,13 @@ export function GuideIndexView({
   const hasFilters =
     normaliseSearchText(filters.q) !== "" || filters.tags.length > 0;
   const tagHref = (tag: string) => buildIndexHref(addTag(filters, tag));
+  // Both clear controls disappear once the filters are gone, so keyboard and screen-reader
+  // users would land on <body>; send them to the search box instead.
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const clearAll = () => {
+    onClearAll();
+    searchInputRef.current?.focus();
+  };
 
   return (
     <div className={styles.GuideIndexView__Root} data-testid={testId}>
@@ -118,6 +125,7 @@ export function GuideIndexView({
           onClear={onSearchClear}
           isInvalid={isSearchTooLong}
           errorMessage="คำค้นหายาวเกิน 100 ตัวอักษร"
+          inputRef={searchInputRef}
           parentTestId={testId}
         />
       </section>
@@ -160,7 +168,7 @@ export function GuideIndexView({
             {hasFilters && (
               <Button
                 variant="text"
-                onPress={onClearAll}
+                onPress={clearAll}
                 testId={`${testId}/clear-all`}
               >
                 ล้างทั้งหมด
@@ -234,7 +242,7 @@ export function GuideIndexView({
                 hasFilters ? "ลองใช้คำที่สั้นลง หรือเอาแท็กออกเพื่อดูไกด์ทั้งหมด" : undefined
               }
               actionLabel={hasFilters ? "ล้างการค้นหา" : undefined}
-              actionHref="/"
+              onAction={clearAll}
               headingLevel={3}
               parentTestId={testId}
             />

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import type { Ref } from "react";
 import {
   Button,
   FieldError,
@@ -27,6 +28,8 @@ export interface SearchFieldProps {
   isInvalid?: boolean;
   errorMessage?: string;
   className?: string;
+  /** The `<input>`, e.g. to move focus back to the box after clearing the filters. */
+  inputRef?: Ref<HTMLInputElement>;
   /** The parent's test ID; the form is `{parent}/search`, with `/input` and `/clear` inside. */
   parentTestId?: string;
 }
@@ -42,6 +45,7 @@ export function SearchField({
   isInvalid = false,
   errorMessage,
   className,
+  inputRef,
   parentTestId,
 }: SearchFieldProps) {
   const testId = joinTestId(parentTestId, "search");
@@ -66,6 +70,7 @@ export function SearchField({
         <Group className={styles.SearchField__Box}>
           <Icon name="search" className={styles.SearchField__Icon} />
           <Input
+            ref={inputRef}
             className={styles.SearchField__Input}
             placeholder={placeholder}
             data-testid={`${testId}/input`}

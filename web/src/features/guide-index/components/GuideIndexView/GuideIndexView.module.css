@@ -142,7 +142,7 @@
 
     /* A newer search is loading: the previous cards stay, slightly dimmed. */
     &[aria-busy="true"] {
-      opacity: 0.72;
+      opacity: 0.8;
     }
 
     @media (prefers-reduced-motion: reduce) {

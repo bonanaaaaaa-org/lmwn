@@ -133,7 +133,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("GuideIndexPage", () => {
+// Each test drives the real router, React Query and msw through several requests; give
+// them headroom on a busy CI machine instead of the 5 s default.
+describe("GuideIndexPage", { timeout: 15_000 }, () => {
   it("shows a skeleton, then a card per Guide linking to it, with the count", async () => {
     serveGuides();
     renderPage();
@@ -189,6 +191,41 @@ describe("GuideIndexPage", () => {
     act(() => vi.advanceTimersByTime(300));
     expect(params().get("q")).toBe("คาเฟ่");
     expect(router.state.historyAction).toBe("REPLACE");
+  });
+
+  it("drops a pending search when Back happens before the debounce fires", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    serveGuides();
+    const { params, router } = renderPage();
+    await screen.findByText("พบ 2 ไกด์");
+    await enterSearch(user, "คาเฟ่", { submit: true });
+    expect(params().get("q")).toBe("คาเฟ่");
+
+    await enterSearch(user, "คาเฟ่ลับ");
+    await act(() => router.navigate(-1));
+    act(() => vi.advanceTimersByTime(300));
+
+    // Back stays where it went: the half-typed text neither returns nor pushes a new entry.
+    expect(params().get("q")).toBeNull();
+    expect(searchBox()).toHaveValue("");
+    expect(router.state.historyAction).toBe("POP");
+  });
+
+  it("drops a pending search when a Tag link is followed mid-typing", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    serveGuides();
+    const { params } = renderPage();
+    await screen.findByText("พบ 2 ไกด์");
+
+    await enterSearch(user, "One");
+    const card = screen.getAllByTestId("guide-index/guide-card")[0]!;
+    await user.click(within(card).getByRole("link", { name: "กรุงเทพ" }));
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(params().getAll("tag")).toEqual(["กรุงเทพ"]);
+    expect(params().get("q")).toBeNull();
   });
 
   it("searches immediately on Enter, adding a history entry", async () => {
@@ -277,6 +314,8 @@ describe("GuideIndexPage", () => {
     expect(
       screen.queryByTestId("guide-index/clear-all"),
     ).not.toBeInTheDocument();
+    // The button is gone, so focus moves to the search box rather than <body>.
+    expect(searchBox()).toHaveFocus();
   });
 
   it("keeps the previous cards on screen while a new search loads", async () => {
@@ -328,8 +367,9 @@ describe("GuideIndexPage", () => {
   });
 
   it("shows an empty state with a way back to every Guide", async () => {
+    const user = userEvent.setup();
     serveGuides();
-    renderPage("/?q=ราเมน");
+    const { location } = renderPage("/?q=ราเมน");
 
     const empty = await screen.findByTestId("guide-index/empty-state");
     expect(
@@ -338,9 +378,12 @@ describe("GuideIndexPage", () => {
     expect(
       within(empty).getByText("ลองใช้คำที่สั้นลง หรือเอาแท็กออกเพื่อดูไกด์ทั้งหมด"),
     ).toBeInTheDocument();
-    expect(
-      within(empty).getByRole("link", { name: "ล้างการค้นหา" }),
-    ).toHaveAttribute("href", "/");
+
+    await user.click(within(empty).getByRole("button", { name: "ล้างการค้นหา" }));
+    expect(location().search).toBe("");
+    expect(await screen.findByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(searchBox()).toHaveValue("");
+    expect(searchBox()).toHaveFocus();
   });
 
   it("names the selected Tags when only Tags match nothing", async () => {

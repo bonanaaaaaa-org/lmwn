@@ -1,6 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import {
   GuideIndexView,
@@ -47,6 +54,7 @@ function tagUniverse(
 export function GuideIndexPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isPhone = useIsPhone();
   const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
 
@@ -72,6 +80,17 @@ export function GuideIndexPage() {
   });
   const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(debounce.current), []);
+
+  // Our own commits clear the pending debounce before navigating, so a location change
+  // while one is pending came from elsewhere (Back, a Tag link, the logo). Drop it, or it
+  // would fire 300 ms later with the old text and undo that navigation.
+  const locationKey = useRef(location.key);
+  useLayoutEffect(() => {
+    if (locationKey.current !== location.key) {
+      locationKey.current = location.key;
+      clearTimeout(debounce.current);
+    }
+  }, [location.key]);
 
   const commit = useCallback(
     (next: GuideIndexFilters, { replace }: { replace: boolean }) => {
@@ -134,7 +153,9 @@ export function GuideIndexPage() {
         setSearchText(text);
         clearTimeout(debounce.current);
         if (isSearchTextTooLong(text)) return;
+        const scheduledAt = locationKey.current;
         debounce.current = setTimeout(() => {
+          if (locationKey.current !== scheduledAt) return;
           const current = latestFilters.current;
           // Starting a search pushes, so Back returns to the view before it; refining
           // the text (or clearing it) replaces, so each pause doesn't add an entry.
