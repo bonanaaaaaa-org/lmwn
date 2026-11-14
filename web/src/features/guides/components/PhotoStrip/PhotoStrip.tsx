@@ -4,15 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { ResponsiveImage } from "@/components/common/ResponsiveImage";
-import { photoAlt, photoSources } from "@/features/guides/lib/format";
+import { photoSources } from "@/features/guides/lib/photos";
 import type { Photo } from "@/features/guides/lib/types";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./PhotoStrip.module.css";
 
 export interface PhotoStripProps {
   photos: readonly Photo[];
-  /** Names the photos ("รูปที่ 1 จาก 3 ของ …"); absent for an Unavailable Restaurant. */
+  /** Names the photos (`m.restaurantCard_photoStrip_photo_alt()`); absent for an Unavailable Restaurant. */
   restaurantName?: string;
   /** `desktop`: 3 square photos in view. `phone`: 4:5 photos at 78% width, the next one peeking in. */
   layout?: "desktop" | "phone";
@@ -26,6 +27,13 @@ const SIZES = {
   desktop: "(min-width: 75rem) 22rem, 30vw",
   phone: "78vw",
 } as const;
+
+/** Photo `position` (from 1) of `total`, named by the Restaurant when it is known. */
+function photoAlt(position: number, total: number, restaurant?: string) {
+  return restaurant
+    ? m.restaurantCard_photoStrip_photo_alt({ position, total, restaurant })
+    : m.restaurantCard_photoStrip_photo_unnamedAlt({ position, total });
+}
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -80,7 +88,9 @@ export function PhotoStrip({
     });
   };
 
-  const label = restaurantName ? `รูปภาพของ ${restaurantName}` : "รูปภาพ";
+  const label = restaurantName
+    ? m.restaurantCard_photoStrip_ariaLabel({ restaurant: restaurantName })
+    : m.restaurantCard_photoStrip_unnamedAriaLabel();
 
   return (
     <div
@@ -116,7 +126,11 @@ export function PhotoStrip({
         <Button
           className={styles.PhotoStrip__Next}
           variant="ghost"
-          aria-label={atEnd ? "กลับไปรูปแรก" : "รูปถัดไป"}
+          aria-label={
+            atEnd
+              ? m.restaurantCard_photoStrip_next_atEndAriaLabel()
+              : m.restaurantCard_photoStrip_next_ariaLabel()
+          }
           onPress={page}
           testId={`${testId}/next`}
         >

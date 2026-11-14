@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
+import { sampleImageAlts } from "@/test-utils/fixtures/sampleContent";
+
 import { ResponsiveImage } from "./ResponsiveImage";
 
 const sources = [
@@ -12,13 +14,13 @@ describe("ResponsiveImage", () => {
     render(
       <ResponsiveImage
         sources={sources}
-        alt="คาเฟ่ลับ"
+        alt={sampleImageAlts.hiddenCafe}
         aspectRatio="16 / 9"
         sizes="50vw"
       />,
     );
 
-    const img = screen.getByRole("img", { name: "คาเฟ่ลับ" });
+    const img = screen.getByRole("img", { name: sampleImageAlts.hiddenCafe });
     expect(img).toHaveAttribute(
       "srcset",
       "http://images.test/cover-small.jpg 480w, http://images.test/cover-large.jpg 1200w",
@@ -31,26 +33,32 @@ describe("ResponsiveImage", () => {
     render(
       <ResponsiveImage
         sources={sources}
-        alt="ปก"
+        alt={sampleImageAlts.cover}
         aspectRatio="16 / 9"
         priority
       />,
     );
 
-    const img = screen.getByRole("img", { name: "ปก" });
+    const img = screen.getByRole("img", { name: sampleImageAlts.cover });
     expect(img).toHaveAttribute("loading", "eager");
     expect(img).toHaveAttribute("fetchpriority", "high");
   });
 
   it("swaps a failed image for a same-box placeholder that keeps the description", () => {
     const { container } = render(
-      <ResponsiveImage sources={sources} alt="คาเฟ่ลับ" aspectRatio="4 / 3" />,
+      <ResponsiveImage
+        sources={sources}
+        alt={sampleImageAlts.hiddenCafe}
+        aspectRatio="4 / 3"
+      />,
     );
 
-    fireEvent.error(screen.getByRole("img", { name: "คาเฟ่ลับ" }));
+    fireEvent.error(
+      screen.getByRole("img", { name: sampleImageAlts.hiddenCafe }),
+    );
 
     expect(container.querySelector("img")).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "คาเฟ่ลับ" })).toBe(
+    expect(screen.getByRole("img", { name: sampleImageAlts.hiddenCafe })).toBe(
       container.firstElementChild,
     );
     expect(
@@ -62,9 +70,13 @@ describe("ResponsiveImage", () => {
 
   it("treats an image that loads with no pixels (empty body) as failed", () => {
     const { container } = render(
-      <ResponsiveImage sources={sources} alt="คาเฟ่ลับ" aspectRatio="4 / 3" />,
+      <ResponsiveImage
+        sources={sources}
+        alt={sampleImageAlts.hiddenCafe}
+        aspectRatio="4 / 3"
+      />,
     );
-    const img = screen.getByRole("img", { name: "คาเฟ่ลับ" });
+    const img = screen.getByRole("img", { name: sampleImageAlts.hiddenCafe });
     Object.defineProperty(img, "naturalWidth", { value: 0 });
 
     fireEvent.load(img);
@@ -76,13 +88,15 @@ describe("ResponsiveImage", () => {
     const { container } = render(
       <ResponsiveImage
         sources={[{ url: "", width: 480 }]}
-        alt="ไม่มีรูป"
+        alt={sampleImageAlts.noImage}
         aspectRatio="1 / 1"
       />,
     );
 
     expect(container.querySelector("img")).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "ไม่มีรูป" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: sampleImageAlts.noImage }),
+    ).toBeInTheDocument();
   });
 
   it("hides a decorative placeholder from assistive tech", () => {
@@ -93,14 +107,18 @@ describe("ResponsiveImage", () => {
 
   it("tries again when given new sources after a failure", () => {
     const { container, rerender } = render(
-      <ResponsiveImage sources={sources} alt="รูป" aspectRatio="1 / 1" />,
+      <ResponsiveImage
+        sources={sources}
+        alt={sampleImageAlts.photo}
+        aspectRatio="1 / 1"
+      />,
     );
-    fireEvent.error(screen.getByRole("img", { name: "รูป" }));
+    fireEvent.error(screen.getByRole("img", { name: sampleImageAlts.photo }));
 
     rerender(
       <ResponsiveImage
         sources={[{ url: "http://images.test/other.jpg", width: 480 }]}
-        alt="รูป"
+        alt={sampleImageAlts.photo}
         aspectRatio="1 / 1"
       />,
     );

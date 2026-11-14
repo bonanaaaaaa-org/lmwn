@@ -176,7 +176,7 @@ Everything is **required** unless marked _Deferred_.
 - Server-side rendering and real Open Graph link previews (`socialTitle` is used for the tab title and share text only).
 - Pagination, and searching restaurants across Guides (deferred until there are enough Guides to need it).
 - A database, user accounts, and saved or favourite restaurants.
-- i18n (the UI is Thai only) and dark mode.
+- i18n beyond Thai: Thai only; no second locale or language switcher (UI copy still lives in one catalog behind an i18n layer). Dark mode.
 - Replacing, modifying or testing the provided Data Server.
 - LINE MAN or Wongnai branding.
 

@@ -198,7 +198,8 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Two columns on a 360px phone: tighter padding keeps "โทร 093 916 4541" on one line. */
+    /* Two columns on a 360px phone: tighter padding keeps the call label ("call" + a 10-digit
+       number) on one line. */
     & > a {
       gap: var(--space-50);
       padding-inline: var(--space-150);

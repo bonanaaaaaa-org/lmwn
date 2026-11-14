@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { m } from "@/paraglide/messages.js";
+
 import { NotFound } from "./NotFound";
 
 const meta = {
@@ -14,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 export const UnknownPage: Story = {};
 export const UnknownGuide: Story = {
   args: {
-    title: "ไม่พบไกด์นี้",
-    description: "ไกด์นี้อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง",
+    title: m.guide_notFound_title(),
+    description: m.guide_notFound_body(),
   },
 };

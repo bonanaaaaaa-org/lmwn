@@ -13,8 +13,10 @@ import {
 import "@/styles/globals.css";
 
 import { AppShell, guidePageTestIdFrom } from "@/components/layout/AppShell";
+import { appLocale } from "@/lib/locale";
 import { Providers } from "@/lib/Providers";
 import { useRouterHref } from "@/lib/routerHref";
+import { m } from "@/paraglide/messages.js";
 
 // Lets React Aria links pass React Router options (e.g. `replace`) via `routerOptions`.
 declare module "react-aria-components" {
@@ -25,11 +27,11 @@ declare module "react-aria-components" {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th">
+    <html lang={appLocale}>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Guide to Hidden Gems</title>
+        <title>{m.app_title()}</title>
         <Meta />
         <Links />
       </head>

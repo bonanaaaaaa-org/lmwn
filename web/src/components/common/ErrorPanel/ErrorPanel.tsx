@@ -2,13 +2,16 @@ import clsx from "clsx";
 
 import { Button } from "@/components/common/Button";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./ErrorPanel.module.css";
 
 export interface ErrorPanelProps {
+  /** Defaults to `m.errorPanel_title()`. */
   title?: string;
+  /** Defaults to `m.errorPanel_body()`. */
   description?: string;
-  /** Shows the "ลองใหม่" (try again) button. Typically TanStack Query's `refetch`. */
+  /** Shows the retry button (`m.errorPanel_retry_label()`). Typically TanStack Query's `refetch`. */
   onRetry?: () => void;
   /** While a retry is in flight the button shows as pending and ignores repeat presses. */
   isRetrying?: boolean;
@@ -26,8 +29,8 @@ export interface ErrorPanelProps {
 
 /** Tells the diner something failed to load, after automatic retries ran out, and offers a retry. */
 export function ErrorPanel({
-  title = "โหลดข้อมูลไม่สำเร็จ",
-  description = "เซิร์ฟเวอร์ไม่ตอบสนองในขณะนี้ ลองใหม่อีกครั้งในอีกสักครู่",
+  title,
+  description,
   onRetry,
   isRetrying = false,
   variant = "block",
@@ -45,8 +48,12 @@ export function ErrorPanel({
       role="alert"
     >
       <div className={styles.ErrorPanel__Text}>
-        <Heading className={styles.ErrorPanel__Title}>{title}</Heading>
-        <p className={styles.ErrorPanel__Description}>{description}</p>
+        <Heading className={styles.ErrorPanel__Title}>
+          {title ?? m.errorPanel_title()}
+        </Heading>
+        <p className={styles.ErrorPanel__Description}>
+          {description ?? m.errorPanel_body()}
+        </p>
       </div>
       {onRetry && (
         <Button
@@ -55,7 +62,9 @@ export function ErrorPanel({
           isPending={isRetrying}
           testId={`${testId}/retry`}
         >
-          {isRetrying ? "กำลังลองใหม่…" : "ลองใหม่"}
+          {isRetrying
+            ? m.errorPanel_retry_pendingLabel()
+            : m.errorPanel_retry_label()}
         </Button>
       )}
     </section>
