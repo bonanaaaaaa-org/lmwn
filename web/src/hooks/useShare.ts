@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 
 import { showToast } from "@/components/common/Toast";
 
@@ -64,20 +64,22 @@ export async function shareOrCopy(
   }
 }
 
+/** The page has one share sheet, so one share at a time across every share button. */
+let shareInFlight = false;
+
 /**
  * `share(target)`, safe to press repeatedly: while a share sheet is open (or a copy is in
- * flight), further presses are ignored instead of opening a second sheet, which browsers
- * reject with `InvalidStateError`.
+ * flight), presses on any share button are ignored instead of opening a second sheet, which
+ * browsers reject with `InvalidStateError`.
  */
 export function useShare(): (target: ShareTarget) => Promise<ShareOutcome> {
-  const inFlight = useRef(false);
   return useCallback(async (target: ShareTarget) => {
-    if (inFlight.current) return "busy";
-    inFlight.current = true;
+    if (shareInFlight) return "busy";
+    shareInFlight = true;
     try {
       return await shareOrCopy(target);
     } finally {
-      inFlight.current = false;
+      shareInFlight = false;
     }
   }, []);
 }

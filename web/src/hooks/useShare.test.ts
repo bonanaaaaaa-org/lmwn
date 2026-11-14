@@ -146,4 +146,25 @@ describe("useShare", () => {
     });
     expect(share).toHaveBeenCalledTimes(2);
   });
+
+  it("keeps one share sheet across share buttons", async () => {
+    let close: () => void = () => {};
+    const share = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          close = resolve;
+        }),
+    );
+    vi.stubGlobal("navigator", fakeNavigator({ share }));
+    const header = renderHook(() => useShare());
+    const card = renderHook(() => useShare());
+
+    await act(async () => {
+      const first = header.result.current(target);
+      await expect(card.result.current(target)).resolves.toBe("busy");
+      close();
+      await first;
+    });
+    expect(share).toHaveBeenCalledTimes(1);
+  });
 });

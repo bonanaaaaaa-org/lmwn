@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, http, HttpResponse } from "msw";
+import { MemoryRouter } from "react-router";
 
 import {
   GUIDE_ID,
@@ -20,8 +21,12 @@ function serveGuide(guide: Guide = makeGuide()) {
   server.use(http.get(guideUrl, () => HttpResponse.json(toGatewayJson(guide))));
 }
 
-function renderPage() {
-  return renderWithQueryClient(<GuidePage guideId={GUIDE_ID} />);
+function renderPage(hash = "") {
+  return renderWithQueryClient(
+    <MemoryRouter initialEntries={[`/guides/${GUIDE_ID}${hash}`]}>
+      <GuidePage guideId={GUIDE_ID} />
+    </MemoryRouter>,
+  );
 }
 
 describe("GuidePage", () => {
@@ -180,7 +185,7 @@ describe("GuidePage", () => {
   describe("sharing", () => {
     // jsdom has no scrollIntoView; the tests that need it install a mock.
     afterEach(() => {
-      window.history.replaceState(null, "", "/");
+      window.sessionStorage.clear();
       Reflect.deleteProperty(Element.prototype, "scrollIntoView");
     });
 
@@ -202,15 +207,11 @@ describe("GuidePage", () => {
       const guide = makeGuide();
       const target = guide.items[1];
       if (!target) throw new Error("fixture needs 2 items");
-      window.history.replaceState(
-        null,
-        "",
-        `/guides/${GUIDE_ID}#item-${target.id}`,
-      );
+
       const scrollIntoView = vi.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       serveGuide(guide);
-      renderPage();
+      renderPage(`#item-${target.id}`);
 
       await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
       const cards = screen.getAllByTestId("guide/restaurant-card");
@@ -220,11 +221,10 @@ describe("GuidePage", () => {
     });
 
     it("opens normally for an unknown #item-", async () => {
-      window.history.replaceState(null, "", `/guides/${GUIDE_ID}#item-nope`);
       const scrollIntoView = vi.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       serveGuide();
-      renderPage();
+      renderPage("#item-nope");
 
       await screen.findAllByTestId("guide/restaurant-card");
       expect(scrollIntoView).not.toHaveBeenCalled();

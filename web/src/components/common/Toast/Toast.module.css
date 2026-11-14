@@ -1,5 +1,5 @@
 @layer components {
-  /* Fixed to the bottom of the viewport; last in the shell, so it paints over the page. */
+  /* Fixed to the bottom of the viewport. React Aria portals it to the end of <body>, so it paints over the page. */
   .Toast__Region {
     position: fixed;
     right: var(--layout-gutter);

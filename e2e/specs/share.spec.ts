@@ -109,6 +109,30 @@ test.describe("Share - shared #item- link", () => {
     ).toMatch(/^0s(, 0s)*$/);
   });
 
+  test("coming Back to the Guide keeps the diner's place instead of jumping to the card again", async ({
+    page,
+    request,
+  }) => {
+    const item = lateItem(await fetchGuide(request));
+    await openGuide(page, `#item-${item.id}`);
+    const card = page.locator(`#item-${item.id}`);
+    await expect(card).toBeInViewport();
+    await expect(card).not.toHaveAttribute("data-highlighted", {
+      timeout: 5_000,
+    });
+
+    // Scroll back to the top and leave through a Tag on the Guide header.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByTestId("guide/guide-header/tag").first().click();
+    await expect(page).toHaveURL(/\/\?tag=/);
+    await page.goBack();
+
+    await expect(cards(page).first()).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1_000);
+    await expect(card).not.toBeInViewport();
+    await expect(page.locator("[data-highlighted]")).toHaveCount(0);
+  });
+
   test("an unknown #item- opens the Guide normally, at the top", async ({
     page,
   }) => {
@@ -141,6 +165,8 @@ test.describe("Share - copy-link fallback", () => {
     const toast = page.getByTestId("app/toast");
     await expect(toast).toHaveCount(1);
     await expect(toast).toContainText(`คัดลอกลิงก์ร้าน ${item.name} แล้ว`);
+    // Focus pauses the toast's 4 s timer (as hovering does), so the checks below can't race it.
+    await toast.focus();
     await screenshot(page, testInfo, "toast");
     await expectNoAxeViolations(page);
 
@@ -163,12 +189,22 @@ test.describe("Share - copy-link fallback", () => {
 
   test("sharing the Guide copies its link and confirms with a toast", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await withoutWebShare(page);
     await openGuide(page);
 
     // Beside the title on desktop; in the app header on a phone. Same test ID.
-    await page.getByTestId("guide/guide-header/share").click();
+    const share = page.getByTestId("guide/guide-header/share");
+    const inAppHeader = page
+      .getByTestId("app/header")
+      .getByTestId("guide/guide-header/share");
+    if (testInfo.project.name === "chromium-mobile") {
+      await expect(inAppHeader).toHaveAccessibleName("แชร์ไกด์");
+    } else {
+      await expect(inAppHeader).toHaveCount(0);
+      await expect(share).toHaveText("แชร์ไกด์");
+    }
+    await share.click();
 
     await expect(page.getByTestId("app/toast")).toContainText("คัดลอกลิงก์แล้ว");
     const link = await page.evaluate(() => navigator.clipboard.readText());
