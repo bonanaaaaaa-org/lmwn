@@ -40,7 +40,7 @@ variables {
   data_server_image = "asia-southeast1-docker.pkg.dev/lmwn-prod-df7136/lmwn/data-server:0123abc"
   web_domain        = "hidden-gems.bonanaaaaaa.dev"
   api_domain        = "api-hidden-gems.bonanaaaaaa.dev"
-  storybook_domain  = "storybook-lmwn.bonanaaaaaa.dev"
+  storybook_domain  = "storybook-hidden-gems.bonanaaaaaa.dev"
   dns_zone          = "bonanaaaaaa.dev"
 }
 
@@ -130,8 +130,8 @@ run "prod_keeps_the_domains_and_their_dns_records" {
       } == {
       web_a         = "hidden-gems.bonanaaaaaa.dev A 199.36.158.100"
       web_txt       = "hidden-gems.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136\""
-      storybook_a   = "storybook-lmwn.bonanaaaaaa.dev A 199.36.158.100"
-      storybook_txt = "storybook-lmwn.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136-storybook\""
+      storybook_a   = "storybook-hidden-gems.bonanaaaaaa.dev A 199.36.158.100"
+      storybook_txt = "storybook-hidden-gems.bonanaaaaaa.dev TXT \"hosting-site=lmwn-prod-df7136-storybook\""
       api_cname     = "api-hidden-gems.bonanaaaaaa.dev CNAME ghs.googlehosted.com"
     }
     error_message = "Hosting's A and hosting-site TXT on the web and Storybook domains, Cloud Run's CNAME on the API domain."
@@ -167,14 +167,14 @@ run "prod_serves_the_storybook_on_its_own_site_and_domain" {
   assert {
     condition = (
       google_firebase_hosting_custom_domain.storybook[0].site_id == "lmwn-prod-df7136-storybook" &&
-      google_firebase_hosting_custom_domain.storybook[0].custom_domain == "storybook-lmwn.bonanaaaaaa.dev" &&
+      google_firebase_hosting_custom_domain.storybook[0].custom_domain == "storybook-hidden-gems.bonanaaaaaa.dev" &&
       !google_firebase_hosting_custom_domain.storybook[0].wait_dns_verification
     )
     error_message = "the Storybook domain is a custom domain of the Storybook site, created without waiting for DNS."
   }
   assert {
     condition = (
-      output.storybook_url == "https://storybook-lmwn.bonanaaaaaa.dev" &&
+      output.storybook_url == "https://storybook-hidden-gems.bonanaaaaaa.dev" &&
       output.storybook_hosting_url == "https://lmwn-prod-df7136-storybook.web.app" &&
       output.storybook_site_id == "lmwn-prod-df7136-storybook"
     )
