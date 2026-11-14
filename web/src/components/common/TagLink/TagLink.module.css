@@ -17,8 +17,8 @@
     &[data-hovered],
     &[data-pressed] {
       border-color: var(--color-accent);
-      background: var(--color-accent-subtle);
-      color: var(--color-accent-strong);
+      background: var(--color-accent);
+      color: var(--color-text-on-accent);
     }
 
     &[data-focus-visible] {

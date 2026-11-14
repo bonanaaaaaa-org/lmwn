@@ -9,7 +9,7 @@
   }
 
   .NotFound__Code {
-    color: var(--color-accent);
+    color: var(--color-accent-text);
     font-size: var(--font-size-600);
     font-weight: var(--font-weight-bold);
     line-height: 1;

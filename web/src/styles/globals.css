@@ -16,44 +16,43 @@
 @import url("@fontsource/ibm-plex-sans-thai/latin-400.css");
 @import url("@fontsource/ibm-plex-sans-thai/thai-600.css");
 @import url("@fontsource/ibm-plex-sans-thai/latin-600.css");
-@import url("@fontsource/ibm-plex-sans-thai/thai-700.css");
-@import url("@fontsource/ibm-plex-sans-thai/latin-700.css");
 
 @layer base {
   :root {
     /*
-     * Colour, from the design canvas: warm neutrals on an off-white page, one terracotta
-     * accent. WCAG 2.2 contrast against --color-surface (#fff) / --color-background (#f6f5f2):
-     *   text 17.4 / 15.9 · text-muted 7.2 / 6.6 · text-subtle 11.3 / 10.4
-     *   accent 5.7 / 5.2 · accent-strong (focus ring, hover) 8.4 / 7.7
-     *   border-strong (control edges) 3.8 / 3.5 · placeholder-icon 3.6 / 3.3
-     *   text-on-accent on accent 5.7 · on-accent-subtle on accent-subtle 10.8
-     * The canvas draws control edges in #cfcbc2, but that is 1.6:1 and fails the 3:1
-     * non-text minimum, so controls use --color-border-strong instead.
+     * Colour, from the design canvas ("saffron and ink"): neutral greys, near-black text and
+     * one saffron accent. WCAG 2.2 contrast against --color-surface (#fff) / --color-background (#f5f5f4):
+     *   text 18.9 / 17.3 · text-muted 6.7 / 6.1 · text-secondary 10.9 on surface-sunken
+     *   accent-text 5.9 / 5.4 · accent-strong on accent-subtle 7.6
+     *   text-on-accent on accent 10.4 (on accent-hover 8.8) · focus 18.9 / 17.3
+     *   border-strong (control edges) 3.5 / 3.2 · success on success-subtle 5.6
+     * Saffron (--color-accent) is about 1.8:1 on white, so it is a fill only, always with
+     * --color-text-on-accent on top. Accent-coloured text uses --color-accent-text.
      * --color-border is decorative only (dividers, card edges), never the only cue.
      */
-    --color-text: #1c1a17;
-    --color-text-muted: #5b574f;
-    --color-text-subtle: #3d3a34;
-    --color-background: #f6f5f2;
+    --color-text: #111;
+    --color-text-muted: #5c5c5c;
+    --color-text-secondary: #333;
+    --color-background: #f5f5f4;
     --color-surface: #fff;
-    --color-surface-subtle: #f6f5f2;
-    --color-surface-sunken: #efede8;
-    --color-border: #e3e0d9;
-    --color-border-strong: #8c8177;
-    --color-accent: #b4410f;
-    --color-accent-strong: #8a300a;
-    --color-accent-subtle: #fbeee6;
-    --color-on-accent-subtle: #5e2306;
-    --color-text-on-accent: #fff;
-    --color-inverse: #1c1a17;
-    --color-text-on-inverse: #fff;
+    --color-surface-subtle: #f5f5f4;
+    --color-surface-sunken: #eeeeec;
+    --color-border: #e4e4e2;
+    --color-border-strong: #8a8a87;
+    --color-accent: #f2b705;
+    --color-accent-hover: #e0a800;
+    --color-accent-text: #8a5a00;
+    --color-accent-strong: #6b4600;
+    --color-accent-subtle: #fdf3d3;
+    --color-text-on-accent: #111;
+    --color-success: #1f6b3a;
+    --color-success-subtle: #e3f1e7;
     --color-danger: #a8281f;
     --color-danger-subtle: #fdf0ee;
-    --color-focus: var(--color-accent-strong);
-    --color-skeleton: #eceae5;
-    --color-placeholder: #eceae5;
-    --color-placeholder-icon: #8c877d;
+    --color-focus: #111;
+    --color-skeleton: #ebebe9;
+    --color-placeholder: #ebebe9;
+    --color-placeholder-icon: #8a8a87;
 
     /* Spacing: a 0.25rem (4px) base scale. */
     --space-50: 0.25rem;
@@ -73,10 +72,13 @@
     --font-size-300: 1.125rem;
     --font-size-400: 1.25rem;
     --font-size-500: clamp(1.375rem, 1.2rem + 0.8vw, 1.625rem);
-    --font-size-600: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+    --font-size-600: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+
+    /* Page titles (the Guide Index hero, the Guide title); section headings use 600. */
+    --font-size-700: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
     --font-weight-regular: 400;
     --font-weight-semibold: 600;
-    --font-weight-bold: 700;
+    --font-weight-bold: 600;
 
     /* Thai stacks tone marks above and vowels below, so it needs roomier leading. */
     --line-height-tight: 1.35;

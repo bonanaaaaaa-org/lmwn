@@ -23,7 +23,7 @@
 
       &[data-hovered],
       &[data-pressed] {
-        background: var(--color-accent-strong);
+        background: var(--color-accent-hover);
       }
     }
 

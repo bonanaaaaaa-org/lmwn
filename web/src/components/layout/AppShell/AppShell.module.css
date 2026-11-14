@@ -63,14 +63,14 @@
     flex: none;
     width: 1.75rem;
     height: 1.75rem;
-    fill: none;
-    stroke: var(--color-accent);
+    fill: var(--color-accent);
+    stroke: var(--color-text);
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1.8;
+    stroke-width: 1.5;
 
     [data-hovered] > & {
-      stroke: var(--color-accent-strong);
+      fill: var(--color-accent-hover);
     }
   }
 
