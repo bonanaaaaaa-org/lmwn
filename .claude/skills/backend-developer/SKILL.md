@@ -96,16 +96,16 @@ Dependencies point inward. `tests/test_architecture.py` enforces the domain and 
       async def get_guide_item(self, item_id: str) -> GuideItem: ...
   ```
 
-- **Application errors** (`app/application/errors.py`): `GuideNotFound`, `RestaurantNotFound`, `SourceUnavailable`, `SourceTimeout`, `InvalidSourceData`. Outbound adapters raise them; the inbound adapter maps them to HTTP.
+- **Application errors** (`app/application/errors.py`): `SourceError` and its subclasses: `NotFound` (`GuideNotFound`, `GuideItemNotFound`, `RestaurantNotFound`), `SourceUnavailable`, `SourceTimeout`, `InvalidSourceData`. Outbound adapters raise them; the inbound adapter maps them to HTTP.
 - **Use cases** (`app/application/<use_case>.py`): one module per use case, built by a factory that takes its ports as keyword arguments and returns a callable. The type alias documents behavior and errors.
 
   ```python
   type GetGuideDetail = Callable[[str], Awaitable[GuideDetail]]
   """Returns the Guide with each item's Restaurant, in guide order.
 
-  A failing item or restaurant degrades to an unavailable entry instead of
-  failing the guide. Raises GuideNotFound, or a Source* error when the guide
-  itself cannot be read.
+  A failing Restaurant becomes an Unavailable Restaurant instead of failing the
+  Guide. A failing Guide or Guide Item fails the call: GuideNotFound, or a Source*
+  error (a Guide Item the source lacks is InvalidSourceData, not a missing Guide).
   """
 
 
@@ -128,23 +128,23 @@ Dependencies point inward. `tests/test_architecture.py` enforces the domain and 
 
   | Application error | HTTP response |
   |---|---|
-  | `GuideNotFound` / `RestaurantNotFound` | 404 |
+  | `NotFound` (in practice `GuideNotFound`) | 404 |
   | `SourceTimeout` | 504 |
-  | `SourceUnavailable` | 503 |
+  | `SourceUnavailable` | 502 |
   | `InvalidSourceData` | 502 |
 
-  Error bodies are `{"detail": "<safe message>"}` — never upstream URLs, stack traces or exception text.
+  This follows the spec's gateway contract: upstream timeout → 504, upstream server error or malformed body → 502. Error bodies are `{"detail": "<safe message>"}`, a fixed string per error type — never upstream URLs, stack traces or exception text.
 
 ### Outbound adapter: data server (`app/adapters/outbound/data_server/`)
 
 - One adapter per port: `guide_client.py` implements `GuideSource`, `restaurant_client.py` implements `RestaurantSource`. Construct them with a factory taking the shared `httpx.AsyncClient` and base URL: `create_guide_source(client, base_url) -> GuideSource`.
 - `payloads.py` holds Pydantic models mirroring the upstream contract exactly as delivered (camelCase, optional `branch`/`line`/`instagram`/`facebook`, `rating` 0–5, `day` 1–7, `HH:MM` times). Validate with `Model.model_validate(response.json())`, then convert to domain values.
-- Translate every failure into an application error: HTTP 404 → `*NotFound`; `httpx.TimeoutException` → `SourceTimeout`; other `httpx.TransportError` / 5xx → `SourceUnavailable`; `pydantic.ValidationError` → `InvalidSourceData`. Log the upstream status and id at WARNING, without response bodies.
+- Translate every failure into an application error: HTTP 404 or a `null` body → `*NotFound`; `httpx.TimeoutException` → `SourceTimeout`; other `httpx.RequestError` (transport and decoding errors) / non-200 → `SourceUnavailable`; `pydantic.ValidationError` or a `DomainError` while building domain values → `InvalidSourceData`. Percent-encode IDs from upstream before putting them in a URL. Log the upstream status and id at WARNING, without response bodies.
 
 ### Composition root (`app/composition.py`) and entry point (`app/main.py`)
 
 - `composition.py` is the only module that knows which adapter implements which port: settings + shared `httpx.AsyncClient` → outbound adapters → use cases (e.g. a `UseCases` dataclass).
-- `main.py` builds the FastAPI app: lifespan creates the shared client and the use cases through `composition.py` and stores them on `app.state`; registers CORS (web origin, `GET` only), exception handlers and routers (feature routers under `prefix="/api"`, `/health` at the root).
+- `main.py` builds the FastAPI app: lifespan creates the shared client and the use cases through `composition.py` and stores them on `app.state`; registers CORS (web origin, `GET` only), exception handlers and routers (all at the root, matching the spec's paths: `/guides`, `/guides/{guideId}`, `/health`).
 - Tests swap the composition by overriding the `dependencies.py` providers with use cases built over in-memory fakes.
 
 ### Adding a feature
@@ -188,7 +188,7 @@ api-gateway/
 │   │   ├── restaurant.py             # Restaurant, WorkingHours, opening-hours rules
 │   │   └── errors.py                 # DomainError
 │   ├── application/
-│   │   ├── errors.py                 # GuideNotFound, SourceUnavailable, SourceTimeout, InvalidSourceData
+│   │   ├── errors.py                 # SourceError: *NotFound, SourceUnavailable, SourceTimeout, InvalidSourceData
 │   │   ├── list_guides.py            # create_list_guides(*, guide_source)
 │   │   ├── get_guide_detail.py       # create_get_guide_detail(*, guide_source, restaurant_source)
 │   │   └── ports/
@@ -197,7 +197,7 @@ api-gateway/
 │   └── adapters/
 │       ├── inbound/http/
 │       │   ├── router_health.py      # GET /health
-│       │   ├── router_guides.py      # GET /api/guides, GET /api/guides/{guide_id}
+│       │   ├── router_guides.py      # GET /guides, GET /guides/{guideId}
 │       │   ├── schemas.py            # Pydantic response models
 │       │   ├── errors.py             # Application error → HTTP mapping
 │       │   └── dependencies.py       # Depends providers for use cases
@@ -337,7 +337,7 @@ When modifying any endpoint (adding, changing, or removing behavior), update `te
 | Domain | `tests/domain/` | most | value invariants, opening-hours rules, ordering |
 | Use cases | `tests/application/` | many | orchestration, partial failure, error propagation — over fakes |
 | Outbound adapters | `tests/adapters/outbound/` | per adapter | payload validation, 404/timeout/5xx/malformed → application errors (respx) |
-| Inbound HTTP | `tests/adapters/inbound/` | per endpoint | status codes, camelCase shape, field stripping, 422 validation, error mapping |
+| Inbound HTTP | `tests/adapters/inbound/` | per endpoint | status codes, camelCase shape, field stripping, input validation (non-UUID id → 404, `q` too long → 422), error mapping |
 
 `qa-engineer` owns the full in-process contract suite (HTTP in, respx out) and browser journeys; you own the layers above.
 

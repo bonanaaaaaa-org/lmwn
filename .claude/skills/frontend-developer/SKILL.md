@@ -280,7 +280,7 @@ export const guideKeys = {
 
   // lib/guidesApi.ts
   export const guidesApi = {
-    get: (id: string, signal?: AbortSignal) => fetchJson(`/api/guides/${id}`, guideSchema, { signal }),
+    get: (id: string, signal?: AbortSignal) => fetchJson(`/guides/${id}`, guideSchema, { signal }),
   };
 
   // hooks/useGuide.ts
