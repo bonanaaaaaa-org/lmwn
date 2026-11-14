@@ -124,12 +124,20 @@ Everything is **required** unless marked _Deferred_.
 - **Given** an Unavailable Restaurant, **then** its card keeps the write-up and photos and says "ไม่สามารถโหลดข้อมูลร้านได้" (couldn't load restaurant details).
 - **Given** an image fails or is empty, **then** a placeholder of the same size replaces it, and the layout doesn't move.
 
+### Theme (dark mode)
+
+- **Given** the system is set to dark **and** no theme was chosen, **then** the app renders dark from the first paint, with no light flash on load or reload; likewise for light.
+- **When** a diner picks ตามระบบ (system), สว่าง (light) or มืด (dark) from the icon-only theme toggle in the header, **then** it applies at once and is remembered on this device across reloads. A saved choice beats the system setting; "system" follows system changes live.
+- **Then** the toggle shows the current choice as a monitor, sun or moon icon, its accessible name and tooltip say the current theme, and it works with mouse, touch and keyboard.
+- **Given** storage is unavailable, **then** the app follows the system.
+- **Then** photos and covers render as served in both themes, and the lightbox stays dark.
+
 ### Accessibility
 
-- **Then** text and controls meet WCAG 2.2 AA contrast. Every interactive element can be reached by keyboard and has a visible focus ring.
+- **Then** text and controls meet WCAG 2.2 AA contrast in both themes. Every interactive element can be reached by keyboard and has a visible focus ring.
 - **Given** `prefers-reduced-motion`, **then** smooth scrolling, the share highlight animation and lightbox transitions are turned off.
 - **Then** the cover image's alt text is the Guide title, and photos are described as "รูปที่ n จาก m ของ {Restaurant}" (photo n of m of {Restaurant}).
-- **Given** an automated axe scan, **when** it runs on the Guide Index and a Guide page at desktop and phone sizes, **then** it reports zero violations (WCAG 2.2 A and AA rules) in each of these states:
+- **Given** an automated axe scan, **when** it runs on the Guide Index and a Guide page at desktop and phone sizes, **then** it reports zero violations (WCAG 2.2 A and AA rules) in each of these states (default, filtered and lightbox open in the dark theme too):
   - default
   - search or filters applied
   - empty results
@@ -168,15 +176,17 @@ Everything is **required** unless marked _Deferred_.
 | Web behaviour | Guide Index search, Guide page rendering, filters, Open Now (including past midnight and Thailand time), and every failure state have unit tests | Vitest + Testing Library + MSW |
 | Component catalogue | Every component has a Storybook story | `pnpm build-storybook` in CI |
 | Accessibility (pages) | Zero axe violations, of any impact level, against the WCAG 2.2 A and AA rules, in every state listed under Accessibility | axe scans in Playwright e2e, desktop and phone |
-| Accessibility (components) | Zero axe violations in every Storybook story | Storybook a11y addon set to fail on violations, run in CI |
-| Lighthouse | 100 in Performance, Accessibility, Best Practices and SEO, on both the Guide Index and a Guide page, with both mobile and desktop presets, except mobile Performance: 90 or more (median of 5 runs) | `pnpm lighthouse`: Lighthouse against the production build (`pnpm build` + preview) with the full stack running |
+| Accessibility (components) | Zero axe violations in every Storybook story, in the light and dark themes | Storybook a11y addon set to fail on violations, run in CI |
+| Lighthouse | 100 in Performance, Accessibility, Best Practices and SEO, on both the Guide Index and a Guide page, with both mobile and desktop presets, in both themes, except mobile Performance: 90 or more (median of 5 runs) | `pnpm lighthouse`: Lighthouse against the production build (`pnpm build` + preview) with the full stack running |
 
 ## Non-goals
 
 - Server-side rendering and real Open Graph link previews (`socialTitle` is used for the tab title and share text only).
 - Pagination, and searching restaurants across Guides (deferred until there are enough Guides to need it).
-- A database, user accounts, and saved or favourite restaurants.
-- i18n beyond Thai: Thai only; no second locale or language switcher (UI copy still lives in one catalog behind an i18n layer). Dark mode.
+- A database, user accounts, and saved or favourite restaurants. The PWA's offline copy of Guides already opened (#43) is a cache, not a saved list: the diner can't choose what it keeps.
+- For the PWA: push notifications, background sync, app-store packaging (TWA), and offline access to Guides never opened.
+- i18n beyond Thai: Thai only; no second locale or language switcher (UI copy still lives in one catalog behind an i18n layer).
+- Per-Guide or per-photo theming, high-contrast themes, and syncing the theme choice across devices.
 - Replacing, modifying or testing the provided Data Server.
 - LINE MAN or Wongnai branding.
 

@@ -22,9 +22,9 @@
     max-width: min(100%, 30rem);
     padding: var(--space-100) var(--space-100) var(--space-100) var(--space-200);
     border-radius: var(--radius-300);
-    background: var(--color-text);
-    box-shadow: 0 0.5rem 1.5rem rgb(17 17 17 / 25%);
-    color: var(--color-surface);
+    background: var(--color-surface-inverse);
+    box-shadow: var(--shadow-400);
+    color: var(--color-text-inverse);
     font-size: var(--font-size-200);
     line-height: var(--line-height-tight);
     pointer-events: auto;
@@ -54,7 +54,31 @@
     color: var(--color-accent);
 
     [data-tone="error"] & {
-      color: var(--color-danger-subtle);
+      color: var(--color-danger-inverse);
+    }
+  }
+
+  /* Saffron fill under ink text, like a primary button, sized to the pill. */
+  .Toast__Action {
+    flex: none;
+    min-height: var(--control-height-compact);
+    padding: 0 var(--space-200);
+    border: 0;
+    border-radius: var(--radius-200);
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+
+    &[data-hovered],
+    &[data-pressed] {
+      background: var(--color-accent-hover);
+    }
+
+    &[data-focus-visible] {
+      outline: 0.125rem solid var(--color-focus-inverse);
+      outline-offset: 0.125rem;
     }
   }
 
@@ -69,16 +93,16 @@
     border: 0;
     border-radius: var(--radius-200);
     background: transparent;
-    color: var(--color-surface);
+    color: var(--color-text-inverse);
     cursor: pointer;
 
     &[data-hovered],
     &[data-pressed] {
-      background: rgb(255 255 255 / 14%);
+      background: var(--color-overlay);
     }
 
     &[data-focus-visible] {
-      outline: 0.125rem solid var(--color-surface);
+      outline: 0.125rem solid var(--color-focus-inverse);
       outline-offset: -0.125rem;
     }
   }

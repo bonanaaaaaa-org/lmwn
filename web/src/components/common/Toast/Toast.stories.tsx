@@ -58,6 +58,21 @@ export const CopyFailed: Story = {
   },
 };
 
+/** A new deploy is ready (#43): the toast stays until the diner updates or closes it. */
+export const UpdateReady: Story = {
+  args: {
+    queue: queueWith({
+      message: m.app_updateToast_body(),
+      action: { label: m.app_updateToast_label(), onAction: () => {} },
+    }),
+  },
+};
+
+export const UpdateReadyPhone: Story = {
+  args: UpdateReady.args,
+  globals: { viewport: { value: "iphone14", isRotated: false } },
+};
+
 export const Phone: Story = {
   args: {
     queue: queueWith({
