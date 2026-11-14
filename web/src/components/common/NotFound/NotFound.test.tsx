@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
+import { TestIdScope } from "@/lib/testIds";
+
 import { NotFound } from "./NotFound";
 
 describe("NotFound", () => {
@@ -15,7 +17,20 @@ describe("NotFound", () => {
     render(<NotFound />);
 
     expect(
-      screen.getByRole("link", { name: "กลับไปหน้ารวมไกด์" }),
+      screen.getByRole("link", { name: "กลับไปหน้าไกด์ทั้งหมด" }),
     ).toHaveAttribute("href", "/");
+  });
+
+  it("scopes the back link's test ID under the page", () => {
+    render(
+      <TestIdScope name="unknown">
+        <NotFound />
+      </TestIdScope>,
+    );
+
+    expect(screen.getByTestId("unknown/not-found/back-link")).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 });

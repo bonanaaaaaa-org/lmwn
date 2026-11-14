@@ -7,9 +7,9 @@
     min-height: 2.75rem;
     padding: var(--space-100) var(--space-300);
     border: 1px solid transparent;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-200);
     font: inherit;
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-tight);
     text-decoration: none;
     cursor: pointer;

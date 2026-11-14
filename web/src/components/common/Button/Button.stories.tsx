@@ -20,13 +20,13 @@ export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };
 
 export const AsLink: Story = {
-  render: () => <ButtonLink href="/">กลับไปหน้ารวมไกด์</ButtonLink>,
+  render: () => <ButtonLink href="/">กลับไปหน้าไกด์ทั้งหมด</ButtonLink>,
 };
 
 export const SecondaryLink: Story = {
   render: () => (
     <ButtonLink href="/" variant="secondary">
-      กลับไปหน้ารวมไกด์
+      กลับไปหน้าไกด์ทั้งหมด
     </ButtonLink>
   ),
 };

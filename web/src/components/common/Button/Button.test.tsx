@@ -32,10 +32,10 @@ describe("Button", () => {
 
 describe("ButtonLink", () => {
   it("renders a real link", () => {
-    render(<ButtonLink href="/">กลับไปหน้ารวมไกด์</ButtonLink>);
+    render(<ButtonLink href="/">กลับไปหน้าไกด์ทั้งหมด</ButtonLink>);
 
     expect(
-      screen.getByRole("link", { name: "กลับไปหน้ารวมไกด์" }),
+      screen.getByRole("link", { name: "กลับไปหน้าไกด์ทั้งหมด" }),
     ).toHaveAttribute("href", "/");
   });
 });

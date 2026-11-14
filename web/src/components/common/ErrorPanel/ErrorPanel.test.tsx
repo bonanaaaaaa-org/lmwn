@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { TestIdScope } from "@/lib/testIds";
+
 import { ErrorPanel } from "./ErrorPanel";
 
 describe("ErrorPanel", () => {
@@ -37,5 +39,25 @@ describe("ErrorPanel", () => {
     render(<ErrorPanel />);
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("scopes the retry button's test ID under the page", () => {
+    const { rerender } = render(
+      <TestIdScope name="guide">
+        <ErrorPanel onRetry={() => {}} />
+      </TestIdScope>,
+    );
+    expect(screen.getByTestId("guide/error-panel/retry")).toBe(
+      screen.getByRole("button", { name: "ลองใหม่" }),
+    );
+
+    rerender(
+      <TestIdScope name="guide-index">
+        <ErrorPanel variant="inline" onRetry={() => {}} />
+      </TestIdScope>,
+    );
+    expect(
+      screen.getByTestId("guide-index/inline-error/retry"),
+    ).toBeInTheDocument();
   });
 });

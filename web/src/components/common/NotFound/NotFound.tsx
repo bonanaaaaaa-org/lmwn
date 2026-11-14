@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import { ButtonLink } from "@/components/common/Button";
+import { useTestId } from "@/lib/testIds";
 
 import styles from "./NotFound.module.css";
 
@@ -17,6 +18,7 @@ export function NotFound({
   description = "ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกลบไปแล้ว",
   className,
 }: NotFoundProps) {
+  const testIdFor = useTestId("not-found");
   return (
     <section className={clsx(styles.NotFound__Root, className)}>
       <p className={styles.NotFound__Code} aria-hidden="true">
@@ -24,7 +26,9 @@ export function NotFound({
       </p>
       <h1 className={styles.NotFound__Title}>{title}</h1>
       <p className={styles.NotFound__Description}>{description}</p>
-      <ButtonLink href="/">กลับไปหน้ารวมไกด์</ButtonLink>
+      <ButtonLink href="/" data-testid={testIdFor("back-link")}>
+        กลับไปหน้าไกด์ทั้งหมด
+      </ButtonLink>
     </section>
   );
 }

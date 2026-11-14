@@ -135,6 +135,17 @@ ComponentName/
 - Anything interactive is built on **React Aria Components** (`Button`, `Link`, `ToggleButton`, `TagGroup`, `SearchField`, `Dialog`/`Modal`, `Menu`, ...) or, for custom markup, React Aria hooks (`useButton`, `useFocusRing`, ...). They handle keyboard, focus, press/hover and screen-reader semantics consistently across mouse, touch and keyboard
 - Style React Aria state through the data attributes it renders (`[data-hovered]`, `[data-pressed]`, `[data-focus-visible]`, `[data-selected]`, `[data-disabled]`) instead of `:hover`/`:focus`
 
+### Test IDs
+
+- Pattern: `{page}/{component}*/{element}`, every segment kebab-case. Examples: `app/header/logo`, `guide-index/guide-card/link`, `guide/restaurant-card/photo-strip/next`, `guide/error-panel/retry`
+  - `page`: the screen, set once by its route with `<TestIdScope name="guide">`. Pages: `app` (the shell, outside any route), `guide-index`, `guide`, `unknown` (catch-all 404)
+  - `component`: zero or more nested components. A component adds its own segment with `useTestId("restaurant-card")`, or wraps children in `<TestIdScope name="restaurant-card">` so nested components inherit it
+  - `element`: the smallest thing a person interacts with (button, link, input, select, toggle). Containers, text and images get no test ID: reach them by role or landmark
+- Build IDs only through `@/lib/testIds` (`useTestId(...)(element)`, or `testId(...)` outside React). Never write the string inline in a component; tests and Playwright use the literal string
+- Repeated elements (one per card or chip) share an ID; tell them apart by order or text
+- State is never part of an ID. Expose it through ARIA (`aria-pressed`, `aria-expanded`, `aria-current`) or `data-state` / `data-highlighted`
+- In tests, query by role and name first. Use `getByTestId` when there is no accessible name to rely on, or to pick one of many repeated elements
+
 ### Example components
 
 Static:

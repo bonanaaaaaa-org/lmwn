@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import { Button } from "@/components/common/Button";
+import { useTestId } from "@/lib/testIds";
 
 import styles from "./ErrorPanel.module.css";
 
@@ -24,7 +25,7 @@ export interface ErrorPanelProps {
 /** Tells the diner something failed to load, after automatic retries ran out, and offers a retry. */
 export function ErrorPanel({
   title = "โหลดข้อมูลไม่สำเร็จ",
-  description = "เกิดข้อผิดพลาดในการเชื่อมต่อ ลองใหม่อีกครั้ง",
+  description = "เซิร์ฟเวอร์ไม่ตอบสนองในขณะนี้ ลองใหม่อีกครั้งในอีกสักครู่",
   onRetry,
   isRetrying = false,
   variant = "block",
@@ -32,6 +33,9 @@ export function ErrorPanel({
   className,
 }: ErrorPanelProps) {
   const Heading = `h${headingLevel}` as const;
+  const testIdFor = useTestId(
+    variant === "inline" ? "inline-error" : "error-panel",
+  );
   return (
     <section
       className={clsx(styles.ErrorPanel__Root, className)}
@@ -47,6 +51,7 @@ export function ErrorPanel({
           variant={variant === "inline" ? "secondary" : "primary"}
           onPress={onRetry}
           isPending={isRetrying}
+          data-testid={testIdFor("retry")}
         >
           {isRetrying ? "กำลังลองใหม่…" : "ลองใหม่"}
         </Button>

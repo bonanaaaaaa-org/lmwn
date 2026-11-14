@@ -16,33 +16,44 @@
 @import url("@fontsource/ibm-plex-sans-thai/latin-400.css");
 @import url("@fontsource/ibm-plex-sans-thai/thai-600.css");
 @import url("@fontsource/ibm-plex-sans-thai/latin-600.css");
+@import url("@fontsource/ibm-plex-sans-thai/thai-700.css");
+@import url("@fontsource/ibm-plex-sans-thai/latin-700.css");
 
 @layer base {
   :root {
     /*
-     * Colour: warm neutrals with one warm accent (terracotta). Contrast against
-     * --color-surface (#fff) and --color-surface-subtle (#f8f5f1), WCAG 2.2:
-     *   text 17.3 / 15.9 · text-muted 7.9 / 7.2 · accent 5.7 / 5.2
-     *   accent-strong (focus ring) 8.1 / 7.5 · border-strong (controls) 3.8 / 3.5
-     *   text-on-accent on accent 5.7 · danger 7.0 / 6.5 (6.3 on danger-subtle)
+     * Colour, from the design canvas: warm neutrals on an off-white page, one terracotta
+     * accent. WCAG 2.2 contrast against --color-surface (#fff) / --color-background (#f6f5f2):
+     *   text 17.4 / 15.9 · text-muted 7.2 / 6.6 · text-subtle 11.3 / 10.4
+     *   accent 5.7 / 5.2 · accent-strong (focus ring, hover) 8.4 / 7.7
+     *   border-strong (control edges) 3.8 / 3.5 · placeholder-icon 3.6 / 3.3
+     *   text-on-accent on accent 5.7 · on-accent-subtle on accent-subtle 10.8
+     * The canvas draws control edges in #cfcbc2, but that is 1.6:1 and fails the 3:1
+     * non-text minimum, so controls use --color-border-strong instead.
      * --color-border is decorative only (dividers, card edges), never the only cue.
      */
-    --color-text: #1f1a15;
-    --color-text-muted: #5a5047;
+    --color-text: #1c1a17;
+    --color-text-muted: #5b574f;
+    --color-text-subtle: #3d3a34;
+    --color-background: #f6f5f2;
     --color-surface: #fff;
-    --color-surface-subtle: #f8f5f1;
-    --color-surface-sunken: #efe9e2;
-    --color-border: #e3dcd3;
+    --color-surface-subtle: #f6f5f2;
+    --color-surface-sunken: #efede8;
+    --color-border: #e3e0d9;
     --color-border-strong: #8c8177;
-    --color-accent: #b0451f;
-    --color-accent-strong: #8a3415;
-    --color-accent-subtle: #fbeee8;
+    --color-accent: #b4410f;
+    --color-accent-strong: #8a300a;
+    --color-accent-subtle: #fbeee6;
+    --color-on-accent-subtle: #5e2306;
     --color-text-on-accent: #fff;
+    --color-inverse: #1c1a17;
+    --color-text-on-inverse: #fff;
     --color-danger: #a8281f;
     --color-danger-subtle: #fdf0ee;
     --color-focus: var(--color-accent-strong);
-    --color-skeleton: #ebe4dc;
-    --color-placeholder: #efe9e2;
+    --color-skeleton: #eceae5;
+    --color-placeholder: #eceae5;
+    --color-placeholder-icon: #8c877d;
 
     /* Spacing: a 0.25rem (4px) base scale. */
     --space-50: 0.25rem;
@@ -62,16 +73,18 @@
     --font-size-300: 1.125rem;
     --font-size-400: 1.25rem;
     --font-size-500: clamp(1.375rem, 1.2rem + 0.8vw, 1.625rem);
-    --font-size-600: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+    --font-size-600: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
     --font-weight-regular: 400;
-    --font-weight-bold: 600;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
 
     /* Thai stacks tone marks above and vowels below, so it needs roomier leading. */
     --line-height-tight: 1.35;
     --line-height-base: 1.65;
     --radius-100: 0.25rem;
-    --radius-200: 0.5rem;
-    --radius-300: 0.75rem;
+    --radius-200: 0.75rem;
+    --radius-300: 1rem;
+    --radius-400: 1.25rem;
     --radius-pill: 62.5rem;
     --shadow-100: 0 0.0625rem 0.125rem rgb(31 26 21 / 8%);
     --shadow-200: 0 0.25rem 0.75rem rgb(31 26 21 / 10%);
@@ -81,11 +94,11 @@
     --duration-fast: 120ms;
     --duration-base: 200ms;
     --easing-standard: cubic-bezier(0.2, 0, 0, 1);
-    --layout-max-width: 72rem;
+    --layout-max-width: 75rem;
     --layout-gutter: var(--space-200);
 
     color: var(--color-text);
-    background: var(--color-surface);
+    background: var(--color-background);
     font-family: var(--font-family-base);
     font-size: var(--font-size-200);
     line-height: var(--line-height-base);
@@ -95,7 +108,7 @@
 
   @media (width >= 48rem) {
     :root {
-      --layout-gutter: var(--space-400);
+      --layout-gutter: 2.5rem;
     }
   }
 

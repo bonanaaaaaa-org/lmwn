@@ -13,12 +13,25 @@ describe("AppShell", () => {
 
     expect(
       within(screen.getByRole("banner")).getByRole("link", {
-        name: /Hidden Gems/,
+        name: "Guide to Hidden Gems",
       }),
     ).toHaveAttribute("href", "/");
     expect(
       within(screen.getByRole("main")).getByRole("heading", { level: 1 }),
     ).toHaveTextContent("ไกด์ทั้งหมด");
+  });
+
+  it("gives its links app-scoped test IDs", () => {
+    render(<AppShell>content</AppShell>);
+
+    expect(screen.getByTestId("app/header/logo")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("app/skip-link")).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(
+      "Guide to Hidden Gems",
+    );
   });
 
   it("offers a skip link to the main content as the first Tab stop", async () => {
