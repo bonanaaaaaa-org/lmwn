@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { m } from "@/paraglide/messages.js";
+import { guideIndexTags as t } from "@/test-utils/fixtures/guideIndex";
+
 import { FilterTagGroup } from "./FilterTag";
 
 function renderGroup(
@@ -9,8 +12,8 @@ function renderGroup(
   const onSelectionChange = vi.fn();
   render(
     <FilterTagGroup
-      aria-label="กรองตามแท็ก"
-      tags={["กาแฟ", "คาเฟ่", "ร้านอาหาร"]}
+      aria-label={m.guideIndex_tagFilter_title()}
+      tags={[t.coffee, t.cafe, t.restaurant]}
       selectedTags={[]}
       onSelectionChange={onSelectionChange}
       tagTestId="page/tag-filter/tag"
@@ -22,19 +25,19 @@ function renderGroup(
 
 describe("FilterTagGroup", () => {
   it("offers each Tag with a # and marks the selected ones", () => {
-    renderGroup({ selectedTags: ["คาเฟ่"] });
+    renderGroup({ selectedTags: [t.cafe] });
 
     const tags = screen.getAllByTestId("page/tag-filter/tag");
     expect(tags.map((tag) => tag.textContent)).toEqual([
-      "#กาแฟ",
-      "#คาเฟ่",
-      "#ร้านอาหาร",
+      `#${t.coffee}`,
+      `#${t.cafe}`,
+      `#${t.restaurant}`,
     ]);
-    expect(screen.getByRole("row", { name: "#คาเฟ่" })).toHaveAttribute(
+    expect(screen.getByRole("row", { name: `#${t.cafe}` })).toHaveAttribute(
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("row", { name: "#กาแฟ" })).toHaveAttribute(
+    expect(screen.getByRole("row", { name: `#${t.coffee}` })).toHaveAttribute(
       "aria-selected",
       "false",
     );
@@ -42,22 +45,22 @@ describe("FilterTagGroup", () => {
 
   it("adds a pressed Tag to the selection, keeping the existing order", async () => {
     const user = userEvent.setup();
-    const { onSelectionChange } = renderGroup({ selectedTags: ["ร้านอาหาร"] });
+    const { onSelectionChange } = renderGroup({ selectedTags: [t.restaurant] });
 
-    await user.click(screen.getByRole("row", { name: "#กาแฟ" }));
+    await user.click(screen.getByRole("row", { name: `#${t.coffee}` }));
 
-    expect(onSelectionChange).toHaveBeenCalledWith(["ร้านอาหาร", "กาแฟ"]);
+    expect(onSelectionChange).toHaveBeenCalledWith([t.restaurant, t.coffee]);
   });
 
   it("removes a selected Tag when pressed again", async () => {
     const user = userEvent.setup();
     const { onSelectionChange } = renderGroup({
-      selectedTags: ["กาแฟ", "คาเฟ่"],
+      selectedTags: [t.coffee, t.cafe],
     });
 
-    await user.click(screen.getByRole("row", { name: "#กาแฟ" }));
+    await user.click(screen.getByRole("row", { name: `#${t.coffee}` }));
 
-    expect(onSelectionChange).toHaveBeenCalledWith(["คาเฟ่"]);
+    expect(onSelectionChange).toHaveBeenCalledWith([t.cafe]);
   });
 
   it("toggles with the keyboard", async () => {
@@ -67,14 +70,14 @@ describe("FilterTagGroup", () => {
     await user.tab();
     await user.keyboard("{ArrowRight}{Enter}");
 
-    expect(onSelectionChange).toHaveBeenCalledWith(["คาเฟ่"]);
+    expect(onSelectionChange).toHaveBeenCalledWith([t.cafe]);
   });
 
   it("ignores disabled Tags", async () => {
     const user = userEvent.setup();
-    const { onSelectionChange } = renderGroup({ disabledTags: ["กาแฟ"] });
+    const { onSelectionChange } = renderGroup({ disabledTags: [t.coffee] });
 
-    await user.click(screen.getByRole("row", { name: "#กาแฟ" }));
+    await user.click(screen.getByRole("row", { name: `#${t.coffee}` }));
 
     expect(onSelectionChange).not.toHaveBeenCalled();
   });

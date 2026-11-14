@@ -1,9 +1,13 @@
 import { http, HttpResponse } from "msw";
 
 import { env } from "@/lib/env";
+import {
+  guideIndexSearches as q,
+  guideIndexTags as t,
+  guideList,
+} from "@/test-utils/fixtures/guideIndex";
 import { server } from "@/test-utils/server";
 
-import { guideList } from "./fixtures";
 import { guideIndexApi } from "./guideIndexApi";
 
 function captureRequests() {
@@ -29,11 +33,14 @@ describe("guideIndexApi.list", () => {
   it("sends q and one tag parameter per Tag", async () => {
     const urls = captureRequests();
 
-    await guideIndexApi.list({ q: " คาเฟ่ ", tags: ["กาแฟ", "One Bangkok"] });
+    await guideIndexApi.list({
+      q: ` ${q.cafe} `,
+      tags: [t.coffee, "One Bangkok"],
+    });
 
-    expect(urls[0]?.searchParams.get("q")).toBe("คาเฟ่");
+    expect(urls[0]?.searchParams.get("q")).toBe(q.cafe);
     expect(urls[0]?.searchParams.getAll("tag")).toEqual([
-      "กาแฟ",
+      t.coffee,
       "One Bangkok",
     ]);
   });

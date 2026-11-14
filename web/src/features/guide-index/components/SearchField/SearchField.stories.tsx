@@ -2,6 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
+import { MAX_SEARCH_LENGTH } from "@/features/guide-index/lib/filters";
+import { m } from "@/paraglide/messages.js";
+import { guideIndexSearches as q } from "@/test-utils/fixtures/guideIndex";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
+
 import { SearchField, type SearchFieldProps } from "./SearchField";
 
 function Controlled(args: SearchFieldProps) {
@@ -45,11 +50,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 /** With text: the clear button appears. */
-export const WithValue: Story = { args: { value: "คาเฟ่" } };
+export const WithValue: Story = { args: { value: q.cafe } };
 
 /** Focused: dark edge and the focus ring around the box. */
 export const Focus: Story = {
-  args: { value: "คาเฟ่" },
+  args: { value: q.cafe },
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("searchbox"));
   },
@@ -58,9 +63,11 @@ export const Focus: Story = {
 /** Over 100 characters: 2px danger edge and the reason under the box. */
 export const Invalid: Story = {
   args: {
-    value: "ก".repeat(101),
+    value: sampleThaiText.consonant.repeat(MAX_SEARCH_LENGTH + 1),
     isInvalid: true,
-    errorMessage: "คำค้นหายาวเกิน 100 ตัวอักษร",
+    errorMessage: m.guideIndex_search_tooLongMessage({
+      max: MAX_SEARCH_LENGTH,
+    }),
   },
 };
 
@@ -68,9 +75,11 @@ export const Invalid: Story = {
 export const Interactive: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    await userEvent.type(canvas.getByRole("searchbox"), "คาเฟ่{Enter}");
-    await expect(args.onSubmit).toHaveBeenCalledWith("คาเฟ่");
-    await userEvent.click(canvas.getByRole("button", { name: "ล้างคำค้นหา" }));
+    await userEvent.type(canvas.getByRole("searchbox"), `${q.cafe}{Enter}`);
+    await expect(args.onSubmit).toHaveBeenCalledWith(q.cafe);
+    await userEvent.click(
+      canvas.getByRole("button", { name: m.searchField_clear_ariaLabel() }),
+    );
     await expect(args.onClear).toHaveBeenCalled();
     await expect(canvas.getByRole("searchbox")).toHaveValue("");
   },

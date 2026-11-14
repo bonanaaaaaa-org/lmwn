@@ -1,5 +1,4 @@
-import { QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, http, HttpResponse } from "msw";
 import { RouterProvider as AriaRouterProvider } from "react-aria-components";
@@ -10,15 +9,20 @@ import {
   useNavigate,
 } from "react-router";
 
+import { MAX_SEARCH_LENGTH } from "@/features/guide-index/lib/filters";
+import type { GuideList } from "@/features/guide-index/lib/types";
+import { env } from "@/lib/env";
+import { m } from "@/paraglide/messages.js";
 import {
   cafeGuide,
+  guideIndexSearches as q,
+  guideIndexTags as t,
   guideList,
   listOf,
   restaurantGuide,
-} from "@/features/guide-index/lib/fixtures";
-import type { GuideList } from "@/features/guide-index/lib/types";
-import { env } from "@/lib/env";
-import { createTestQueryClient } from "@/test-utils/queryClient";
+} from "@/test-utils/fixtures/guideIndex";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
+import { renderWithProviders } from "@/test-utils/renderWithProviders";
 import { server } from "@/test-utils/server";
 
 import { GuideIndexPage } from "./GuideIndexPage";
@@ -84,11 +88,8 @@ function renderPage(url = "/") {
     ],
     { initialEntries: [url] },
   );
-  const queryClient = createTestQueryClient();
-  render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+  const { queryClient } = renderWithProviders(
+    <RouterProvider router={router} />,
   );
   const location = () => router.state.location;
   const params = () => new URLSearchParams(location().search);
@@ -100,7 +101,14 @@ const cardTitles = () =>
     .queryAllByTestId("guide-index/guide-card/link")
     .map((link) => link.textContent);
 
-const searchBox = () => screen.getByRole("searchbox", { name: "ค้นหาไกด์" });
+const searchBox = () =>
+  screen.getByRole("searchbox", { name: m.searchField_label() });
+
+/** The results count line, e.g. for 2 Guides. */
+const resultCount = (count: number) => m.guideIndex_resultCount_body({ count });
+
+const tooLongMessage = () =>
+  m.guideIndex_search_tooLongMessage({ max: MAX_SEARCH_LENGTH });
 
 /**
  * Replaces the search text in one change event (then presses Enter if asked), so a slow
@@ -140,9 +148,11 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     serveGuides();
     renderPage();
 
-    expect(screen.getByRole("status")).toHaveTextContent("กำลังโหลดไกด์…");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      m.guideIndex_skeleton_label(),
+    );
 
-    expect(await screen.findByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(2))).toBeInTheDocument();
     expect(cardTitles()).toEqual([cafeGuide.title, restaurantGuide.title]);
     expect(screen.getByRole("link", { name: cafeGuide.title })).toHaveAttribute(
       "href",
@@ -151,7 +161,7 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "หาร้านที่ใช่ จากไกด์ที่คัดมาแล้ว",
+        name: m.guideIndex_title(),
       }),
     ).toBeInTheDocument();
   });
@@ -165,7 +175,11 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
       within(filter)
         .getAllByRole("row")
         .map((row) => row.textContent),
-    ).toEqual(["#กาแฟ", "#คาเฟ่", "#กรุงเทพ", "#One", "#Bangkok", "#ร้านอาหาร"]);
+    ).toEqual(
+      [t.coffee, t.cafe, t.bangkok, t.one, t.bangkokLatin, t.restaurant].map(
+        (tag) => `#${tag}`,
+      ),
+    );
   });
 
   it("searches 300 ms after typing stops: starting a search pushes, refining replaces", async () => {
@@ -173,23 +187,23 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const requests = serveGuides();
     const { params, router } = renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
 
-    await user.type(searchBox(), "ร้านอาหาร");
+    await user.type(searchBox(), q.restaurant);
     act(() => vi.advanceTimersByTime(250));
     expect(params().get("q")).toBeNull();
 
     act(() => vi.advanceTimersByTime(50));
-    expect(params().get("q")).toBe("ร้านอาหาร");
+    expect(params().get("q")).toBe(q.restaurant);
     // The first commit of a search adds an entry, so Back returns to the unfiltered view.
     expect(router.state.historyAction).toBe("PUSH");
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
     // Only the finished text was sent, not one request per keystroke.
-    expect(searches(requests)).toEqual([null, "ร้านอาหาร"]);
+    expect(searches(requests)).toEqual([null, q.restaurant]);
 
-    await enterSearch(user, "คาเฟ่");
+    await enterSearch(user, q.cafe);
     act(() => vi.advanceTimersByTime(300));
-    expect(params().get("q")).toBe("คาเฟ่");
+    expect(params().get("q")).toBe(q.cafe);
     expect(router.state.historyAction).toBe("REPLACE");
   });
 
@@ -198,11 +212,11 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     serveGuides();
     const { params, router } = renderPage();
-    await screen.findByText("พบ 2 ไกด์");
-    await enterSearch(user, "คาเฟ่", { submit: true });
-    expect(params().get("q")).toBe("คาเฟ่");
+    await screen.findByText(resultCount(2));
+    await enterSearch(user, q.cafe, { submit: true });
+    expect(params().get("q")).toBe(q.cafe);
 
-    await enterSearch(user, "คาเฟ่ลับ");
+    await enterSearch(user, q.hiddenCafe);
     await act(() => router.navigate(-1));
     act(() => vi.advanceTimersByTime(300));
 
@@ -217,14 +231,14 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     serveGuides();
     const { params } = renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
 
     await enterSearch(user, "One");
     const card = screen.getAllByTestId("guide-index/guide-card")[0]!;
-    await user.click(within(card).getByRole("link", { name: "กรุงเทพ" }));
+    await user.click(within(card).getByRole("link", { name: t.bangkok }));
     act(() => vi.advanceTimersByTime(300));
 
-    expect(params().getAll("tag")).toEqual(["กรุงเทพ"]);
+    expect(params().getAll("tag")).toEqual([t.bangkok]);
     expect(params().get("q")).toBeNull();
     // The box shows the view it landed on, not text the results ignore.
     expect(searchBox()).toHaveValue("");
@@ -234,33 +248,34 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup();
     const requests = serveGuides();
     const { params, router } = renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
 
-    await enterSearch(user, "ราเมน", { submit: true });
+    await enterSearch(user, q.ramen, { submit: true });
 
-    expect(params().get("q")).toBe("ราเมน");
+    expect(params().get("q")).toBe(q.ramen);
     expect(router.state.historyAction).toBe("PUSH");
     expect(
-      await screen.findByRole("heading", { name: "ไม่พบไกด์ที่ตรงกับ “ราเมน”" }),
+      await screen.findByRole("heading", {
+        name: m.guideIndex_emptyState_searchTitle({ query: q.ramen }),
+      }),
     ).toBeInTheDocument();
-    expect(searches(requests)).toEqual([null, "ราเมน"]);
+    expect(searches(requests)).toEqual([null, q.ramen]);
 
     // The pending debounce was cancelled: nothing more after 300 ms.
     await new Promise((resolve) => setTimeout(resolve, 350));
-    expect(searches(requests)).toEqual([null, "ราเมน"]);
+    expect(searches(requests)).toEqual([null, q.ramen]);
   });
 
   it("restores the search and Tags from the URL, and follows Back", async () => {
     const user = userEvent.setup();
     serveGuides();
-    const { router } = renderPage("/?q=คาเฟ่&tag=ร้านอาหาร");
+    const { router } = renderPage(`/?q=${q.cafe}&tag=${t.restaurant}`);
 
-    expect(searchBox()).toHaveValue("คาเฟ่");
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
-    expect(screen.getByRole("row", { name: "#ร้านอาหาร" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    expect(searchBox()).toHaveValue(q.cafe);
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
+    expect(
+      screen.getByRole("row", { name: `#${t.restaurant}` }),
+    ).toHaveAttribute("aria-selected", "true");
 
     await user.clear(searchBox());
     await enterSearch(user, "One", { submit: true });
@@ -268,51 +283,51 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
 
     await act(() => router.navigate(-1));
 
-    expect(searchBox()).toHaveValue("คาเฟ่");
+    expect(searchBox()).toHaveValue(q.cafe);
   });
 
   it("requires every selected Tag, combined with the search text", async () => {
     const user = userEvent.setup();
     const requests = serveGuides();
-    const { params, router } = renderPage("/?q=คาเฟ่");
-    await screen.findByText("พบ 2 ไกด์");
+    const { params, router } = renderPage(`/?q=${q.cafe}`);
+    await screen.findByText(resultCount(2));
 
-    await user.click(screen.getByRole("row", { name: "#กาแฟ" }));
-    await user.click(screen.getByRole("row", { name: "#ร้านอาหาร" }));
+    await user.click(screen.getByRole("row", { name: `#${t.coffee}` }));
+    await user.click(screen.getByRole("row", { name: `#${t.restaurant}` }));
 
     expect(router.state.historyAction).toBe("PUSH");
-    expect(params().getAll("tag")).toEqual(["กาแฟ", "ร้านอาหาร"]);
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
+    expect(params().getAll("tag")).toEqual([t.coffee, t.restaurant]);
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
     const last = requests.at(-1);
-    expect(last?.searchParams.get("q")).toBe("คาเฟ่");
-    expect(last?.searchParams.getAll("tag")).toEqual(["กาแฟ", "ร้านอาหาร"]);
+    expect(last?.searchParams.get("q")).toBe(q.cafe);
+    expect(last?.searchParams.getAll("tag")).toEqual([t.coffee, t.restaurant]);
   });
 
   it("adds a card's Tag to the current filters when it is clicked", async () => {
     const user = userEvent.setup();
     serveGuides();
-    const { params } = renderPage("/?q=คาเฟ่");
-    await screen.findByText("พบ 2 ไกด์");
+    const { params } = renderPage(`/?q=${q.cafe}`);
+    await screen.findByText(resultCount(2));
 
     const card = screen.getAllByTestId("guide-index/guide-card")[1]!;
-    await user.click(within(card).getByRole("link", { name: "ร้านอาหาร" }));
+    await user.click(within(card).getByRole("link", { name: t.restaurant }));
 
-    expect(params().get("q")).toBe("คาเฟ่");
-    expect(params().getAll("tag")).toEqual(["ร้านอาหาร"]);
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
+    expect(params().get("q")).toBe(q.cafe);
+    expect(params().getAll("tag")).toEqual([t.restaurant]);
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
   });
 
-  it("clears the search and Tags with ล้างทั้งหมด", async () => {
+  it("clears the search and Tags with clear all", async () => {
     const user = userEvent.setup();
     serveGuides();
-    const { location } = renderPage("/?q=ร้านอาหาร&tag=กาแฟ");
-    await screen.findByText("พบ 1 ไกด์");
+    const { location } = renderPage(`/?q=${q.restaurant}&tag=${t.coffee}`);
+    await screen.findByText(resultCount(1));
 
     await user.click(screen.getByTestId("guide-index/clear-all"));
 
     expect(location().search).toBe("");
     expect(searchBox()).toHaveValue("");
-    expect(await screen.findByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(2))).toBeInTheDocument();
     expect(
       screen.queryByTestId("guide-index/clear-all"),
     ).not.toBeInTheDocument();
@@ -324,7 +339,7 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup();
     serveGuides();
     renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
     server.use(
       http.get(GUIDES_URL, async () => {
         await delay("infinite");
@@ -332,7 +347,7 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
       }),
     );
 
-    await enterSearch(user, "ร้านอาหาร", { submit: true });
+    await enterSearch(user, q.restaurant, { submit: true });
 
     expect(cardTitles()).toHaveLength(2);
     expect(screen.getByRole("list", { busy: true })).toBeInTheDocument();
@@ -344,7 +359,7 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     server.use(
       http.get(GUIDES_URL, async ({ request }) => {
         const url = new URL(request.url);
-        if (url.searchParams.get("q") === "คาเฟ่") {
+        if (url.searchParams.get("q") === q.cafe) {
           await new Promise<void>((resolve) => {
             releaseOld = resolve;
           });
@@ -354,46 +369,54 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
       }),
     );
     renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
 
-    await enterSearch(user, "คาเฟ่", { submit: true });
+    await enterSearch(user, q.cafe, { submit: true });
     await user.clear(searchBox());
-    await enterSearch(user, "ร้านอาหาร", { submit: true });
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
+    await enterSearch(user, q.restaurant, { submit: true });
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
 
     act(() => releaseOld());
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(screen.getByText("พบ 1 ไกด์")).toBeInTheDocument();
+    expect(screen.getByText(resultCount(1))).toBeInTheDocument();
     expect(cardTitles()).toEqual([restaurantGuide.title]);
   });
 
   it("shows an empty state with a way back to every Guide", async () => {
     const user = userEvent.setup();
     serveGuides();
-    const { location } = renderPage("/?q=ราเมน");
+    const { location } = renderPage(`/?q=${q.ramen}`);
 
     const empty = await screen.findByTestId("guide-index/empty-state");
     expect(
-      within(empty).getByRole("heading", { name: "ไม่พบไกด์ที่ตรงกับ “ราเมน”" }),
+      within(empty).getByRole("heading", {
+        name: m.guideIndex_emptyState_searchTitle({ query: q.ramen }),
+      }),
     ).toBeInTheDocument();
     expect(
-      within(empty).getByText("ลองใช้คำที่สั้นลง หรือเอาแท็กออกเพื่อดูไกด์ทั้งหมด"),
+      within(empty).getByText(m.guideIndex_emptyState_body()),
     ).toBeInTheDocument();
 
-    await user.click(within(empty).getByRole("button", { name: "ล้างการค้นหา" }));
+    await user.click(
+      within(empty).getByRole("button", {
+        name: m.guideIndex_emptyState_action_label(),
+      }),
+    );
     expect(location().search).toBe("");
-    expect(await screen.findByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(2))).toBeInTheDocument();
     expect(searchBox()).toHaveValue("");
     expect(searchBox()).toHaveFocus();
   });
 
   it("names the selected Tags when only Tags match nothing", async () => {
     server.use(http.get(GUIDES_URL, () => HttpResponse.json(listOf())));
-    renderPage("/?tag=ราเมน");
+    renderPage(`/?tag=${q.ramen}`);
 
     expect(
-      await screen.findByRole("heading", { name: "ไม่พบไกด์ที่มีแท็กที่เลือก" }),
+      await screen.findByRole("heading", {
+        name: m.guideIndex_emptyState_tagsTitle(),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -401,12 +424,12 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup();
     serveGuides();
     renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
     let failing = true;
     server.use(
       http.get(GUIDES_URL, ({ request }) => {
         const url = new URL(request.url);
-        if (failing && url.searchParams.get("q") === "คาเฟ่ลับ") {
+        if (failing && url.searchParams.get("q") === q.hiddenCafe) {
           return HttpResponse.json(
             { detail: "Upstream error" },
             { status: 502 },
@@ -416,19 +439,21 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
       }),
     );
 
-    await enterSearch(user, "คาเฟ่ลับ", { submit: true });
+    await enterSearch(user, q.hiddenCafe, { submit: true });
 
     const panel = await screen.findByTestId("guide-index/error-panel");
     expect(panel).toHaveTextContent(
-      "ค้นหา “คาเฟ่ลับ” ไม่สำเร็จ ผลที่แสดงอยู่เป็นผลก่อนหน้า",
+      m.guideIndex_errorPanel_searchBody({ query: q.hiddenCafe }),
     );
     expect(cardTitles()).toHaveLength(2);
-    expect(screen.getByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(screen.getByText(resultCount(2))).toBeInTheDocument();
 
     failing = false;
-    await user.click(within(panel).getByRole("button", { name: "ลองใหม่" }));
+    await user.click(
+      within(panel).getByRole("button", { name: m.errorPanel_retry_label() }),
+    );
 
-    expect(await screen.findByText("พบ 1 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(1))).toBeInTheDocument();
     expect(
       screen.queryByTestId("guide-index/error-panel"),
     ).not.toBeInTheDocument();
@@ -450,9 +475,11 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     expect(cardTitles()).toEqual([]);
 
     failing = false;
-    await user.click(within(panel).getByRole("button", { name: "ลองใหม่" }));
+    await user.click(
+      within(panel).getByRole("button", { name: m.errorPanel_retry_label() }),
+    );
 
-    expect(await screen.findByText("พบ 2 ไกด์")).toBeInTheDocument();
+    expect(await screen.findByText(resultCount(2))).toBeInTheDocument();
   });
 
   it("rejects search text over 100 characters without sending it", async () => {
@@ -460,15 +487,15 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const requests = serveGuides();
     const { params } = renderPage();
-    await screen.findByText("พบ 2 ไกด์");
+    await screen.findByText(resultCount(2));
 
     await user.click(searchBox());
-    await user.paste("ก".repeat(101));
+    await user.paste(sampleThaiText.consonant.repeat(MAX_SEARCH_LENGTH + 1));
     await user.keyboard("{Enter}");
     act(() => vi.advanceTimersByTime(500));
 
     expect(searchBox()).toHaveAttribute("aria-invalid", "true");
-    expect(searchBox()).toHaveAccessibleDescription("คำค้นหายาวเกิน 100 ตัวอักษร");
+    expect(searchBox()).toHaveAccessibleDescription(tooLongMessage());
     expect(params().get("q")).toBeNull();
     expect(searches(requests)).toEqual([null]);
     expect(cardTitles()).toHaveLength(2);

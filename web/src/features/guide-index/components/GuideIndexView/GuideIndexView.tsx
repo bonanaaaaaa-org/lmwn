@@ -9,14 +9,16 @@ import { SkeletonGroup } from "@/components/common/Skeleton";
 import { GuideCard } from "@/features/guide-index/components/GuideCard";
 import { SearchField } from "@/features/guide-index/components/SearchField";
 import { SkeletonCard } from "@/features/guide-index/components/SkeletonCard";
-import { photoSources } from "@/features/guides/lib/format";
 import {
   addTag,
   buildIndexHref,
+  MAX_SEARCH_LENGTH,
   normaliseSearchText,
   type GuideIndexFilters,
 } from "@/features/guide-index/lib/filters";
 import type { GuideSummary } from "@/features/guide-index/lib/types";
+import { photoSources } from "@/features/guides/lib/photos";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuideIndexView.module.css";
 
@@ -65,16 +67,16 @@ export interface GuideIndexViewProps {
 
 function emptyTitle({ q, tags }: GuideIndexFilters): string {
   const text = normaliseSearchText(q);
-  if (text) return `ไม่พบไกด์ที่ตรงกับ “${text}”`;
-  if (tags.length > 0) return "ไม่พบไกด์ที่มีแท็กที่เลือก";
-  return "ยังไม่มีไกด์";
+  if (text) return m.guideIndex_emptyState_searchTitle({ query: text });
+  if (tags.length > 0) return m.guideIndex_emptyState_tagsTitle();
+  return m.guideIndex_emptyState_title();
 }
 
 function failedSearchDescription({ q }: GuideIndexFilters): string {
   const text = normaliseSearchText(q);
   return text
-    ? `ค้นหา “${text}” ไม่สำเร็จ ผลที่แสดงอยู่เป็นผลก่อนหน้า`
-    : "กรองตามแท็กไม่สำเร็จ ผลที่แสดงอยู่เป็นผลก่อนหน้า";
+    ? m.guideIndex_errorPanel_searchBody({ query: text })
+    : m.guideIndex_errorPanel_tagsBody();
 }
 
 /**
@@ -111,11 +113,9 @@ export function GuideIndexView({
   return (
     <div className={styles.GuideIndexView__Root} data-testid={testId}>
       <section className={styles.GuideIndexView__Hero}>
-        <h1 className={styles.GuideIndexView__Title}>
-          หาร้านที่ใช่ จากไกด์ที่คัดมาแล้ว
-        </h1>
+        <h1 className={styles.GuideIndexView__Title}>{m.guideIndex_title()}</h1>
         <p className={styles.GuideIndexView__Lead}>
-          ไกด์ร้านอาหารและคาเฟ่ตามธีม ทั้งทริปเที่ยว เมนูกำลังฮิต หรือมื้อใหญ่กับแก๊งเพื่อน
+          {m.guideIndex_lead_body()}
         </p>
         <SearchField
           className={styles.GuideIndexView__Search}
@@ -124,7 +124,9 @@ export function GuideIndexView({
           onSubmit={onSearchSubmit}
           onClear={onSearchClear}
           isInvalid={isSearchTooLong}
-          errorMessage="คำค้นหายาวเกิน 100 ตัวอักษร"
+          errorMessage={m.guideIndex_search_tooLongMessage({
+            max: MAX_SEARCH_LENGTH,
+          })}
           inputRef={searchInputRef}
           parentTestId={testId}
         />
@@ -137,7 +139,7 @@ export function GuideIndexView({
           data-testid={`${testId}/tag-filter`}
         >
           <h2 id={tagsHeadingId} className={styles.GuideIndexView__TagHeading}>
-            กรองตามแท็ก
+            {m.guideIndex_tagFilter_title()}
           </h2>
           <FilterTagGroup
             aria-labelledby={tagsHeadingId}
@@ -159,11 +161,13 @@ export function GuideIndexView({
             id={resultsHeadingId}
             className={styles.GuideIndexView__ResultsHeading}
           >
-            ไกด์ทั้งหมด
+            {m.guideIndex_results_title()}
           </h2>
           <div className={styles.GuideIndexView__Summary}>
             <p className={styles.GuideIndexView__Count} aria-live="polite">
-              {results.status === "ready" ? `พบ ${results.total} ไกด์` : ""}
+              {results.status === "ready"
+                ? m.guideIndex_resultCount_body({ count: results.total })
+                : ""}
             </p>
             {hasFilters && (
               <Button
@@ -171,14 +175,14 @@ export function GuideIndexView({
                 onPress={clearAll}
                 testId={`${testId}/clear-all`}
               >
-                ล้างทั้งหมด
+                {m.guideIndex_clearAll_label()}
               </Button>
             )}
           </div>
         </div>
 
         {results.status === "loading" && (
-          <SkeletonGroup label="กำลังโหลดไกด์…">
+          <SkeletonGroup label={m.guideIndex_skeleton_label()}>
             <div className={styles.GuideIndexView__Grid}>
               {Array.from({ length: layout === "phone" ? 2 : 3 }, (_, i) => (
                 <SkeletonCard key={i} layout={layout} />
@@ -239,9 +243,11 @@ export function GuideIndexView({
             <EmptyState
               title={emptyTitle(filters)}
               description={
-                hasFilters ? "ลองใช้คำที่สั้นลง หรือเอาแท็กออกเพื่อดูไกด์ทั้งหมด" : undefined
+                hasFilters ? m.guideIndex_emptyState_body() : undefined
               }
-              actionLabel={hasFilters ? "ล้างการค้นหา" : undefined}
+              actionLabel={
+                hasFilters ? m.guideIndex_emptyState_action_label() : undefined
+              }
               onAction={clearAll}
               headingLevel={3}
               parentTestId={testId}

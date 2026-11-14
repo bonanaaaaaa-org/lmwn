@@ -1,36 +1,50 @@
 import { expect, type Page, type Request, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { format, message } from "#support/messages";
 
 /**
  * Guide Index (`/`), issue #15. Runs against the real Data Server sample data:
- * - "10 คาเฟ่ลับ One Bangkok!" (10 ร้าน), Tags กาแฟ คาเฟ่ กรุงเทพ One Bangkok
- * - "พาส่องพิกัดร้านดัง One Bangkok ทั้งคาเฟ่&ร้านอาหาร" (3 ร้าน), Tags กาแฟ คาเฟ่ ร้านอาหาร กรุงเทพ One Bangkok
+ * - "10 คาเฟ่ลับ One Bangkok!" (10 restaurants), Tags กาแฟ คาเฟ่ กรุงเทพ One Bangkok
+ * - "พาส่องพิกัดร้านดัง One Bangkok ทั้งคาเฟ่&ร้านอาหาร" (3 restaurants), Tags กาแฟ คาเฟ่ ร้านอาหาร กรุงเทพ One Bangkok
+ * UI copy comes from the web app's catalog (`#support/messages`); Guide titles, Tags and
+ * search text are sample data.
  */
 const CAFE_GUIDE = {
   title: "10 คาเฟ่ลับ One Bangkok!",
   description: "รวมคาเฟ่เด็ดที่ One Bangkok",
-  count: "10 ร้าน",
+  count: 10,
   tags: ["กาแฟ", "คาเฟ่", "กรุงเทพ"],
 };
-const FOOD_GUIDE_TITLE = "พาส่องพิกัดร้านดัง One Bangkok ทั้งคาเฟ่&ร้านอาหาร";
+const FOOD_GUIDE = {
+  title: "พาส่องพิกัดร้านดัง One Bangkok ทั้งคาเฟ่&ร้านอาหาร",
+  count: 3,
+};
 
-const HEADING = "หาร้านที่ใช่ จากไกด์ที่คัดมาแล้ว";
-const TOO_LONG = "คำค้นหายาวเกิน 100 ตัวอักษร";
+/** The gateway's search text limit, in characters. */
+const MAX_SEARCH_LENGTH = 100;
+const TOO_LONG = format("guideIndex_search_tooLongMessage", {
+  max: MAX_SEARCH_LENGTH,
+});
+const LOADING = message("guideIndex_skeleton_label");
 
 // The app retries a failed query twice with backoff (~1 s + 2 s) before showing an error.
 const AFTER_RETRIES = { timeout: 10_000 };
 
 const cards = (page: Page) => page.getByTestId("guide-index/guide-card");
 const searchbox = (page: Page) =>
-  page.getByRole("searchbox", { name: "ค้นหาไกด์" });
+  page.getByRole("searchbox", { name: message("searchField_label") });
 const resultCount = (page: Page, n: number) =>
-  page.getByText(`พบ ${n} ไกด์`, { exact: true });
+  page.getByText(format("guideIndex_resultCount_body", { count: n }), {
+    exact: true,
+  });
+const restaurantCount = (count: number) =>
+  format("guideCard_restaurantCount_body", { count });
 const cardWithTitle = (page: Page, title: string) =>
   cards(page).filter({
     has: page.getByRole("heading", { level: 3, name: title }),
   });
-/** A Tag in the "กรองตามแท็ก" filter (a React Aria TagGroup row, text "#<tag>"). */
+/** A Tag in the Tag filter (a React Aria TagGroup row, text "#<tag>"). */
 const filterTag = (page: Page, tag: string) =>
   page
     .getByTestId("guide-index/tag-filter")
@@ -46,7 +60,7 @@ const isSearchRequest = (url: URL) =>
 async function openIndex(page: Page, path = "/"): Promise<void> {
   await page.goto(path);
   await expect(
-    page.getByRole("heading", { level: 1, name: HEADING }),
+    page.getByRole("heading", { level: 1, name: message("guideIndex_title") }),
   ).toBeVisible();
 }
 
@@ -87,7 +101,7 @@ test.describe("Guide Index - default", () => {
     ).toBeVisible();
     await expect(card.getByText(CAFE_GUIDE.description)).toBeVisible();
     await expect(
-      card.getByText(CAFE_GUIDE.count, { exact: true }),
+      card.getByText(restaurantCount(CAFE_GUIDE.count), { exact: true }),
     ).toBeVisible();
     for (const tag of CAFE_GUIDE.tags) {
       await expect(
@@ -95,8 +109,10 @@ test.describe("Guide Index - default", () => {
       ).toBeVisible();
     }
 
-    const foodCard = cardWithTitle(page, FOOD_GUIDE_TITLE);
-    await expect(foodCard.getByText("3 ร้าน", { exact: true })).toBeVisible();
+    const foodCard = cardWithTitle(page, FOOD_GUIDE.title);
+    await expect(
+      foodCard.getByText(restaurantCount(FOOD_GUIDE.count), { exact: true }),
+    ).toBeVisible();
     await expect(
       foodCard.getByRole("link", { name: "ร้านอาหาร", exact: true }),
     ).toBeVisible();
@@ -131,14 +147,14 @@ test.describe("Guide Index - default", () => {
 
     await openIndex(page);
     await expect(
-      page.getByRole("status").filter({ hasText: "กำลังโหลดไกด์…" }),
+      page.getByRole("status").filter({ hasText: LOADING }),
     ).toBeVisible();
     await expect(cards(page)).toHaveCount(0);
 
     release();
     await expect(cards(page)).toHaveCount(2);
     await expect(
-      page.getByRole("status").filter({ hasText: "กำลังโหลดไกด์…" }),
+      page.getByRole("status").filter({ hasText: LOADING }),
     ).toHaveCount(0);
   });
 
@@ -192,7 +208,7 @@ test.describe("Guide Index - search", () => {
     await expect.poll(() => params(page).get("q")).toBe("ร้านอาหาร");
     await expect(cards(page)).toHaveCount(1);
     await expect(resultCount(page, 1)).toBeVisible();
-    await expect(cardWithTitle(page, FOOD_GUIDE_TITLE)).toBeVisible();
+    await expect(cardWithTitle(page, FOOD_GUIDE.title)).toBeVisible();
     // Starting the search pushes one entry; refining it replaces, not one per pause.
     expect(await historyLength(page)).toBe(lengthBefore + 1);
 
@@ -291,7 +307,7 @@ test.describe("Guide Index - Tag filter", () => {
     );
     await expect.poll(() => params(page).getAll("tag")).toEqual(["ร้านอาหาร"]);
     await expect(cards(page)).toHaveCount(1);
-    await expect(cardWithTitle(page, FOOD_GUIDE_TITLE)).toBeVisible();
+    await expect(cardWithTitle(page, FOOD_GUIDE.title)).toBeVisible();
     await expect(resultCount(page, 1)).toBeVisible();
   });
 
@@ -308,7 +324,7 @@ test.describe("Guide Index - Tag filter", () => {
       .poll(() => params(page).getAll("tag").sort())
       .toEqual(["กาแฟ", "ร้านอาหาร"].sort());
     await expect(cards(page)).toHaveCount(1);
-    await expect(cardWithTitle(page, FOOD_GUIDE_TITLE)).toBeVisible();
+    await expect(cardWithTitle(page, FOOD_GUIDE.title)).toBeVisible();
   });
 
   test("a Tag combines with the search text", async ({ page }) => {
@@ -332,7 +348,7 @@ test.describe("Guide Index - Tag filter", () => {
     await openIndex(page, `/?${new URLSearchParams({ q: "คาเฟ่" })}`);
     await expect(cards(page)).toHaveCount(2);
 
-    await cardWithTitle(page, FOOD_GUIDE_TITLE)
+    await cardWithTitle(page, FOOD_GUIDE.title)
       .getByRole("link", { name: "ร้านอาหาร", exact: true })
       .click();
 
@@ -350,7 +366,7 @@ test.describe("Guide Index - Tag filter", () => {
     await openIndex(page, `/?${new URLSearchParams({ tag: "ร้านอาหาร" })}`);
 
     await expect(cards(page)).toHaveCount(1);
-    await expect(cardWithTitle(page, FOOD_GUIDE_TITLE)).toBeVisible();
+    await expect(cardWithTitle(page, FOOD_GUIDE.title)).toBeVisible();
     await expect(resultCount(page, 1)).toBeVisible();
     await expect(filterTag(page, "ร้านอาหาร")).toHaveAttribute(
       "aria-selected",
@@ -369,15 +385,19 @@ test.describe("Guide Index - empty results", () => {
     const empty = page.getByTestId("guide-index/empty-state");
     await expect(empty).toBeVisible();
     await expect(
-      empty.getByRole("heading", { name: "ไม่พบไกด์ที่ตรงกับ “ราเมน”" }),
+      empty.getByRole("heading", {
+        name: format("guideIndex_emptyState_searchTitle", { query: "ราเมน" }),
+      }),
     ).toBeVisible();
     await expect(
-      empty.getByText("ลองใช้คำที่สั้นลง หรือเอาแท็กออกเพื่อดูไกด์ทั้งหมด"),
+      empty.getByText(message("guideIndex_emptyState_body")),
     ).toBeVisible();
     await expect(cards(page)).toHaveCount(0);
 
     const action = page.getByTestId("guide-index/empty-state/action");
-    await expect(action).toHaveText("ล้างการค้นหา");
+    await expect(action).toHaveText(
+      message("guideIndex_emptyState_action_label"),
+    );
     await action.click();
 
     await expect(cards(page)).toHaveCount(2);
@@ -416,7 +436,7 @@ test.describe("Guide Index - loading and failure", () => {
     const panel = page.getByTestId("guide-index/error-panel");
     await expect(panel).toBeVisible(AFTER_RETRIES);
     await expect(panel).toContainText(
-      "ค้นหา “ร้านอาหาร” ไม่สำเร็จ ผลที่แสดงอยู่เป็นผลก่อนหน้า",
+      format("guideIndex_errorPanel_searchBody", { query: "ร้านอาหาร" }),
     );
     // The first try plus 2 automatic retries.
     expect(failed).toHaveLength(3);
@@ -425,12 +445,12 @@ test.describe("Guide Index - loading and failure", () => {
 
     await page.unroute(isSearchRequest);
     const retry = page.getByTestId("guide-index/error-panel/retry");
-    await expect(retry).toHaveAccessibleName("ลองใหม่");
+    await expect(retry).toHaveAccessibleName(message("errorPanel_retry_label"));
     await retry.click();
 
     await expect(panel).toHaveCount(0);
     await expect(cards(page)).toHaveCount(1);
-    await expect(cardWithTitle(page, FOOD_GUIDE_TITLE)).toBeVisible();
+    await expect(cardWithTitle(page, FOOD_GUIDE.title)).toBeVisible();
     await expect(resultCount(page, 1)).toBeVisible();
   });
 
@@ -458,7 +478,7 @@ test.describe("Guide Index - loading and failure", () => {
       page.getByRole("list").filter({ has: cards(page) }),
     ).toHaveAttribute("aria-busy", "true");
     await expect(
-      page.getByRole("status").filter({ hasText: "กำลังโหลดไกด์…" }),
+      page.getByRole("status").filter({ hasText: LOADING }),
     ).toHaveCount(0);
 
     release();
@@ -480,7 +500,7 @@ test.describe("Guide Index - search text length", () => {
       if (isSearchRequest(new URL(request.url()))) searches.push(request.url());
     });
 
-    await search(page, "a".repeat(101));
+    await search(page, "a".repeat(MAX_SEARCH_LENGTH + 1));
 
     await expect(page.getByText(TOO_LONG)).toBeVisible();
     await expect(searchbox(page)).toHaveAttribute("aria-invalid", "true");
@@ -494,9 +514,11 @@ test.describe("Guide Index - search text length", () => {
   test("100 characters is allowed", async ({ page }) => {
     await openDefault(page);
 
-    await search(page, "a".repeat(100));
+    await search(page, "a".repeat(MAX_SEARCH_LENGTH));
 
-    await expect.poll(() => params(page).get("q")).toBe("a".repeat(100));
+    await expect
+      .poll(() => params(page).get("q"))
+      .toBe("a".repeat(MAX_SEARCH_LENGTH));
     await expect(page.getByTestId("guide-index/empty-state")).toBeVisible();
     await expect(page.getByText(TOO_LONG)).toHaveCount(0);
     await expect(searchbox(page)).not.toHaveAttribute("aria-invalid", "true");

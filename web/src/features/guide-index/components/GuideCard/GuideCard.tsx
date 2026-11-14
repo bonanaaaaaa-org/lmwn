@@ -10,6 +10,7 @@ import {
   tagHref as defaultTagHref,
 } from "@/components/common/TagLink";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuideCard.module.css";
 
@@ -77,7 +78,9 @@ export function GuideCard({
         priority={priority}
       />
       <div className={styles.GuideCard__Body}>
-        <p className={styles.GuideCard__Count}>{guide.count} ร้าน</p>
+        <p className={styles.GuideCard__Count}>
+          {m.guideCard_restaurantCount_body({ count: guide.count })}
+        </p>
         <h3 className={styles.GuideCard__Title}>
           <Link
             href={guide.href}

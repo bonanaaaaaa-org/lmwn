@@ -1,9 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
-import { guideList } from "@/features/guide-index/lib/fixtures";
-import { storyImage } from "@/features/guide-index/lib/storyImages";
+import { MAX_SEARCH_LENGTH } from "@/features/guide-index/lib/filters";
 import type { GuideSummary } from "@/features/guide-index/lib/types";
+import {
+  guideIndexSearches as q,
+  guideIndexTags as t,
+  guideList,
+  storyImage,
+} from "@/test-utils/fixtures/guideIndex";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
 
 import { GuideIndexView, type GuideIndexViewProps } from "./GuideIndexView";
 
@@ -18,7 +24,7 @@ const guides: GuideSummary[] = guideList.items.map((guide, index) => ({
 }));
 const [cafe, restaurant] = guides as [GuideSummary, GuideSummary];
 
-const TAGS = ["กาแฟ", "คาเฟ่", "กรุงเทพ", "One", "Bangkok", "ร้านอาหาร"];
+const TAGS = [t.coffee, t.cafe, t.bangkok, t.one, t.bangkokLatin, t.restaurant];
 
 const ready = (
   items: GuideSummary[],
@@ -61,15 +67,15 @@ export const Default: Story = {};
 
 export const Searched: Story = {
   args: {
-    filters: { q: "ร้านอาหาร", tags: [] },
-    searchText: "ร้านอาหาร",
+    filters: { q: q.restaurant, tags: [] },
+    searchText: q.restaurant,
     results: ready([restaurant]),
   },
 };
 
 export const TagSelected: Story = {
   args: {
-    filters: { q: "", tags: ["ร้านอาหาร"] },
+    filters: { q: "", tags: [t.restaurant] },
     results: ready([restaurant]),
   },
 };
@@ -80,23 +86,23 @@ export const Loading: Story = { args: { results: { status: "loading" } } };
 /** A newer search is loading: the previous cards stay, dimmed and `aria-busy`. */
 export const Updating: Story = {
   args: {
-    filters: { q: "คาเฟ่ลับ", tags: [] },
-    searchText: "คาเฟ่ลับ",
+    filters: { q: q.hiddenCafe, tags: [] },
+    searchText: q.hiddenCafe,
     results: ready(guides, { isUpdating: true }),
   },
 };
 
 export const Empty: Story = {
   args: {
-    filters: { q: "ราเมน", tags: [] },
-    searchText: "ราเมน",
+    filters: { q: q.ramen, tags: [] },
+    searchText: q.ramen,
     results: ready([]),
   },
 };
 
 export const EmptyTagsOnly: Story = {
   args: {
-    filters: { q: "", tags: ["กาแฟ", "ร้านอาหาร"] },
+    filters: { q: "", tags: [t.coffee, t.restaurant] },
     results: ready([]),
   },
 };
@@ -104,8 +110,8 @@ export const EmptyTagsOnly: Story = {
 /** A search failed: the previous results stay, with an inline retry above them. */
 export const SearchFailed: Story = {
   args: {
-    filters: { q: "คาเฟ่ลับ", tags: [] },
-    searchText: "คาเฟ่ลับ",
+    filters: { q: q.hiddenCafe, tags: [] },
+    searchText: q.hiddenCafe,
     results: ready([cafe], {
       error: { onRetry: fn(), isRetrying: false },
     }),
@@ -120,14 +126,17 @@ export const LoadFailed: Story = {
 };
 
 export const SearchTooLong: Story = {
-  args: { searchText: "ก".repeat(101), isSearchTooLong: true },
+  args: {
+    searchText: sampleThaiText.consonant.repeat(MAX_SEARCH_LENGTH + 1),
+    isSearchTooLong: true,
+  },
 };
 
 /** Canvas "PhoneIndex": no lead, one scrolling row of Tags, phone cards. */
 export const Phone: Story = {
   args: {
     layout: "phone",
-    filters: { q: "", tags: ["ร้านอาหาร"] },
+    filters: { q: "", tags: [t.restaurant] },
     results: ready([restaurant]),
   },
   globals: { viewport: { value: "iphone12", isRotated: false } },
@@ -136,8 +145,8 @@ export const Phone: Story = {
 export const PhoneEmpty: Story = {
   args: {
     layout: "phone",
-    filters: { q: "ราเมน", tags: [] },
-    searchText: "ราเมน",
+    filters: { q: q.ramen, tags: [] },
+    searchText: q.ramen,
     results: ready([]),
   },
   globals: { viewport: { value: "iphone12", isRotated: false } },

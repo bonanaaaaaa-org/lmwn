@@ -2,16 +2,20 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
+import { m } from "@/paraglide/messages.js";
+import { guideIndexTags as t } from "@/test-utils/fixtures/guideIndex";
+import { sampleTags } from "@/test-utils/fixtures/sampleContent";
+
 import { FilterTagGroup } from "./FilterTag";
 
-const TAGS = ["กาแฟ", "คาเฟ่", "ร้านอาหาร", "กรุงเทพ", "One", "Bangkok"];
+const TAGS = [t.coffee, t.cafe, t.restaurant, t.bangkok, t.one, t.bangkokLatin];
 
 const meta = {
   title: "Components/Common/FilterTag",
   component: FilterTagGroup,
   tags: ["autodocs"],
   args: {
-    "aria-label": "กรองตามแท็ก",
+    "aria-label": m.guideIndex_tagFilter_title(),
     tags: TAGS,
     selectedTags: [],
     onSelectionChange: fn(),
@@ -26,16 +30,16 @@ export const Default: Story = {};
 
 /** Selected: saffron fill, weight 600 and a trailing check. */
 export const Selected: Story = {
-  args: { selectedTags: ["ร้านอาหาร", "กาแฟ"] },
+  args: { selectedTags: [t.restaurant, t.coffee] },
 };
 
 export const Disabled: Story = {
-  args: { disabledTags: ["One", "Bangkok"] },
+  args: { disabledTags: [t.one, t.bangkokLatin] },
 };
 
 /** Phones: a single row that scrolls sideways. */
 export const ScrollRow: Story = {
-  args: { layout: "scroll", selectedTags: ["ร้านอาหาร"] },
+  args: { layout: "scroll", selectedTags: [t.restaurant] },
   decorators: [
     (Story) => (
       <div style={{ maxWidth: "22rem", paddingInline: "1rem" }}>
@@ -46,7 +50,7 @@ export const ScrollRow: Story = {
 };
 
 export const LongTag: Story = {
-  args: { tags: ["ร้านอาหารสำหรับกลุ่มใหญ่ที่จองล่วงหน้าได้", "คาเฟ่"] },
+  args: { tags: [sampleTags.long, t.cafe] },
 };
 
 /** Keyboard: Tab into the group, arrows move, Enter toggles. Shows the focus ring. */
@@ -68,10 +72,9 @@ export const Interactive: Story = {
     const canvas = within(canvasElement);
     await userEvent.tab();
     await userEvent.keyboard("{ArrowRight}{Enter}");
-    await expect(args.onSelectionChange).toHaveBeenCalledWith(["คาเฟ่"]);
-    await expect(canvas.getByRole("row", { name: "#คาเฟ่" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await expect(args.onSelectionChange).toHaveBeenCalledWith([t.cafe]);
+    await expect(
+      canvas.getByRole("row", { name: `#${t.cafe}` }),
+    ).toHaveAttribute("aria-selected", "true");
   },
 };

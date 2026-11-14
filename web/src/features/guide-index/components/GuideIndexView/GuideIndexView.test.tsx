@@ -1,6 +1,11 @@
 import { render, screen } from "@testing-library/react";
 
-import { guideList } from "@/features/guide-index/lib/fixtures";
+import { m } from "@/paraglide/messages.js";
+import {
+  guideIndexSearches as q,
+  guideIndexTags as t,
+  guideList,
+} from "@/test-utils/fixtures/guideIndex";
 
 import { GuideIndexView, type GuideIndexViewProps } from "./GuideIndexView";
 
@@ -14,7 +19,7 @@ function renderView(props: Partial<GuideIndexViewProps> = {}) {
         total: 2,
         isUpdating: false,
       }}
-      tags={["กาแฟ", "ร้านอาหาร"]}
+      tags={[t.coffee, t.restaurant]}
       searchText=""
       isSearchTooLong={false}
       onSearchTextChange={vi.fn()}
@@ -28,27 +33,27 @@ function renderView(props: Partial<GuideIndexViewProps> = {}) {
 }
 
 describe("GuideIndexView", () => {
-  it("offers ล้างทั้งหมด only when a search or Tag is applied", () => {
+  it("offers clear all only when a search or Tag is applied", () => {
     renderView();
     expect(
-      screen.queryByRole("button", { name: "ล้างทั้งหมด" }),
+      screen.queryByRole("button", { name: m.guideIndex_clearAll_label() }),
     ).not.toBeInTheDocument();
   });
 
-  it("shows ล้างทั้งหมด with a Tag applied", () => {
-    renderView({ filters: { q: "", tags: ["กาแฟ"] } });
+  it("shows clear all with a Tag applied", () => {
+    renderView({ filters: { q: "", tags: [t.coffee] } });
     expect(screen.getByTestId("guide-index/clear-all")).toHaveTextContent(
-      "ล้างทั้งหมด",
+      m.guideIndex_clearAll_label(),
     );
   });
 
   it("links card Tags to the Guide Index with the Tag added to the current filters", () => {
-    renderView({ filters: { q: "คาเฟ่", tags: ["กาแฟ"] } });
+    renderView({ filters: { q: q.cafe, tags: [t.coffee] } });
 
-    const [link] = screen.getAllByRole("link", { name: "กรุงเทพ" });
+    const [link] = screen.getAllByRole("link", { name: t.bangkok });
     const url = new URL(link!.getAttribute("href")!, "http://localhost");
-    expect(url.searchParams.get("q")).toBe("คาเฟ่");
-    expect(url.searchParams.getAll("tag")).toEqual(["กาแฟ", "กรุงเทพ"]);
+    expect(url.searchParams.get("q")).toBe(q.cafe);
+    expect(url.searchParams.getAll("tag")).toEqual([t.coffee, t.bangkok]);
   });
 
   it("uses the phone card layout on phones", () => {
@@ -63,10 +68,12 @@ describe("GuideIndexView", () => {
       results: { status: "ready", guides: [], total: 0, isUpdating: false },
     });
     expect(
-      screen.getByRole("heading", { name: "ยังไม่มีไกด์" }),
+      screen.getByRole("heading", { name: m.guideIndex_emptyState_title() }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: "ล้างการค้นหา" }),
+      screen.queryByRole("button", {
+        name: m.guideIndex_emptyState_action_label(),
+      }),
     ).not.toBeInTheDocument();
   });
 });

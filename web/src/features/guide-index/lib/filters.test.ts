@@ -1,4 +1,10 @@
 import {
+  guideIndexSearches as q,
+  guideIndexTags as t,
+} from "@/test-utils/fixtures/guideIndex";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
+
+import {
   addTag,
   buildIndexHref,
   isSearchTextTooLong,
@@ -9,11 +15,13 @@ import {
 
 describe("parseFilters", () => {
   it("reads q and every repeated tag from the URL", () => {
-    const params = new URLSearchParams("q=คาเฟ่&tag=กาแฟ&tag=One+Bangkok");
+    const params = new URLSearchParams(
+      `q=${q.cafe}&tag=${t.coffee}&tag=One+Bangkok`,
+    );
 
     expect(parseFilters(params)).toEqual({
-      q: "คาเฟ่",
-      tags: ["กาแฟ", "One Bangkok"],
+      q: q.cafe,
+      tags: [t.coffee, "One Bangkok"],
     });
   });
 
@@ -30,7 +38,7 @@ describe("parseFilters", () => {
 
 describe("normaliseSearchText", () => {
   it("trims and treats whitespace-only text as empty", () => {
-    expect(normaliseSearchText("  คาเฟ่ ")).toBe("คาเฟ่");
+    expect(normaliseSearchText(`  ${q.cafe} `)).toBe(q.cafe);
     expect(normaliseSearchText("   ")).toBe("");
   });
 
@@ -41,8 +49,12 @@ describe("normaliseSearchText", () => {
 
 describe("isSearchTextTooLong", () => {
   it("allows 100 characters and rejects 101", () => {
-    expect(isSearchTextTooLong("ก".repeat(100))).toBe(false);
-    expect(isSearchTextTooLong("ก".repeat(101))).toBe(true);
+    expect(isSearchTextTooLong(sampleThaiText.consonant.repeat(100))).toBe(
+      false,
+    );
+    expect(isSearchTextTooLong(sampleThaiText.consonant.repeat(101))).toBe(
+      true,
+    );
   });
 
   it("counts characters, not UTF-16 code units", () => {
@@ -60,33 +72,36 @@ describe("buildIndexHref", () => {
   });
 
   it("encodes q and repeats tag once per Tag", () => {
-    const href = buildIndexHref({ q: "คาเฟ่ลับ", tags: ["กาแฟ", "One Bangkok"] });
+    const href = buildIndexHref({
+      q: q.hiddenCafe,
+      tags: [t.coffee, "One Bangkok"],
+    });
     const url = new URL(href, "http://localhost");
 
     expect(url.pathname).toBe("/");
-    expect(url.searchParams.get("q")).toBe("คาเฟ่ลับ");
-    expect(url.searchParams.getAll("tag")).toEqual(["กาแฟ", "One Bangkok"]);
+    expect(url.searchParams.get("q")).toBe(q.hiddenCafe);
+    expect(url.searchParams.getAll("tag")).toEqual([t.coffee, "One Bangkok"]);
   });
 
   it("omits whitespace-only search text", () => {
-    expect(buildIndexHref({ q: "  ", tags: ["กาแฟ"] })).toBe(
-      `/?${new URLSearchParams({ tag: "กาแฟ" }).toString()}`,
+    expect(buildIndexHref({ q: "  ", tags: [t.coffee] })).toBe(
+      `/?${new URLSearchParams({ tag: t.coffee }).toString()}`,
     );
   });
 });
 
 describe("addTag", () => {
   it("adds a Tag to the current search and Tags", () => {
-    expect(addTag({ q: "คาเฟ่", tags: ["กาแฟ"] }, "กรุงเทพ")).toEqual({
-      q: "คาเฟ่",
-      tags: ["กาแฟ", "กรุงเทพ"],
+    expect(addTag({ q: q.cafe, tags: [t.coffee] }, t.bangkok)).toEqual({
+      q: q.cafe,
+      tags: [t.coffee, t.bangkok],
     });
   });
 
   it("does not repeat a Tag that is already selected", () => {
-    expect(addTag({ q: "", tags: ["กาแฟ"] }, "กาแฟ")).toEqual({
+    expect(addTag({ q: "", tags: [t.coffee] }, t.coffee)).toEqual({
       q: "",
-      tags: ["กาแฟ"],
+      tags: [t.coffee],
     });
   });
 });

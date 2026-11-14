@@ -1,5 +1,6 @@
+import { guideList } from "@/test-utils/fixtures/guideIndex";
+
 import { guideListSchema } from "./types";
-import { guideList } from "./fixtures";
 
 describe("guideListSchema", () => {
   it("accepts the gateway's Guide Index response", () => {

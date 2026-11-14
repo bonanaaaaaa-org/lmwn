@@ -1,11 +1,16 @@
+import {
+  guideIndexSearches as q,
+  guideIndexTags as t,
+} from "@/test-utils/fixtures/guideIndex";
+
 import { guideIndexKeys } from "./queryKeys";
 
 describe("guideIndexKeys", () => {
   it("keys a list by its search text and Tags", () => {
-    expect(guideIndexKeys.list({ q: "คาเฟ่", tags: ["กาแฟ"] })).toEqual([
+    expect(guideIndexKeys.list({ q: q.cafe, tags: [t.coffee] })).toEqual([
       "guides",
       "list",
-      { q: "คาเฟ่", tags: ["กาแฟ"] },
+      { q: q.cafe, tags: [t.coffee] },
     ]);
   });
 
@@ -13,8 +18,8 @@ describe("guideIndexKeys", () => {
     expect(guideIndexKeys.list({ q: "  ", tags: [] })).toEqual(
       guideIndexKeys.list({ q: "", tags: [] }),
     );
-    expect(guideIndexKeys.list({ q: " คาเฟ่", tags: ["a", "a"] })).toEqual(
-      guideIndexKeys.list({ q: "คาเฟ่", tags: ["a"] }),
+    expect(guideIndexKeys.list({ q: ` ${q.cafe}`, tags: ["a", "a"] })).toEqual(
+      guideIndexKeys.list({ q: q.cafe, tags: ["a"] }),
     );
   });
 

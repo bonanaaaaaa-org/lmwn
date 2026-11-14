@@ -11,6 +11,7 @@ import {
 
 import { Icon } from "@/components/common/Icon";
 import { joinTestId } from "@/lib/testIds";
+import { m } from "@/paraglide/messages.js";
 
 import styles from "./SearchField.module.css";
 
@@ -22,7 +23,9 @@ export interface SearchFieldProps {
   onSubmit?: (value: string) => void;
   /** The clear button or Escape emptied the box. */
   onClear?: () => void;
+  /** Defaults to `m.searchField_label()`. */
   label?: string;
+  /** Defaults to `m.searchField_input_placeholder()`. */
   placeholder?: string;
   /** Shows a 2px danger border and `errorMessage` under the box. */
   isInvalid?: boolean;
@@ -40,8 +43,8 @@ export function SearchField({
   onChange,
   onSubmit,
   onClear,
-  label = "ค้นหาไกด์",
-  placeholder = "ชื่อไกด์ คำอธิบาย หรือแท็ก เช่น คาเฟ่",
+  label,
+  placeholder,
   isInvalid = false,
   errorMessage,
   className,
@@ -66,19 +69,21 @@ export function SearchField({
         isInvalid={isInvalid}
         validationBehavior="aria"
       >
-        <Label className={styles.SearchField__Label}>{label}</Label>
+        <Label className={styles.SearchField__Label}>
+          {label ?? m.searchField_label()}
+        </Label>
         <Group className={styles.SearchField__Box}>
           <Icon name="search" className={styles.SearchField__Icon} />
           <Input
             ref={inputRef}
             className={styles.SearchField__Input}
-            placeholder={placeholder}
+            placeholder={placeholder ?? m.searchField_input_placeholder()}
             data-testid={`${testId}/input`}
           />
           {value !== "" && (
             <Button
               className={styles.SearchField__Clear}
-              aria-label="ล้างคำค้นหา"
+              aria-label={m.searchField_clear_ariaLabel()}
               data-testid={`${testId}/clear`}
             >
               <Icon name="close" size={16} strokeWidth={2.2} />

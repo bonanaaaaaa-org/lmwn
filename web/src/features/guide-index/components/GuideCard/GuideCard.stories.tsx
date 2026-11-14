@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   cafeGuide,
   restaurantGuide,
-} from "@/features/guide-index/lib/fixtures";
-import { storyCover } from "@/features/guide-index/lib/storyImages";
+  storyCover,
+} from "@/test-utils/fixtures/guideIndex";
 
 import { GuideCard, type GuideCardGuide } from "./GuideCard";
 
