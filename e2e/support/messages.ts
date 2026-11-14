@@ -21,7 +21,9 @@ type MessageKey =
   | "restaurantCard_unavailable_body"
   | "notFound_title"
   | "notFound_body"
-  | "notFound_backLink_label";
+  | "notFound_backLink_label"
+  | "guideHeader_share_label"
+  | "guideHeader_share_copiedBody";
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
@@ -39,6 +41,8 @@ interface FormatParams {
     position: number;
     total: number;
   };
+  restaurantCard_share_ariaLabel: { restaurant: string };
+  restaurantCard_share_copiedBody: { restaurant: string };
   lightbox_counter_body: { position: number; total: number };
 }
 

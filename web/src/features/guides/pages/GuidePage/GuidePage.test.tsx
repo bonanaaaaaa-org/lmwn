@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, http, HttpResponse } from "msw";
+import { MemoryRouter } from "react-router";
 
 import {
   GUIDE_ID,
@@ -21,8 +22,12 @@ function serveGuide(guide: Guide = makeGuide()) {
   server.use(http.get(guideUrl, () => HttpResponse.json(toGatewayJson(guide))));
 }
 
-function renderPage() {
-  return renderWithProviders(<GuidePage guideId={GUIDE_ID} />);
+function renderPage(hash = "") {
+  return renderWithProviders(
+    <MemoryRouter initialEntries={[`/guides/${GUIDE_ID}${hash}`]}>
+      <GuidePage guideId={GUIDE_ID} />
+    </MemoryRouter>,
+  );
 }
 
 describe("GuidePage", () => {
@@ -184,5 +189,63 @@ describe("GuidePage", () => {
     expect(await screen.findByTestId("guide/error-panel")).toBeInTheDocument();
     await waitFor(() => expect(consoleError).toHaveBeenCalled());
     consoleError.mockRestore();
+  });
+
+  describe("sharing", () => {
+    // jsdom has no scrollIntoView; the tests that need it install a mock.
+    afterEach(() => {
+      window.sessionStorage.clear();
+      Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+    });
+
+    it("shares the Guide and each available card", async () => {
+      serveGuide();
+      renderPage();
+
+      expect(
+        await screen.findByRole("button", {
+          name: m.guideHeader_share_label(),
+        }),
+      ).toBeInTheDocument();
+      expect(
+        screen
+          .getAllByTestId("guide/restaurant-card/share")
+          .map((button) => button.getAttribute("aria-label")),
+      ).toEqual(
+        ["ONIBUS COFFEE", "KFC", "% Arabica"].map((restaurant) =>
+          m.restaurantCard_share_ariaLabel({ restaurant }),
+        ),
+      );
+    });
+
+    it("scrolls to and highlights the card in a shared #item- link once the Guide renders", async () => {
+      const guide = makeGuide();
+      const target = guide.items[1];
+      if (!target) throw new Error("fixture needs 2 items");
+
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      serveGuide(guide);
+      renderPage(`#item-${target.id}`);
+
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+      const cards = screen.getAllByTestId("guide/restaurant-card");
+      expect(scrollIntoView.mock.contexts[0]).toBe(cards[1]);
+      expect(cards[1]).toHaveAttribute("data-highlighted");
+      expect(cards[0]).not.toHaveAttribute("data-highlighted");
+    });
+
+    it("opens normally for an unknown #item-", async () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      serveGuide();
+      renderPage("#item-nope");
+
+      await screen.findAllByTestId("guide/restaurant-card");
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      for (const card of screen.getAllByTestId("guide/restaurant-card")) {
+        expect(card).not.toHaveAttribute("data-highlighted");
+      }
+    });
   });
 });

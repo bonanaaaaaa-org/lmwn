@@ -1,10 +1,14 @@
 import { render, screen, within } from "@testing-library/react";
 
+import { Header, HeaderSlotProvider } from "@/components/layout/Header";
+import { guideShareTarget } from "@/features/guides/lib/share";
 import { m } from "@/paraglide/messages.js";
 import { makeGuide } from "@/test-utils/fixtures/guides";
 import { formattedDates } from "@/test-utils/fixtures/sampleContent";
 
 import { GuideHeader } from "./GuideHeader";
+
+const share = guideShareTarget(makeGuide());
 
 describe("GuideHeader", () => {
   it("shows the title, Tags as Guide Index links, the date in Thai and the description", () => {
@@ -44,5 +48,48 @@ describe("GuideHeader", () => {
     expect(cover).toHaveAttribute("fetchpriority", "high");
     expect(cover).toHaveAttribute("loading", "eager");
     expect(cover.getAttribute("srcset")).toMatch(/ \d+w, .* \d+w$/);
+  });
+
+  it("puts the share button beside the title on desktop", () => {
+    render(
+      <GuideHeader guide={makeGuide()} share={share} parentTestId="guide" />,
+    );
+
+    const button = within(screen.getByTestId("guide/guide-header")).getByRole(
+      "button",
+      { name: m.guideHeader_share_label() },
+    );
+    expect(button).toHaveTextContent(m.guideHeader_share_label());
+    expect(button).toHaveAttribute("data-testid", "guide/guide-header/share");
+  });
+
+  it("moves the share button into the app header on a phone", () => {
+    render(
+      <HeaderSlotProvider>
+        <Header layout="phone-guide" parentTestId="app" />
+        <GuideHeader
+          guide={makeGuide()}
+          layout="phone"
+          share={share}
+          parentTestId="guide"
+        />
+      </HeaderSlotProvider>,
+    );
+
+    const button = screen.getByTestId("guide/guide-header/share");
+    expect(screen.getByTestId("app/header")).toContainElement(button);
+    expect(button).toHaveAccessibleName(m.guideHeader_share_label());
+    expect(button).toHaveTextContent("");
+    expect(screen.getByTestId("guide/guide-header")).not.toContainElement(
+      button,
+    );
+  });
+
+  it("has no share button without a share target", () => {
+    render(<GuideHeader guide={makeGuide()} parentTestId="guide" />);
+
+    expect(
+      screen.queryByRole("button", { name: m.guideHeader_share_label() }),
+    ).not.toBeInTheDocument();
   });
 });

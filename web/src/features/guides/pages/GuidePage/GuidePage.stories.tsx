@@ -1,5 +1,6 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router";
 
 import { GUIDE_ID, makeGuide } from "@/test-utils/fixtures/guides";
 import { guideKeys } from "@/features/guides/lib/queryKeys";
@@ -53,7 +54,15 @@ const meta = {
   parameters: { layout: "padded" },
   tags: ["autodocs"],
   args: { guideId: GUIDE_ID },
-  decorators: [withSeededGuide({ data: makeGuide() })],
+  decorators: [
+    withSeededGuide({ data: makeGuide() }),
+    // The page reads the URL hash (shared `#item-` links) from the router.
+    (Story) => (
+      <MemoryRouter initialEntries={[`/guides/${GUIDE_ID}`]}>
+        <Story />
+      </MemoryRouter>
+    ),
+  ],
 } satisfies Meta<typeof GuidePage>;
 
 export default meta;

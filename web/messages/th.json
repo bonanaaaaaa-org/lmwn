@@ -80,5 +80,13 @@
   "skeletonGroup_label": "กำลังโหลด…",
   "rating_ariaLabel": "{rating} จาก 5 ดาว, {count: number} รีวิว",
   "rating_reviews_body": "{count: number} รีวิว",
-  "rating_unrated_label": "ยังไม่มีรีวิว"
+  "rating_unrated_label": "ยังไม่มีรีวิว",
+  "toast_region_ariaLabel": "การแจ้งเตือน",
+  "toast_close_ariaLabel": "ปิดการแจ้งเตือน",
+  "shareButton_copyFailed_body": "คัดลอกลิงก์ไม่สำเร็จ",
+  "guideHeader_share_label": "แชร์ไกด์",
+  "guideHeader_share_copiedBody": "คัดลอกลิงก์แล้ว",
+  "restaurantCard_share_ariaLabel": "แชร์ร้าน {restaurant}",
+  "restaurantCard_share_text": "ร้าน {restaurant} จากไกด์ {guide}",
+  "restaurantCard_share_copiedBody": "คัดลอกลิงก์ร้าน {restaurant} แล้ว"
 }

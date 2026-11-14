@@ -1,8 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { guideItemShareTarget } from "@/features/guides/lib/share";
 import { m } from "@/paraglide/messages.js";
 import {
+  makeGuide,
   LONG_WRITE_UP,
   makeGuideItem,
   makeRestaurant,
@@ -10,6 +12,8 @@ import {
 import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
 
 import { needsClamp, RestaurantCard } from "./RestaurantCard";
+
+const share = guideItemShareTarget(makeGuide(), makeGuideItem());
 
 const card = () => screen.getByTestId("guide/restaurant-card");
 const restaurant = makeRestaurant();
@@ -261,5 +265,55 @@ describe("needsClamp", () => {
     expect(
       needsClamp(sampleThaiText.consonantWithMarks.repeat(100), "phone"),
     ).toBe(false);
+  });
+
+  it("offers a share button named after the Restaurant", () => {
+    render(
+      <RestaurantCard
+        item={makeGuideItem()}
+        index={1}
+        share={share}
+        parentTestId="guide"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: m.restaurantCard_share_ariaLabel({ restaurant: "ONIBUS COFFEE" }),
+      }),
+    ).toHaveAttribute("data-testid", "guide/restaurant-card/share");
+  });
+
+  it("has no share button for an Unavailable Restaurant", () => {
+    render(
+      <RestaurantCard
+        item={makeGuideItem({ restaurant: null })}
+        index={1}
+        share={share}
+        parentTestId="guide"
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("guide/restaurant-card/share"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("marks the highlighted state on the card", () => {
+    const { rerender } = render(
+      <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
+    );
+    expect(card()).not.toHaveAttribute("data-highlighted");
+
+    rerender(
+      <RestaurantCard
+        item={makeGuideItem()}
+        index={1}
+        highlighted
+        parentTestId="guide"
+      />,
+    );
+
+    expect(card()).toHaveAttribute("data-highlighted");
   });
 });
