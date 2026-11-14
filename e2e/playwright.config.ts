@@ -8,13 +8,24 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  reporter: isCI
-    ? [["github"], ["html", { open: "never" }]]
-    : [["list"], ["html", { open: "never" }]],
+  reporter: [
+    isCI ? ["github"] : ["list"],
+    ["html", { open: "never" }],
+    // Results for the combined Allure report (root `pnpm allure`, CI). It attaches what Playwright
+    // keeps for a failed test below: its trace, screenshot and video.
+    [
+      "allure-playwright",
+      {
+        resultsDir: "allure-results",
+        globalLabels: { layer: "E2E (Playwright)" },
+      },
+    ],
+  ],
   use: {
     baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   projects: [
     { name: "chromium-desktop", use: { ...devices["Desktop Chrome"] } },

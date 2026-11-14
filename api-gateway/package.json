@@ -11,7 +11,7 @@
     "lint": "uv run ruff check",
     "lint:fix": "uv run ruff check --fix",
     "type-check": "uv run pyrefly check",
-    "test": "uv run pytest --cov=app --cov-report=term-missing --tb=short"
+    "test": "uv run pytest --cov=app --cov-report=term-missing --tb=short --alluredir=allure-results --clean-alluredir"
   },
   "dependencies": {
     "lmwn-assignment-2025-server": "0.0.0-beta.1"

@@ -16,6 +16,19 @@ export default mergeConfig(
     plugins: [storybookTest({ configDir: ".storybook" })],
     test: {
       name: "storybook",
+      // Allure results for the combined report; listing reporters replaces Vitest's defaults.
+      reporters: [
+        ...(process.env.GITHUB_ACTIONS
+          ? ["default", "github-actions"]
+          : ["default"]),
+        [
+          "allure-vitest/reporter",
+          {
+            resultsDir: "allure-results/storybook",
+            globalLabels: { layer: "Storybook stories (Vitest)" },
+          },
+        ],
+      ],
       browser: {
         enabled: true,
         headless: true,
