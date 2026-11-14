@@ -54,11 +54,22 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **Retries:** TanStack Query retries failures up to 2 times, but never a 404.
 - **Images:** `srcset` from small and large URLs, `loading="lazy"` below the fold, a high-priority cover, fixed aspect ratios, and a placeholder when an image fails or is empty. Phones get only the small photo in a photo strip (the lightbox still shows the large one), and a strip requests its photos only once it is within about 300 px of the viewport.
 - **Loading the first page (#16):** `index.html` is the same for every route, so an inline script in its head reads the path and starts the page's gateway request, its route code (`modulepreload`, from React Router's build manifest) and, once the data arrives, its cover (`<link rel="preload" as="image">` with the page's own `srcset` and `sizes`). The app's first `fetch` of that URL takes the in-flight response (`takePreloadedResponse`). The app loads one stylesheet (`cssCodeSplit: false`), so the head declares the cascade layer order before it (`CSS_LAYER_ORDER`). Lighthouse targets and how to run the audit are in the README.
-- **Look:** "saffron and ink": neutral greys, near-black text and one saffron accent (#f2b705), used only as a fill under dark text; accent-coloured text uses a dark gold. The font is Mali (rounded, looped Thai มีหัว) for body and headings, self-hosted through Fontsource. Spacing, control heights and radii follow an 8-point grid. No LINE MAN or Wongnai branding.
+- **Look:** "saffron and ink": neutral greys, near-black text and one saffron accent (#f2b705), used only as a fill under dark text; accent-coloured text uses a dark gold. A dark theme mirrors it (see Dark mode). The font is Mali (rounded, looped Thai มีหัว) for body and headings, self-hosted through Fontsource. Spacing, control heights and radii follow an 8-point grid. No LINE MAN or Wongnai branding.
 - **Tests:** Vitest, Testing Library and MSW, with tests focused on behaviour; Storybook stories for every component; Playwright e2e against the running stack.
 - **axe:**
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
+
+## Dark mode
+
+Settled in #47.
+
+- **The system decides by default.** The app follows `prefers-color-scheme`, live. The header has an icon-only theme toggle (a monitor, sun or moon for system, light or dark) that opens a React Aria menu. Its accessible name and tooltip say the current theme, and it is a 48px target with the shared focus ring.
+- **Tokens, not component styles.** Every `--color-*` token in `globals.css` is a `light-dark(light, dark)` pair, and `color-scheme` on `:root` picks the side, so components didn't change and form controls and scrollbars match. (The same values repeated under `:root[data-theme="dark"]` and a `prefers-color-scheme` media query would behave the same, with every dark value written twice.) Stylelint rejects colour literals anywhere but `globals.css`. The dark values come from the design canvas's "Dark theme" page. Saffron stays a fill under dark text in both themes; accent-coloured text is a dark gold in light and a light saffron in dark. Toasts and the Lightbox stay white on `surface-inverse`, a raised grey in dark so they stand apart from the page. Shadows keep their light values; in dark, borders and surface steps separate things. Photos and covers render as served.
+- **A saved choice wins.** It is stored per viewer in `localStorage` (`hidden-gems-theme`; "system" removes it). Every read and write is wrapped in try/catch, so blocked storage means "system", and a choice still applies until reload. Other tabs follow a change.
+- **No flash of the wrong theme.** The head script from #16 starts with a few hundred bytes that set `data-theme` on `<html>` before the body paints. Without a saved choice, CSS alone follows the system. `<html>` suppresses the hydration warning for that attribute.
+- **`theme-color`:** two `<meta name="theme-color">` tags, one per `prefers-color-scheme`: saffron in light (the PWA manifest's `theme_color`) and the dark page background `#121211` in dark. A saved choice repoints both. Meta tags can't read CSS variables, so `@/lib/theme` keeps copies, and a unit test checks them against the tokens.
+- **Tests in both themes.** Storybook has a light/dark toolbar switch, and `pnpm test:storybook` runs every story and its axe scan once per theme. Playwright runs axe with `colorScheme: "dark"` on the Guide Index and a Guide page (default, filtered, Lightbox open), on desktop and mobile.
 
 ## i18n (Thai only)
 
@@ -115,5 +126,6 @@ Settled in #22; the details are in [infra/README.md](../infra/README.md).
 
 - Server-side rendering and real Open Graph tags. `socialTitle` is used for `document.title` and share text only.
 - Pagination, and searching restaurants across Guides.
-- i18n beyond Thai: Thai only; no second locale or language switcher (see i18n above). Also dark mode, user accounts and saved restaurants.
+- i18n beyond Thai: Thai only; no second locale or language switcher (see i18n above). Also user accounts and saved restaurants.
+- High-contrast themes, per-Guide theming, and syncing the theme choice across devices (see Dark mode).
 - Replacing or testing the provided Data Server.

@@ -1,0 +1,94 @@
+@layer components {
+  .ThemeToggle__Root {
+    display: inline-flex;
+    flex: none;
+  }
+
+  /* Icon only, 48px square (above the 44px minimum touch target). */
+  .ThemeToggle__Trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-height);
+    height: var(--control-height);
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-200);
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+
+    &[data-hovered],
+    &[data-pressed],
+    &[aria-expanded="true"] {
+      border-color: var(--color-border-strong);
+      background: var(--color-surface-sunken);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  .ThemeToggle__Tooltip {
+    max-width: 15rem;
+    padding: var(--space-50) var(--space-100);
+    border-radius: var(--radius-100);
+    background: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    font-size: var(--font-size-75);
+    line-height: var(--line-height-tight);
+    pointer-events: none;
+  }
+
+  .ThemeToggle__Popover {
+    min-width: 10rem;
+    padding: var(--space-50);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-300);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-200);
+    font-size: var(--font-size-100);
+  }
+
+  .ThemeToggle__Menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-50);
+    outline: none;
+  }
+
+  .ThemeToggle__Option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-100);
+    height: var(--control-height);
+    padding: 0 var(--space-150);
+    border-radius: var(--radius-200);
+    color: var(--color-text);
+    cursor: pointer;
+    outline: none;
+
+    &[data-hovered],
+    &[data-focused] {
+      background: var(--color-surface-sunken);
+    }
+
+    &[data-selected] {
+      background: var(--color-accent-subtle);
+      color: var(--color-accent-strong);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    &[data-focus-visible] {
+      background: var(--color-surface-sunken);
+      outline: var(--focus-ring);
+      outline-offset: calc(var(--focus-ring-width) * -1);
+    }
+  }
+
+  .ThemeToggle__OptionLabel {
+    flex: 1 1 auto;
+  }
+}

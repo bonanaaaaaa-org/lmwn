@@ -61,7 +61,7 @@ pnpm --filter api-gateway dev   # gateway :4000 + Data Server, in another termin
 pnpm lighthouse                 # pnpm build, then audit the preview on :3000
 ```
 
-`pnpm lighthouse` builds the web app, serves `build/client` with `vite preview` on :3000 (the origin the local gateway allows), and audits `/` and the first Guide from the gateway with both presets, 5 runs each in headless Chromium (Playwright's, or `CHROME_PATH`). It keeps each median run, writes HTML and JSON reports to `web/lighthouse-reports/`, prints a Markdown table, and exits 1 if a score misses its target. To skip the build, or audit somewhere else:
+`pnpm lighthouse` builds the web app, serves `build/client` with `vite preview` on :3000 (the origin the local gateway allows), and audits `/` and the first Guide from the gateway with both presets in the light and dark themes (Chrome's `--force-dark-mode` for dark; `--theme light` or `--theme dark` for one), 5 runs each in headless Chromium (Playwright's, or `CHROME_PATH`). It keeps each median run, writes HTML and JSON reports to `web/lighthouse-reports/`, prints a Markdown table, and exits 1 if a score misses its target. To skip the build, or audit somewhere else:
 
 ```bash
 cd web

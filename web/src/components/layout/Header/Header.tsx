@@ -1,7 +1,9 @@
 import { Link } from "react-aria-components";
 
 import { Icon } from "@/components/common/Icon";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { joinTestId } from "@/lib/testIds";
+import { useThemeChoice } from "@/lib/theme";
 import { m } from "@/paraglide/messages.js";
 
 import styles from "./Header.module.css";
@@ -13,7 +15,8 @@ export interface HeaderProps {
   /**
    * `desktop` (64px, logo and tagline) and `phone-index` (56px, logo only) show the brand;
    * `phone-guide` (56px) is the Guide page on a phone: a back arrow, the brand, then the
-   * page's action from `HeaderSlotPortal` (the Guide's share button).
+   * page's action from `HeaderSlotPortal` (the Guide's share button). Every layout ends with
+   * the theme toggle (`{parent}/header/theme-toggle`).
    */
   layout?: HeaderLayout;
   /** The Guide Index. */
@@ -51,6 +54,10 @@ export function Header({
 }: HeaderProps) {
   const testId = joinTestId(parentTestId, "header");
   const logoTestId = `${testId}/logo`;
+  const [theme, setTheme] = useThemeChoice();
+  const themeToggle = (
+    <ThemeToggle value={theme} onChange={setTheme} parentTestId={testId} />
+  );
 
   if (layout === "phone-guide") {
     return (
@@ -75,8 +82,11 @@ export function Header({
           >
             <span lang="en">{m.header_logo_label()}</span>
           </Link>
-          {/* The page's action (the Guide's share button); it balances the back arrow so the brand stays centred. */}
-          <HeaderSlotTarget className={styles.Header__Spacer} />
+          <div className={styles.Header__Actions}>
+            {themeToggle}
+            {/* The page's action (the Guide's share button). */}
+            <HeaderSlotTarget className={styles.Header__Spacer} />
+          </div>
         </div>
       </header>
     );
@@ -97,7 +107,10 @@ export function Header({
           <Mark />
           <span lang="en">{m.header_logo_label()}</span>
         </Link>
-        <p className={styles.Header__Tagline}>{m.header_tagline_body()}</p>
+        <div className={styles.Header__Actions}>
+          <p className={styles.Header__Tagline}>{m.header_tagline_body()}</p>
+          {themeToggle}
+        </div>
       </div>
     </header>
   );

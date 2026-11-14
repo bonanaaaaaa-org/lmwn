@@ -24,54 +24,88 @@
   :root {
     /*
      * Colour, from the design canvas ("saffron and ink"): neutral greys, near-black text and
-     * one saffron accent. WCAG 2.2 contrast against --color-surface (#fff) / --color-background (#f5f5f4):
-     *   text 18.9 / 17.3 · text-muted 6.7 / 6.1 · text-secondary 10.9 on surface-sunken
-     *   accent-text 5.9 / 5.4 · accent-strong on accent-subtle 7.6
-     *   text-on-accent on accent 10.4 (on accent-hover 8.8) · focus 18.9 / 17.3
-     *   border-strong (control edges) 3.5 / 3.2 · success on success-subtle 5.6
+     * one saffron accent. Every colour token is `light-dark(light, dark)`: `color-scheme` on
+     * :root picks the side, following the system unless `data-theme` on <html> (set before
+     * first paint from a saved choice, see `@/lib/theme`) fixes it. Form controls and
+     * scrollbars follow `color-scheme` too.
+     *
+     * Dark values come from the design canvas's "Dark theme" page (#47). WCAG 2.2 contrast,
+     * light · dark, against --color-surface / --color-background
+     * (#fff / #f5f5f4 light, #1c1c1a / #121211 dark):
+     *   text 18.9 / 17.3 · 15.2 / 16.7      text-muted 6.7 / 6.1 · 7.0 / 7.7 (on surface-sunken 5.8 · 5.9)
+     *   text-secondary on surface-sunken 10.9 · 9.7
+     *   accent-text 5.9 / 5.4 · 10.5 / 11.6  accent-strong on accent-subtle 7.6 · 9.8
+     *   text-on-accent on accent 10.4 (on accent-hover 8.8) · 10.4 (on accent-hover 12.3)
+     *   focus 18.9 / 17.3 · 15.2 / 16.7      border-strong (control edges) 3.5 / 3.2 · 4.6 / 5.1
+     *   success on success-subtle 5.6 · 8.2  danger on danger-subtle 6.3 · 7.6
      * Saffron (--color-accent) is about 1.8:1 on white, so it is a fill only, always with
-     * --color-text-on-accent on top. Accent-coloured text uses --color-accent-text.
+     * --color-text-on-accent on top, in both themes. Accent-coloured text uses
+     * --color-accent-text (a dark gold in light, a light saffron in dark).
      * --color-border is decorative only (dividers, card edges), never the only cue.
      */
-    --color-text: #111;
-    --color-text-muted: #5c5c5c;
-    --color-text-secondary: #333;
-    --color-background: #f5f5f4;
-    --color-surface: #fff;
-    --color-surface-subtle: #f5f5f4;
-    --color-surface-sunken: #eeeeec;
-    --color-border: #e4e4e2;
-    --color-border-strong: #8a8a87;
-    --color-accent: #f2b705;
-    --color-accent-hover: #e0a800;
-    --color-accent-text: #8a5a00;
-    --color-accent-strong: #6b4600;
-    --color-accent-subtle: #fdf3d3;
-    --color-text-on-accent: #111;
-    --color-success: #1f6b3a;
-    --color-success-subtle: #e3f1e7;
-    --color-danger: #a8281f;
-    --color-danger-subtle: #fdf0ee;
-    --color-focus: #111;
-    --color-skeleton: #ebebe9;
-    --color-placeholder: #ebebe9;
-    --color-placeholder-icon: #8a8a87;
+    color-scheme: light dark;
 
-    /* The lightbox: white on ink. text-inverse-muted on surface-inverse is 11.6:1. */
-    --color-surface-inverse: #111;
-    --color-scrim: rgb(17 17 17 / 72%);
+    --color-text: light-dark(#111, #f2f2ef);
+    --color-text-muted: light-dark(#5c5c5c, #a6a6a1);
+    --color-text-secondary: light-dark(#333, #d4d4cf);
+    --color-background: light-dark(#f5f5f4, #121211);
+    --color-surface: light-dark(#fff, #1c1c1a);
+    --color-surface-subtle: light-dark(#f5f5f4, #121211);
+    --color-surface-sunken: light-dark(#eeeeec, #2a2a27);
+    --color-border: light-dark(#e4e4e2, #33332f);
+    --color-border-strong: light-dark(#8a8a87, #85857f);
+    --color-accent: #f2b705;
+    --color-accent-hover: light-dark(#e0a800, #ffc933);
+    --color-accent-text: light-dark(#8a5a00, #f5c542);
+    --color-accent-strong: light-dark(#6b4600, #ffd978);
+    --color-accent-subtle: light-dark(#fdf3d3, #3a2e08);
+    --color-text-on-accent: #111;
+    --color-success: light-dark(#1f6b3a, #7fd69b);
+    --color-success-subtle: light-dark(#e3f1e7, #14301e);
+    --color-danger: light-dark(#a8281f, #ff9a8f);
+    --color-danger-subtle: light-dark(#fdf0ee, #3b1a16);
+    --color-focus: light-dark(#111, #f2f2ef);
+    --color-skeleton: light-dark(#ebebe9, #2a2a27);
+    --color-skeleton-shine: light-dark(
+      rgb(255 255 255 / 55%),
+      rgb(255 255 255 / 6%)
+    );
+    --color-placeholder: light-dark(#ebebe9, #2a2a27);
+    --color-placeholder-icon: light-dark(#8a8a87, #85857f);
+
+    /*
+     * The lightbox and toasts: white on ink. In dark, surface-inverse is a raised #2a2a27, so they
+     * still stand apart from the #121211 page. text-inverse-muted on surface-inverse is 11.4:1 (8.7:1 dark).
+     */
+    --color-surface-inverse: light-dark(#111, #2a2a27);
+    --color-scrim: light-dark(rgb(17 17 17 / 72%), rgb(0 0 0 / 80%));
     --color-text-inverse: #fff;
     --color-text-inverse-muted: #c9c9c6;
     --color-overlay: rgb(255 255 255 / 16%);
     --color-overlay-hover: rgb(255 255 255 / 28%);
 
     /* Overlay controls that can sit on a photo: a grey that shows on ink and on white. */
-    --color-overlay-strong: rgb(64 64 62 / 72%);
-    --color-overlay-strong-hover: rgb(96 96 94 / 84%);
+    --color-overlay-strong: light-dark(
+      rgb(64 64 62 / 72%),
+      rgb(64 64 62 / 80%)
+    );
+    --color-overlay-strong-hover: light-dark(
+      rgb(96 96 94 / 84%),
+      rgb(96 96 94 / 90%)
+    );
 
     /* The lightbox's shade behind its title and thumbnails: muted text on it over white is 7:1. */
-    --color-shade: rgb(17 17 17 / 85%);
+    --color-shade: light-dark(rgb(17 17 17 / 85%), rgb(0 0 0 / 85%));
     --color-focus-inverse: #fff;
+
+    /* The error icon on a toast (surface-inverse): light pink on ink in light, the dark danger in dark. */
+    --color-danger-inverse: light-dark(#fdf0ee, #ff9a8f);
+
+    /* Shadows keep their light values in dark too: separation there comes from borders and surface steps. */
+    --color-shadow: rgb(17 17 17 / 10%);
+    --color-shadow-strong: rgb(17 17 17 / 25%);
+    --color-shadow-subtle: rgb(17 17 17 / 8%);
+    --color-shadow-control: rgb(17 17 17 / 18%);
 
     /*
      * 8-point grid: spacing, control heights and radii are multiples of 8px (0.5rem), with
@@ -113,8 +147,10 @@
     --radius-300: 1rem;
     --radius-400: 1.5rem;
     --radius-pill: 62.5rem;
-    --shadow-100: 0 0.0625rem 0.125rem rgb(17 17 17 / 8%);
-    --shadow-200: 0 0.25rem 0.75rem rgb(17 17 17 / 10%);
+    --shadow-100: 0 0.0625rem 0.125rem var(--color-shadow-subtle);
+    --shadow-200: 0 0.25rem 0.75rem var(--color-shadow);
+    --shadow-300: 0 0.125rem 0.5rem var(--color-shadow-control);
+    --shadow-400: 0 0.5rem 1.5rem var(--color-shadow-strong);
     --focus-ring-width: 0.1875rem;
     --focus-ring-offset: 0.125rem;
     --focus-ring: var(--focus-ring-width) solid var(--color-focus);
@@ -134,6 +170,15 @@
     line-height: var(--line-height-base);
     text-rendering: optimizelegibility;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* A saved choice (`data-theme`, see `@/lib/theme`) beats the system setting. */
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
   }
 
   @media (width >= 48rem) {
@@ -173,4 +218,14 @@
     outline: var(--focus-ring);
     outline-offset: var(--focus-ring-offset);
   }
+}
+
+/*
+ * While the theme switches (`data-theme-switching`, set for one frame by `@/lib/theme`), nothing
+ * transitions, so text and fills change together. Unlayered on purpose: it must beat the
+ * transitions declared in the components layer.
+ */
+:root[data-theme-switching],
+:root[data-theme-switching] * {
+  transition: none;
 }

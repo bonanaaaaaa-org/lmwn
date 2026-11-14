@@ -23,6 +23,7 @@ import {
 } from "@/lib/preloadPageData";
 import { Providers } from "@/lib/Providers";
 import { useRouterHref } from "@/lib/routerHref";
+import { themeScript } from "@/lib/theme";
 import { CSS_LAYER_ORDER } from "@/styles/layers";
 import { m } from "@/paraglide/messages.js";
 
@@ -62,7 +63,8 @@ function usePreloadPageAssets(): PreloadPageAssets {
 export function Layout({ children }: { children: React.ReactNode }) {
   const preloadAssets = usePreloadPageAssets();
   return (
-    <html lang={appLocale}>
+    // The head script sets `data-theme` on <html> before React hydrates (see `@/lib/theme`).
+    <html lang={appLocale} suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
         {/* Before any stylesheet: fixes the cascade layer order (see CSS_LAYER_ORDER). */}
@@ -75,12 +77,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />
         <link rel="preconnect" href={env.apiBaseUrl} />
         <script
-          // Starts the page's gateway request and route code while the entry JavaScript
-          // downloads. Built from function source, which differs between the build-time
-          // render and the client bundle; React never re-runs or patches an inline script.
+          // Applies a saved theme before first paint (no flash of the other theme) and adds the
+          // `theme-color` metas (see `applyTheme` for why React doesn't render them), then starts
+          // the page's gateway request and route code while the entry JavaScript downloads.
+          // Built from function source, which differs between the build-time render and the
+          // client bundle; React never re-runs or patches an inline script.
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: preloadPageScript(env.apiBaseUrl, preloadAssets),
+            __html:
+              themeScript() + preloadPageScript(env.apiBaseUrl, preloadAssets),
           }}
         />
         <Meta />

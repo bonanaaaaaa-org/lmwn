@@ -35,6 +35,12 @@ export default mergeConfig(
         provider: playwright({}),
         instances: [{ browser: "chromium" }],
       },
+      // Every story runs, and is scanned by axe, in both themes (dark mode, #47).
+      projects: (["light", "dark"] as const).map((theme) => ({
+        extends: true,
+        define: { __STORYBOOK_THEME__: JSON.stringify(theme) },
+        test: { name: `storybook (${theme})` },
+      })),
     },
   }),
 );

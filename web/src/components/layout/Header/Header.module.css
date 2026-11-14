@@ -20,11 +20,25 @@
       padding-inline: var(--space-200);
     }
 
+    /* Back arrow, brand, actions: equal side columns keep the brand centred. */
     [data-layout="phone-guide"] > & {
-      flex-wrap: nowrap;
-      gap: var(--space-100);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: var(--space-50);
       min-height: 3.5rem;
       padding-inline: var(--space-100);
+    }
+  }
+
+  .Header__Actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-100) var(--space-200);
+    min-width: 0;
+
+    [data-layout="phone-guide"] & {
+      gap: 0;
     }
   }
 
@@ -89,7 +103,7 @@
 
   .Header__Spacer {
     flex: none;
-    width: var(--control-height);
+    min-width: var(--control-height);
   }
 
   /* Phones keep the header to one 3.5rem row: the tagline only shows from 48rem up. */
