@@ -1,0 +1,78 @@
+@layer components {
+  .GuideFilters__Root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+    padding: var(--space-200) var(--space-300);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-300);
+    background: var(--color-surface);
+
+    /*
+     * Phones: a full-bleed band under the header with one row of chips that scrolls
+     * sideways. The row's padding keeps the first and last chip's focus ring in the box.
+     */
+    &[data-layout="phone"] {
+      gap: var(--space-150);
+      margin-inline: calc(-1 * var(--layout-gutter));
+      padding: var(--space-200) 0;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      background: var(--color-background);
+    }
+  }
+
+  .GuideFilters__Chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-100);
+
+    [data-layout="phone"] > & {
+      flex-wrap: nowrap;
+      padding: var(--space-50) var(--layout-gutter);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+  }
+
+  .GuideFilters__ChipsTitle {
+    margin-right: var(--space-50);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .GuideFilters__Divider {
+    width: 1px;
+    height: var(--space-300);
+    margin-inline: var(--space-100);
+    background: var(--color-border);
+  }
+
+  .GuideFilters__Summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-150);
+    padding-top: var(--space-200);
+    border-top: 1px solid var(--color-surface-sunken);
+
+    [data-layout="phone"] > & {
+      flex-wrap: nowrap;
+      gap: var(--space-100);
+      padding: 0 var(--layout-gutter);
+      border-top: 0;
+    }
+  }
+
+  .GuideFilters__Count {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+
+    [data-layout="phone"] & {
+      color: var(--color-text-secondary);
+    }
+  }
+}
