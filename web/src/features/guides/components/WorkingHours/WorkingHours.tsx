@@ -95,12 +95,11 @@ export function WorkingHours({
               }
             />
             <span>
-              วันนี้{" "}
-              {/* Open from yesterday's late range with nothing listed today: say until when. */}
-              {status.closesAt !== undefined &&
-              rangesOn(workingHours, today).length === 0
-                ? `เปิดถึง ${formatOpeningTime(status.closesAt)}`
-                : hoursText(workingHours, today)}
+              {/* Open on yesterday's late range: say until when, then today's own hours. */}
+              {status.fromYesterday && status.closesAt !== undefined
+                ? `เปิดถึง ${formatOpeningTime(status.closesAt)} · `
+                : ""}
+              วันนี้ {hoursText(workingHours, today)}
             </span>
           </dd>
           <dd>

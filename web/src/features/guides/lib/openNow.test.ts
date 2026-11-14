@@ -23,7 +23,8 @@ const mondayLateNight: WorkingDay[] = [
 
 const originalTz = process.env.TZ;
 afterAll(() => {
-  process.env.TZ = originalTz;
+  if (originalTz === undefined) delete process.env.TZ;
+  else process.env.TZ = originalTz;
 });
 
 describe.each(["Asia/Bangkok", "UTC", "America/Los_Angeles"])(
@@ -160,7 +161,7 @@ describe("openStatus", () => {
   it("gives the closing time of yesterday's range that runs past midnight", () => {
     expect(
       openStatus(mondayLateNight, bangkok("2026-11-17T01:00:00"), BANGKOK),
-    ).toEqual({ open: true, closesAt: 120 });
+    ).toEqual({ open: true, closesAt: 120, fromYesterday: true });
   });
 
   it("gives today's next opening time while closed before it", () => {
@@ -197,6 +198,8 @@ describe("formatting", () => {
   it("writes minutes as HH:MM", () => {
     expect(formatOpeningTime(0)).toBe("00:00");
     expect(formatOpeningTime(545)).toBe("09:05");
+    expect(formatOpeningTime(1440)).toBe("24:00");
+    expect(formatOpeningTime(1560)).toBe("02:00");
   });
 
   it("writes a range with an en dash, wrapping overnight closes and keeping 24:00", () => {
@@ -211,8 +214,12 @@ describe("formatting", () => {
     );
   });
 
-  it("says open 24 hours for 00:00–24:00", () => {
+  it("says open 24 hours for any 24-hour range", () => {
     expect(formatOpeningRange({ opensAt: 0, closesAt: 1440 })).toBe(
+      "เปิด 24 ชั่วโมง",
+    );
+    // 10:00–10:00 arrives from the gateway as 600–2040.
+    expect(formatOpeningRange({ opensAt: 600, closesAt: 2040 })).toBe(
       "เปิด 24 ชั่วโมง",
     );
   });

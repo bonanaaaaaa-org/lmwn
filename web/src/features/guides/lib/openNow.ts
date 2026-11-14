@@ -116,6 +116,8 @@ export interface OpenStatusValue {
   open: boolean;
   /** While open: when the current range closes (above 1440 when that is after midnight). */
   closesAt?: number;
+  /** While open: the current range is yesterday's, running past midnight. */
+  fromYesterday?: boolean;
   /** While closed: today's next opening; absent when it doesn't open again today. */
   opensAt?: number;
 }
@@ -127,7 +129,11 @@ export function openStatus(
 ): OpenStatusValue {
   const clock = weekdayAndMinutes(now, timeZone);
   const range = coveringRange(workingHours, clock);
-  if (range) return { open: true, closesAt: range.closesAt };
+  if (range) {
+    return range.opensAt < 0
+      ? { open: true, closesAt: range.closesAt, fromYesterday: true }
+      : { open: true, closesAt: range.closesAt };
+  }
   const later = rangesOn(workingHours, clock.day)
     .map((todayRange) => todayRange.opensAt)
     .filter((opensAt) => opensAt > clock.minutes);
@@ -138,19 +144,17 @@ export function openStatus(
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-/** Minutes as a 24-hour time: 545 → "09:05". 1440 stays "24:00" (midnight at the day's end). */
+/**
+ * Minutes as a 24-hour time: 545 → "09:05". Past midnight wraps (1560 → "02:00"); exactly
+ * 1440 stays "24:00", midnight at the end of the opening day.
+ */
 export function formatOpeningTime(minutes: number): string {
-  return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
+  const time = minutes > MINUTES_PER_DAY ? minutes - MINUTES_PER_DAY : minutes;
+  return `${pad(Math.floor(time / 60))}:${pad(time % 60)}`;
 }
 
-/** "08:00–17:00"; an overnight close wraps ("18:00–02:00"); 00:00–24:00 is "เปิด 24 ชั่วโมง". */
+/** "08:00–17:00"; an overnight close wraps ("18:00–02:00"); a 24-hour range is "เปิด 24 ชั่วโมง". */
 export function formatOpeningRange(range: OpeningRange): string {
-  if (range.opensAt === 0 && range.closesAt === MINUTES_PER_DAY) {
-    return "เปิด 24 ชั่วโมง";
-  }
-  const closesAt =
-    range.closesAt > MINUTES_PER_DAY
-      ? range.closesAt - MINUTES_PER_DAY
-      : range.closesAt;
-  return `${formatOpeningTime(range.opensAt)}–${formatOpeningTime(closesAt)}`;
+  if (range.closesAt - range.opensAt === MINUTES_PER_DAY) return "เปิด 24 ชั่วโมง";
+  return `${formatOpeningTime(range.opensAt)}–${formatOpeningTime(range.closesAt)}`;
 }

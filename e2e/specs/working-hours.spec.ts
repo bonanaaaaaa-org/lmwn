@@ -41,8 +41,11 @@ async function fetchGuide(request: APIRequestContext): Promise<GatewayGuide> {
   return (await response.json()) as GatewayGuide;
 }
 
-const hhmm = (minutes: number) =>
-  `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+/** The app's own format: past midnight wraps, exactly 1440 stays "24:00". */
+const hhmm = (minutes: number) => {
+  const time = minutes > 1440 ? minutes - 1440 : minutes;
+  return `${String(Math.floor(time / 60)).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
+};
 
 async function screenshot(
   page: Page,

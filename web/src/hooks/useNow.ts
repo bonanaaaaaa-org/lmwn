@@ -26,7 +26,7 @@ function scheduleTick() {
   timer = setTimeout(
     () => {
       refresh();
-      scheduleTick();
+      if (listeners.size > 0) scheduleTick();
     },
     MINUTE - (Date.now() % MINUTE),
   );

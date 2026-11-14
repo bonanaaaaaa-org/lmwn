@@ -127,7 +127,7 @@ describe("WorkingHours", () => {
     ).toBeInTheDocument();
   });
 
-  it("says until when it is open past midnight on a day with no hours of its own", () => {
+  it("says until when it is open on yesterday's range past midnight", () => {
     inList(
       <WorkingHours
         workingHours={[{ day: 3, ranges: [{ opensAt: 1080, closesAt: 1560 }] }]}
@@ -136,7 +136,23 @@ describe("WorkingHours", () => {
       />,
     );
     expect(screen.getByText("เปิดอยู่")).toBeInTheDocument();
-    expect(screen.getByText("วันนี้ เปิดถึง 02:00")).toBeInTheDocument();
+    expect(screen.getByText("เปิดถึง 02:00 · วันนี้ ปิด")).toBeInTheDocument();
+  });
+
+  it("keeps today's own hours beside yesterday's late closing time", () => {
+    inList(
+      <WorkingHours
+        workingHours={[
+          { day: 3, ranges: [{ opensAt: 1080, closesAt: 1560 }] },
+          { day: 4, ranges: [{ opensAt: 600, closesAt: 840 }] },
+        ]}
+        timeZone={BANGKOK}
+        now={thursday("01:00:00")}
+      />,
+    );
+    expect(
+      screen.getByText("เปิดถึง 02:00 · วันนี้ 10:00–14:00"),
+    ).toBeInTheDocument();
   });
 
   it("has no closed-days note when it opens every day", () => {

@@ -54,6 +54,20 @@ describe("useNow", () => {
     expect(result.current).toBe(first);
   });
 
+  it("shares one timer and keeps ticking while any caller remains", () => {
+    const first = renderHook(() => useNow());
+    const second = renderHook(() => useNow());
+    expect(vi.getTimerCount()).toBe(1);
+    first.unmount();
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
+    expect(second.result.current.getTime()).toBe(
+      new Date("2026-11-18T10:00:00+07:00").getTime(),
+    );
+    second.unmount();
+  });
+
   it("stops ticking when nothing uses it", () => {
     const { unmount } = renderHook(() => useNow());
     unmount();
