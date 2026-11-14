@@ -166,12 +166,15 @@ step "Data Server (MongoDB binary)"
 # The provided server runs an in-memory MongoDB (mongodb-memory-server) and downloads mongod on
 # its first start if the postinstall didn't. Resolve it now, from the package directory the server
 # runs in, so the first ./dev.sh doesn't wait on a download (or fail offline).
+# The download progress goes to stdout, so it's sent on to the terminal (1>&2) and only the path
+# comes back, on fd 3.
 if ! mongod_path=$(cd api-gateway && node -e '
   const { createRequire } = require("node:module");
+  const { writeSync } = require("node:fs");
   const server = require.resolve("lmwn-assignment-2025-server/package.json");
   const { MongoBinary } = createRequire(server)("mongodb-memory-server");
-  MongoBinary.getPath().then((p) => console.log(p), (e) => { console.error(e.message); process.exit(1); });
-'); then
+  MongoBinary.getPath().then((p) => writeSync(3, p), (e) => { console.error(e.message); process.exit(1); });
+' 3>&1 1>&2); then
   fail "Couldn't download the MongoDB binary"
   if [ "$os" = Linux ] && [ "$(uname -m)" != x86_64 ]; then
     fix "MongoDB has no Linux arm64 build of the server's version: use an x86_64 machine or a linux/amd64 container"
