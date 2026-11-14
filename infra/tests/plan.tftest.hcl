@@ -252,7 +252,8 @@ run "without_domains_everything_stays_on_google_urls" {
     condition = (
       output.api_url == "https://api-gateway-123456789012.asia-southeast1.run.app" &&
       output.cors_allowed_origins == tolist(["https://lmwn-prod-df7136.web.app"]) &&
-      output.storybook_url == "https://lmwn-prod-df7136-storybook.web.app"
+      output.storybook_url == "https://lmwn-prod-df7136-storybook.web.app" &&
+      output.storybook_domain_created == ""
     )
     error_message = "the gateway's public URL is its run.app URL, it allows the web.app origin, and the Storybook is on its web.app URL."
   }

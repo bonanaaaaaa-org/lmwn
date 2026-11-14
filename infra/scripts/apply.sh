@@ -2,7 +2,7 @@
 # Plan and apply infra/, then export the outputs the later deploy steps need
 # to $GITHUB_ENV (API_URL, WEB_URL, HOSTING_URL, HOSTING_SITE_ID, SERVICE_URL,
 # STORYBOOK_URL, STORYBOOK_HOSTING_URL, STORYBOOK_SITE_ID,
-# STORYBOOK_DOMAIN_READY),
+# STORYBOOK_DOMAIN_READY, STORYBOOK_DOMAIN_CREATED),
 # so they need no state access themselves. None of them is secret.
 #
 # Usage: apply.sh <terraform-dir> <var-file relative to it>
@@ -61,7 +61,8 @@ terraform -chdir="$tf_dir" output -json | jq -r '
     STORYBOOK_URL: .storybook_url.value,
     STORYBOOK_HOSTING_URL: .storybook_hosting_url.value,
     STORYBOOK_SITE_ID: .storybook_site_id.value,
-    STORYBOOK_DOMAIN_READY: .storybook_domain_ready.value
+    STORYBOOK_DOMAIN_READY: .storybook_domain_ready.value,
+    STORYBOOK_DOMAIN_CREATED: .storybook_domain_created.value
   }
   | to_entries[]
   | (if .value == null then "" else .value end | tostring | gsub("[\r\n]"; "")) as $v

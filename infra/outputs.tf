@@ -63,6 +63,11 @@ output "storybook_domain_ready" {
   value       = local.storybook_domain_ready
 }
 
+output "storybook_domain_created" {
+  description = "When the Storybook's custom domain was created (RFC 3339), empty without one. The deploy job stops accepting its web.app fallback a day after this."
+  value       = try(google_firebase_hosting_custom_domain.storybook[0].create_time, "")
+}
+
 output "api_domain_ready" {
   description = "Whether the API domain's mapping reports Ready (its certificate is issued)."
   value       = local.api_domain_ready

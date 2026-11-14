@@ -3,19 +3,30 @@ import { expect, test } from "@playwright/test";
 // The deployed Storybook (#35): every story renders, and loads nothing but the Storybook's own
 // files. Stories use fixtures only, so a request to any other origin (the gateway, the Data
 // Server, a CDN) or a failed request fails the story. Runs only when STORYBOOK_URL is set (the
-// Deploy prod job, or locally against a served `storybook-static`), on the desktop project.
+// Deploy prod job, or locally against a served `storybook-static`), on the desktop project. The
+// index is fetched once per worker when the file loads; smoke-test.sh has already checked it.
 const storybookUrl = process.env.STORYBOOK_URL?.replace(/\/$/, "");
 
 type IndexEntry = { id: string; title: string; name: string; type: string };
 
-const stories: IndexEntry[] = storybookUrl
-  ? Object.values(
-      (
-        (await (await fetch(`${storybookUrl}/index.json`)).json()) as {
-          entries: Record<string, IndexEntry>;
-        }
-      ).entries,
-    ).filter((entry) => entry.type === "story")
+async function loadEntries(url: string): Promise<IndexEntry[]> {
+  const response = await fetch(`${url}/index.json`, {
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    throw new Error(`GET ${url}/index.json answered ${response.status}`);
+  }
+  const index = (await response.json()) as {
+    entries: Record<string, IndexEntry>;
+  };
+  return Object.values(index.entries).filter(
+    (entry) => entry.type === "story" || entry.type === "docs",
+  );
+}
+
+// Every story, and every docs page (autodocs and MDX), from the deployed index.
+const entries: IndexEntry[] = storybookUrl
+  ? await loadEntries(storybookUrl)
   : [];
 
 test.describe("Storybook", () => {
@@ -23,11 +34,13 @@ test.describe("Storybook", () => {
   test.skip(({ isMobile }) => isMobile, "runs once, on the desktop project");
 
   test("lists stories", () => {
-    expect(stories.length).toBeGreaterThan(0);
+    expect(
+      entries.filter((entry) => entry.type === "story").length,
+    ).toBeGreaterThan(0);
   });
 
-  for (const story of stories) {
-    test(`${story.title} / ${story.name} renders without network errors`, async ({
+  for (const story of entries) {
+    test(`${story.title} / ${story.name} (${story.type}) renders without network errors`, async ({
       page,
     }) => {
       const origin = new URL(storybookUrl!).origin;
@@ -54,7 +67,7 @@ test.describe("Storybook", () => {
       );
 
       await page.goto(
-        `${storybookUrl}/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`,
+        `${storybookUrl}/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=${story.type}`,
       );
 
       // Storybook marks <body> once the story has rendered, or failed to.

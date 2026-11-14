@@ -21,6 +21,10 @@ if [[ $# -lt 2 || $# -gt 3 ]]; then
 fi
 api=${1%/}
 web=${2%/}
+if [[ $# -eq 3 && -z $3 ]]; then
+  echo "usage: $0 <api-url> <web-url> [<storybook-url>]: the Storybook URL is empty" >&2
+  exit 2
+fi
 storybook=${3:+${3%/}}
 
 fail() {

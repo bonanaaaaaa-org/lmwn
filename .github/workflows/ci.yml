@@ -267,16 +267,26 @@ jobs:
         run: rm -f "$GOOGLE_APPLICATION_CREDENTIALS" gha-creds-*.json
       # Until Google reports the Storybook domain active with its certificate (minutes to hours after
       # its first deploy), the checks use the Storybook's web.app URL, which serves the same release,
-      # and the job warns. Once the domain is ready, it is checked itself.
+      # and the job warns. A domain still not ready a day after it was created fails the job. Once
+      # it is ready, the domain itself is checked.
       - name: Storybook URL to check
         run: |
           set -euo pipefail
-          if [[ $STORYBOOK_DOMAIN_READY == true ]]; then
-            echo "STORYBOOK_CHECK_URL=$STORYBOOK_URL" >>"$GITHUB_ENV"
-          else
-            echo "::warning title=Storybook domain pending::$STORYBOOK_URL has no active certificate yet; checking $STORYBOOK_HOSTING_URL instead."
-            echo "STORYBOOK_CHECK_URL=$STORYBOOK_HOSTING_URL" >>"$GITHUB_ENV"
+          if [[ -z $STORYBOOK_URL || -z $STORYBOOK_HOSTING_URL ]]; then
+            echo "::error title=Storybook URL missing::Terraform's storybook_url or storybook_hosting_url output is empty."
+            exit 1
           fi
+          if [[ $STORYBOOK_DOMAIN_READY == true || $STORYBOOK_URL == "$STORYBOOK_HOSTING_URL" ]]; then
+            echo "STORYBOOK_CHECK_URL=$STORYBOOK_URL" >>"$GITHUB_ENV"
+            exit 0
+          fi
+          created=$(date -d "${STORYBOOK_DOMAIN_CREATED:-now}" +%s)
+          if (($(date +%s) - created > 24 * 3600)); then
+            echo "::error title=Storybook domain not serving::$STORYBOOK_URL was created at $STORYBOOK_DOMAIN_CREATED and Hosting still reports no active certificate. Check its DNS records (infra/README.md, Custom domains)."
+            exit 1
+          fi
+          echo "::warning title=Storybook domain pending::$STORYBOOK_URL has no active certificate yet; checking $STORYBOOK_HOSTING_URL instead."
+          echo "STORYBOOK_CHECK_URL=$STORYBOOK_HOSTING_URL" >>"$GITHUB_ENV"
       - name: Smoke-test the deploy
         run: infra/scripts/smoke-test.sh "$API_URL" "$WEB_URL" "$STORYBOOK_CHECK_URL"
       # Includes specs/storybook.spec.ts: every story renders with no request off the Storybook's origin.

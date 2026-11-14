@@ -45,9 +45,13 @@ storybook=web/storybook-static
 if [[ ! -f $storybook/index.html || ! -f $storybook/iframe.html || ! -f $storybook/index.json ]]; then
   fail "$storybook is incomplete; build the Storybook first (pnpm turbo run build-storybook --filter=web)."
 fi
-# Stories use fixtures only and never call the gateway.
-if grep -rqsF "$API_URL" "$storybook"; then
-  fail "the Storybook build names $API_URL; stories must not call the gateway."
+# Stories use fixtures only and never call the gateway. (A belt-and-braces
+# check: the post-deploy Playwright run fails on any request off the
+# Storybook's origin.)
+api_host=${API_URL#*://}
+api_host=${api_host%%/*}
+if grep -rqsF "$api_host" "$storybook"; then
+  fail "the Storybook build names the gateway's host $api_host; stories must not call the gateway."
 fi
 
 # Map web/firebase.json's targets to this project's sites. The CLI reads
