@@ -1,0 +1,152 @@
+@layer components {
+  .GuideIndexView__Root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+
+    @media (width >= 48rem) {
+      gap: var(--space-400);
+    }
+  }
+
+  .GuideIndexView__Hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+    max-width: 47.5rem;
+
+    @media (width >= 48rem) {
+      gap: var(--space-200);
+    }
+  }
+
+  .GuideIndexView__Title {
+    font-size: var(--font-size-700);
+    line-height: 1.2;
+  }
+
+  /* Phones drop the lead paragraph (canvas PhoneIndex). */
+  .GuideIndexView__Lead {
+    display: none;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-300);
+
+    @media (width >= 48rem) {
+      display: block;
+    }
+  }
+
+  .GuideIndexView__Search {
+    @media (width >= 48rem) {
+      margin-top: var(--space-100);
+    }
+  }
+
+  .GuideIndexView__TagFilter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-100);
+    min-width: 0;
+  }
+
+  .GuideIndexView__TagHeading {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .GuideIndexView__Results {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+  }
+
+  .GuideIndexView__ResultsHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-150);
+    padding-top: var(--space-200);
+    border-top: 1px solid var(--color-border);
+
+    @media (width >= 48rem) {
+      align-items: baseline;
+      padding-top: var(--space-300);
+    }
+  }
+
+  /* Visually hidden on phones (the count leads the row there); still the section's name. */
+  .GuideIndexView__ResultsHeading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+
+    @media (width >= 48rem) {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      font-size: var(--font-size-500);
+    }
+  }
+
+  .GuideIndexView__Summary {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-150);
+
+    @media (width >= 48rem) {
+      flex: 0 1 auto;
+      justify-content: flex-end;
+      gap: var(--space-300);
+    }
+  }
+
+  .GuideIndexView__Count {
+    font-weight: var(--font-weight-semibold);
+
+    @media (width >= 48rem) {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-100);
+      font-weight: var(--font-weight-regular);
+    }
+  }
+
+  .GuideIndexView__Grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-200);
+
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-300);
+    }
+
+    @media (width >= 64rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .GuideIndexView__List {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transition: opacity var(--duration-base) var(--easing-standard);
+
+    /* A newer search is loading: the previous cards stay, slightly dimmed. */
+    &[aria-busy="true"] {
+      opacity: 0.72;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+}

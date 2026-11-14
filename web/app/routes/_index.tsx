@@ -1,3 +1,6 @@
+import { GuideIndexPage } from "@/features/guide-index/pages/GuideIndexPage";
+
+/** `/`: the Guide Index. */
 export default function IndexRoute() {
-  return <h1>Guide to Hidden Gems</h1>;
+  return <GuideIndexPage />;
 }

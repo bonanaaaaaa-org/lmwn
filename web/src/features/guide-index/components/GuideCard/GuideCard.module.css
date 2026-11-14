@@ -1,0 +1,105 @@
+@layer components {
+  .GuideCard__Root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-300);
+    background: var(--color-surface);
+    transition:
+      box-shadow var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard);
+
+    /* The stretched title link makes the whole card one target. */
+    &:has(.GuideCard__Link[data-hovered]) {
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-200);
+    }
+
+    &:has(.GuideCard__Link[data-focus-visible]) {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  .GuideCard__Cover {
+    flex: none;
+  }
+
+  .GuideCard__Body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-100);
+    padding: var(--space-300);
+
+    [data-layout="phone"] > & {
+      padding: var(--space-200);
+    }
+  }
+
+  .GuideCard__Count {
+    color: var(--color-accent-text);
+    font-size: var(--font-size-75);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .GuideCard__Title {
+    font-size: var(--font-size-400);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+
+    [data-layout="phone"] & {
+      font-size: var(--font-size-300);
+    }
+  }
+
+  .GuideCard__Link {
+    color: var(--color-text);
+    text-decoration: none;
+
+    /* The card shows the ring instead (see .GuideCard__Root). */
+    &[data-focus-visible] {
+      outline: none;
+    }
+
+    &[data-hovered] {
+      text-decoration: underline;
+    }
+  }
+
+  /* Covers the card; painted below the Tags, which come later in the DOM and are positioned. */
+  .GuideCard__Stretch {
+    position: absolute;
+    inset: 0;
+  }
+
+  .GuideCard__Description {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-100);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .GuideCard__Tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+    margin: auto 0 0;
+    padding: var(--space-100) 0 0;
+    list-style: none;
+  }
+
+  .GuideCard__Tag {
+    position: relative;
+  }
+}
