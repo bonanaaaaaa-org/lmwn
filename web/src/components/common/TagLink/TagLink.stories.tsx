@@ -14,6 +14,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+/** The 32px grey chip used in the Guide header. */
+export const Filled: Story = { args: { variant: "filled" } };
 export const Latin: Story = { args: { tag: "One Bangkok" } };
 export const LongTag: Story = {
   args: { tag: "ร้านอาหารสำหรับกลุ่มใหญ่ที่จองล่วงหน้าได้" },

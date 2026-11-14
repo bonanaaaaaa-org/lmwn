@@ -1,0 +1,38 @@
+@layer components {
+  .GuidePage__Root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-400);
+    max-width: 70rem;
+    margin-inline: auto;
+
+    &[data-layout="phone"] {
+      gap: var(--space-200);
+    }
+  }
+
+  /* Phones: the cover (or its skeleton) sits flush under the header, above main's padding. */
+  .GuidePage__Top {
+    [data-layout="phone"] > & {
+      margin-top: calc(var(--space-600) * -1);
+    }
+  }
+
+  .GuidePage__Back {
+    align-self: flex-start;
+    margin-bottom: calc(var(--space-200) * -1);
+  }
+
+  .GuidePage__Items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-400);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    [data-layout="phone"] > & {
+      gap: var(--space-200);
+    }
+  }
+}

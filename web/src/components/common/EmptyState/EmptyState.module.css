@@ -1,0 +1,37 @@
+@layer components {
+  .EmptyState__Root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-150);
+    padding: var(--space-400);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-300);
+    background: var(--color-surface);
+    text-align: center;
+  }
+
+  .EmptyState__Icon,
+  .EmptyState__Meta,
+  .EmptyState__Description {
+    color: var(--color-text-muted);
+  }
+
+  .EmptyState__Meta {
+    font-size: var(--font-size-100);
+  }
+
+  .EmptyState__Title {
+    font-size: var(--font-size-400);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .EmptyState__Description {
+    max-width: 40ch;
+  }
+
+  .EmptyState__Action {
+    margin-top: var(--space-100);
+  }
+}
