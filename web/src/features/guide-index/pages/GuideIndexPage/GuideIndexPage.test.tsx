@@ -226,6 +226,8 @@ describe("GuideIndexPage", { timeout: 15_000 }, () => {
 
     expect(params().getAll("tag")).toEqual(["กรุงเทพ"]);
     expect(params().get("q")).toBeNull();
+    // The box shows the view it landed on, not text the results ignore.
+    expect(searchBox()).toHaveValue("");
   });
 
   it("searches immediately on Enter, adding a history entry", async () => {

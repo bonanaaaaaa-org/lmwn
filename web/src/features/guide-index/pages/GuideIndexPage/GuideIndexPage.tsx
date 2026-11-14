@@ -75,31 +75,40 @@ export function GuideIndexPage() {
   }
 
   const latestFilters = useRef(filters);
-  useEffect(() => {
+  // A layout effect, so the location effect below already sees this render's filters.
+  useLayoutEffect(() => {
     latestFilters.current = filters;
   });
   const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(debounce.current), []);
+  /** Cancels the pending search; `debounce.current` is set only while one is pending. */
+  const cancelPending = useCallback(() => {
+    clearTimeout(debounce.current);
+    debounce.current = undefined;
+  }, []);
 
-  // Our own commits clear the pending debounce before navigating, so a location change
+  // Our own commits cancel the pending search before navigating, so a location change
   // while one is pending came from elsewhere (Back, a Tag link, the logo). Drop it, or it
-  // would fire 300 ms later with the old text and undo that navigation.
+  // would fire 300 ms later with the old text and undo that navigation, and show the new
+  // view's text so the box never holds words the results ignore.
   const locationKey = useRef(location.key);
   useLayoutEffect(() => {
-    if (locationKey.current !== location.key) {
-      locationKey.current = location.key;
-      clearTimeout(debounce.current);
+    if (locationKey.current === location.key) return;
+    locationKey.current = location.key;
+    if (debounce.current !== undefined) {
+      cancelPending();
+      setSearchText(latestFilters.current.q);
     }
-  }, [location.key]);
+  }, [location.key, cancelPending]);
 
   const commit = useCallback(
     (next: GuideIndexFilters, { replace }: { replace: boolean }) => {
-      clearTimeout(debounce.current);
+      cancelPending();
       const href = buildIndexHref(next);
       if (href === buildIndexHref(latestFilters.current)) return;
       void navigate(href, { replace, preventScrollReset: true });
     },
-    [navigate],
+    [navigate, cancelPending],
   );
 
   const isSearchTooLong = isSearchTextTooLong(searchText);
@@ -151,10 +160,11 @@ export function GuideIndexPage() {
       isSearchTooLong={isSearchTooLong}
       onSearchTextChange={(text) => {
         setSearchText(text);
-        clearTimeout(debounce.current);
+        cancelPending();
         if (isSearchTextTooLong(text)) return;
         const scheduledAt = locationKey.current;
         debounce.current = setTimeout(() => {
+          debounce.current = undefined;
           if (locationKey.current !== scheduledAt) return;
           const current = latestFilters.current;
           // Starting a search pushes, so Back returns to the view before it; refining
@@ -167,7 +177,7 @@ export function GuideIndexPage() {
       }}
       onSearchSubmit={(text) => {
         if (isSearchTextTooLong(text)) {
-          clearTimeout(debounce.current);
+          cancelPending();
           return;
         }
         commit({ q: text, tags: filters.tags }, { replace: false });
