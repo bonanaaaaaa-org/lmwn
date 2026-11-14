@@ -35,9 +35,11 @@ export default defineConfig({
     ],
   },
   build: {
-    // One stylesheet (~7 KB gzipped) instead of one per chunk: fewer render-blocking
-    // requests on the critical path (Lighthouse, #16).
-    cssCodeSplit: false,
+    // The app gets one stylesheet (~9 KB gzipped) instead of one per chunk: fewer
+    // render-blocking requests on the critical path (Lighthouse, #16). Its first rule may come
+    // from a component, so app/root.tsx declares the layer order before it. Storybook keeps
+    // the default split.
+    cssCodeSplit: isStorybook,
   },
   server: {
     port: 3000,

@@ -23,6 +23,7 @@ import {
 } from "@/lib/preloadPageData";
 import { Providers } from "@/lib/Providers";
 import { useRouterHref } from "@/lib/routerHref";
+import { CSS_LAYER_ORDER } from "@/styles/layers";
 import { m } from "@/paraglide/messages.js";
 
 // Lets React Aria links pass React Router options (e.g. `replace`) via `routerOptions`.
@@ -64,12 +65,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang={appLocale}>
       <head>
         <meta charSet="UTF-8" />
+        {/* Before any stylesheet: fixes the cascade layer order (see CSS_LAYER_ORDER). */}
+        <style>{CSS_LAYER_ORDER}</style>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{m.app_title()}</title>
         <meta name="description" content={m.app_description()} />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        {/* Every page's data (and, when deployed, its photos) comes from the gateway. */}
+        {/* Every page's data comes from the gateway (CORS), and when deployed its photos do too (no CORS). */}
         <link rel="preconnect" href={env.apiBaseUrl} crossOrigin="anonymous" />
+        <link rel="preconnect" href={env.apiBaseUrl} />
         <script
           // Starts the page's gateway request and route code while the entry JavaScript
           // downloads. Built from function source, which differs between the build-time

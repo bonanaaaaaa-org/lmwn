@@ -188,6 +188,25 @@ describe("fetchJson with a preloaded response", () => {
     expect(gatewayCalls).toBe(1);
   });
 
+  it("reports a preloaded error response as an ApiError, and the retry reaches the gateway", async () => {
+    server.use(http.get(url, () => HttpResponse.json({ id: "recovered" })));
+    slot()[PRELOAD_GLOBAL] = {
+      url,
+      response: Promise.resolve(
+        Response.json({ detail: "Upstream failed" }, { status: 502 }),
+      ),
+    };
+
+    await expect(fetchJson("/guides/g1", schema)).rejects.toMatchObject({
+      name: "ApiError",
+      status: 502,
+      detail: "Upstream failed",
+    });
+    await expect(fetchJson("/guides/g1", schema)).resolves.toEqual({
+      id: "recovered",
+    });
+  });
+
   it("asks the gateway itself when the preloaded request failed", async () => {
     server.use(http.get(url, () => HttpResponse.json({ id: "retried" })));
     const failed = Promise.reject(new TypeError("Failed to fetch"));

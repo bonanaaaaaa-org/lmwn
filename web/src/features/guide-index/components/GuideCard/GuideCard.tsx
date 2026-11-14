@@ -27,8 +27,6 @@ export interface GuideCardGuide {
   href: string;
 }
 
-export { GUIDE_CARD_SIZES };
-
 export interface GuideCardProps {
   guide: GuideCardGuide;
   /** `desktop` (24px padding, 20px title) or `phone` (16px padding, 18px title). */

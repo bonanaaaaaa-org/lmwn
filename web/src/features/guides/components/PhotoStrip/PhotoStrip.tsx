@@ -130,7 +130,9 @@ export function PhotoStrip({
                   // Phones get the small photo only: at 78vw it is about 1.5x the box on a
                   // typical phone, and the large one is ~4x the bytes. The lightbox shows the large one.
                   layout === "phone"
-                    ? photoSources(photo).slice(0, 1)
+                    ? photoSources(photo)
+                        .filter(({ url }) => url.trim() !== "")
+                        .slice(0, 1)
                     : photoSources(photo)
                 }
                 alt={photoAlt(index + 1, photos.length, restaurantName)}

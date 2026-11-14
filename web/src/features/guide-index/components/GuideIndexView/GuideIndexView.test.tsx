@@ -42,6 +42,21 @@ describe("GuideIndexView", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("holds the place on a first load with a Tag in the URL, until every Tag arrives", () => {
+    renderView({
+      filters: { q: "", tags: [t.coffee] },
+      results: { status: "loading" },
+      tags: [t.coffee],
+      tagsLoading: true,
+    });
+    expect(
+      screen.queryByRole("heading", { name: m.guideIndex_tagFilter_title() }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(m.guideIndex_tagFilter_title()),
+    ).toBeInTheDocument();
+  });
+
   it("drops the placeholder once the Tags have loaded", () => {
     renderView({ tagsLoading: false });
     expect(

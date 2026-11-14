@@ -78,6 +78,24 @@ describe("PhotoStrip", () => {
     ).toHaveAttribute("srcset", "http://localhost:7777/r/480/854/a.jpg 480w");
   });
 
+  it("falls back to the large photo on phones when the small one is missing", () => {
+    const { container } = render(
+      <PhotoStrip
+        photos={[
+          makePhoto(1, {
+            smallUrl: "",
+            largeUrl: "http://localhost:7777/r/1080/1920/a.jpg",
+          }),
+        ]}
+        layout="phone"
+      />,
+    );
+    expect(container.querySelector("img")).toHaveAttribute(
+      "srcset",
+      "http://localhost:7777/r/1080/1920/a.jpg 1080w",
+    );
+  });
+
   it("holds its photos, still named, until the strip nears the viewport", () => {
     let report: IntersectionObserverCallback = () => {};
     const observe = vi.fn();
@@ -92,7 +110,7 @@ describe("PhotoStrip", () => {
       },
     );
     try {
-      render(
+      const { container } = render(
         <PhotoStrip photos={[makePhoto(1)]} restaurantName="ONIBUS COFFEE" />,
       );
       const name = m.restaurantCard_photoStrip_photo_alt({
@@ -100,7 +118,11 @@ describe("PhotoStrip", () => {
         total: 1,
         restaurant: "ONIBUS COFFEE",
       });
-      expect(screen.getByRole("img", { name })).not.toHaveAttribute("src");
+      expect(screen.getByRole("img", { name })).toHaveAttribute(
+        "data-state",
+        "deferred",
+      );
+      expect(container.querySelector("img")).toBeNull();
       expect(observe).toHaveBeenCalled();
 
       act(() =>
@@ -110,7 +132,7 @@ describe("PhotoStrip", () => {
         ),
       );
 
-      expect(screen.getByRole("img", { name })).toHaveAttribute("src");
+      expect(container.querySelector("img")).toHaveAttribute("src");
     } finally {
       vi.unstubAllGlobals();
     }

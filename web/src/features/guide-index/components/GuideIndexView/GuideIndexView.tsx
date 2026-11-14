@@ -54,8 +54,8 @@ export interface GuideIndexViewProps {
   /** The Tags on offer (every Tag across all Guides, plus any selected one). */
   tags: readonly string[];
   /**
-   * The Tags are still loading: a placeholder row holds the Tag filter's place, so the
-   * results don't jump down when the Tags arrive.
+   * The Tags are still loading: a placeholder row holds the Tag filter's place (even when a
+   * Tag from the URL is already known), so the results don't jump when the Tags arrive.
    */
   tagsLoading?: boolean;
   /** The text in the search box, which can run ahead of `filters.q` while typing. */
@@ -138,7 +138,7 @@ export function GuideIndexView({
         />
       </section>
 
-      {tags.length > 0 && (
+      {tags.length > 0 && !tagsLoading && (
         <section
           className={styles.GuideIndexView__TagFilter}
           aria-labelledby={tagsHeadingId}
@@ -158,7 +158,7 @@ export function GuideIndexView({
         </section>
       )}
 
-      {tags.length === 0 && tagsLoading && (
+      {tagsLoading && (
         <div className={styles.GuideIndexView__TagFilter} aria-hidden="true">
           <p className={styles.GuideIndexView__TagHeading}>
             {m.guideIndex_tagFilter_title()}

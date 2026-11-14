@@ -67,6 +67,17 @@ const { values: args } = parseArgs({
 });
 
 const runs = Number(args.runs);
+if (!Number.isInteger(runs) || runs < 1) {
+  throw new Error(
+    `--runs must be a whole number of at least 1, not "${args.runs}"`,
+  );
+}
+if (
+  args.min !== undefined &&
+  !(Number(args.min) >= 0 && Number(args.min) <= 100)
+) {
+  throw new Error(`--min must be a score from 0 to 100, not "${args.min}"`);
+}
 const targetFor = (preset, category) =>
   args.min === undefined ? TARGETS[preset][category] : Number(args.min);
 const apiUrl = (
@@ -89,9 +100,24 @@ async function waitFor(url, timeoutMs) {
   }
 }
 
-function startPreview() {
+async function isServing(url) {
+  try {
+    await fetch(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function startPreview(baseUrl) {
   if (!existsSync(join(WEB_ROOT, "build/client/index.html"))) {
     throw new Error("No production build: run `pnpm build` in web/ first.");
+  }
+  // Something else on :3000 (often `pnpm dev`) would be audited instead of the build.
+  if (await isServing(baseUrl)) {
+    throw new Error(
+      `${baseUrl} is already in use (pnpm dev?). Stop it so the audit runs against the production build.`,
+    );
   }
   // Its own process group, so stopping it also stops anything it spawned.
   return spawn(
@@ -168,8 +194,17 @@ async function main() {
   try {
     const guideId = await firstGuideId();
     if (!args["base-url"]) {
-      preview = startPreview();
-      await waitFor(baseUrl, 30_000);
+      preview = await startPreview(baseUrl);
+      const exited = new Promise((_, reject) =>
+        preview.once("exit", (code) =>
+          reject(
+            new Error(`vite preview exited (code ${code}) before it was ready`),
+          ),
+        ),
+      );
+      // Stopping the preview at the end also fires "exit"; that rejection is expected.
+      exited.catch(() => {});
+      await Promise.race([waitFor(baseUrl, 30_000), exited]);
     }
     const pages = [
       { name: "guide-index", label: "Guide Index", path: "/" },
@@ -232,7 +267,9 @@ async function main() {
       log("\nEvery score meets its target.");
     }
   } finally {
-    if (preview?.pid) process.kill(-preview.pid, "SIGTERM");
+    if (preview?.pid && preview.exitCode === null) {
+      process.kill(-preview.pid, "SIGTERM");
+    }
   }
 }
 
