@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
+import { Icon } from "@/components/common/Icon";
+
 import { Button, ButtonLink } from "./Button";
 
 const meta = {
@@ -16,11 +18,38 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {};
 export const Secondary: Story = { args: { variant: "secondary" } };
+export const Ghost: Story = { args: { variant: "ghost" } };
+export const Inverse: Story = { args: { variant: "inverse" } };
+export const Text: Story = { args: { variant: "text", children: "อ่านเพิ่มเติม" } };
+export const Compact: Story = { args: { variant: "ghost", size: "compact" } };
 export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };
 
 export const AsLink: Story = {
   render: () => <ButtonLink href="/">กลับไปหน้าไกด์ทั้งหมด</ButtonLink>,
+};
+
+/** The phone call action: an ink-filled link with an icon. */
+export const InverseLink: Story = {
+  render: () => (
+    <ButtonLink href="tel:0939164541" variant="inverse">
+      <Icon name="phone" size={18} />
+      โทร 093 916 4541
+    </ButtonLink>
+  ),
+};
+
+export const GhostCompactLink: Story = {
+  render: () => (
+    <ButtonLink
+      href="https://www.instagram.com/"
+      variant="ghost"
+      size="compact"
+    >
+      <Icon name="instagram" size={16} />
+      Instagram
+    </ButtonLink>
+  ),
 };
 
 export const SecondaryLink: Story = {

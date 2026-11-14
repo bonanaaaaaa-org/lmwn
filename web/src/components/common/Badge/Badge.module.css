@@ -1,0 +1,21 @@
+@layer components {
+  .Badge__Root {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-50);
+    height: 1.5rem;
+    padding: 0 var(--space-100);
+    border-radius: var(--radius-200);
+    background: var(--color-surface-sunken);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-75);
+    line-height: 1;
+    white-space: nowrap;
+
+    &[data-variant="official"] {
+      background: var(--color-accent-subtle);
+      color: var(--color-accent-strong);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}

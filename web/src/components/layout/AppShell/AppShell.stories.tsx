@@ -36,3 +36,9 @@ export const Loading: Story = {
     ),
   },
 };
+
+/** The Guide page on a phone: the header gains a back link to the Guide Index. */
+export const PhoneGuide: Story = {
+  args: { guidePageTestId: "guide" },
+  globals: { viewport: { value: "iphone14", isRotated: false } },
+};

@@ -23,11 +23,6 @@
     }
   }
 
-  .AppShell__Header {
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-surface);
-  }
-
   .AppShell__Bar {
     display: flex;
     flex-wrap: wrap;
@@ -38,51 +33,6 @@
     min-height: var(--header-height);
     margin-inline: auto;
     padding-inline: var(--layout-gutter);
-  }
-
-  .AppShell__Brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-100);
-    min-height: var(--control-height);
-    border-radius: var(--radius-100);
-    color: var(--color-text);
-    font-size: var(--font-size-300);
-    font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-tight);
-    letter-spacing: -0.01em;
-    text-decoration: none;
-
-    &[data-focus-visible] {
-      outline: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-  }
-
-  .AppShell__Mark {
-    flex: none;
-    width: 1.5rem;
-    height: 1.5rem;
-    fill: var(--color-accent);
-    stroke: var(--color-text);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.5;
-
-    [data-hovered] > & {
-      fill: var(--color-accent-hover);
-    }
-  }
-
-  /* Phones keep the header to one 3.5rem row: the tagline only shows from 48rem up. */
-  .AppShell__Tagline {
-    display: none;
-    color: var(--color-text-muted);
-    font-size: var(--font-size-100);
-
-    @media (width >= 48rem) {
-      display: block;
-    }
   }
 
   .AppShell__Footer {

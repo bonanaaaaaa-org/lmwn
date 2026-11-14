@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { AppShell } from "./AppShell";
+import { AppShell, guidePageTestIdFrom } from "./AppShell";
 
 describe("AppShell", () => {
   it("links the header to the Guide Index and renders the page in main", () => {
@@ -44,5 +44,37 @@ describe("AppShell", () => {
     const skip = screen.getByRole("link", { name: "ข้ามไปยังเนื้อหาหลัก" });
     expect(skip).toHaveFocus();
     expect(skip).toHaveAttribute("href", `#${screen.getByRole("main").id}`);
+  });
+
+  it("shows the phone Guide header with a back link when the page asks for it on a phone", () => {
+    const desktopMatchMedia = window.matchMedia;
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({ ...desktopMatchMedia(query), matches: true }) as MediaQueryList,
+    );
+    render(<AppShell guidePageTestId="guide">content</AppShell>);
+
+    expect(screen.getByTestId("guide/back-link")).toHaveAccessibleName(
+      "กลับไปไกด์ทั้งหมด",
+    );
+    vi.restoreAllMocks();
+  });
+
+  it("has no back link on other pages", () => {
+    render(<AppShell>content</AppShell>);
+    expect(
+      screen.queryByRole("link", { name: "กลับไปไกด์ทั้งหมด" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reads the Guide page test ID from the deepest route handle that has one", () => {
+    expect(
+      guidePageTestIdFrom([
+        { handle: undefined },
+        { handle: { guidePageTestId: "guide" } },
+        { handle: { other: true } },
+      ]),
+    ).toBe("guide");
+    expect(guidePageTestIdFrom([{ handle: null }])).toBeUndefined();
   });
 });

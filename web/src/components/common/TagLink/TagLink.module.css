@@ -14,10 +14,23 @@
     text-decoration: none;
     transition: background-color var(--duration-fast) var(--easing-standard);
 
-    &[data-hovered],
-    &[data-pressed] {
+    &[data-variant="filled"] {
+      padding-inline: var(--space-150);
+      border-color: var(--color-surface-sunken);
+      background: var(--color-surface-sunken);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-75);
+    }
+
+    &[data-hovered] {
       border-color: var(--color-accent);
       background: var(--color-accent);
+      color: var(--color-text-on-accent);
+    }
+
+    &[data-pressed] {
+      border-color: var(--color-accent-hover);
+      background: var(--color-accent-hover);
       color: var(--color-text-on-accent);
     }
 

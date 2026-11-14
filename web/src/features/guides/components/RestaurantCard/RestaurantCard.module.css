@@ -1,0 +1,208 @@
+@layer components {
+  .RestaurantCard__Root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+    padding: var(--space-300);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-400);
+    background: var(--color-surface);
+
+    /* Phones: full-bleed, edge to edge across the page gutter. */
+    &[data-layout="phone"] {
+      gap: var(--space-200);
+      margin-inline: calc(var(--layout-gutter) * -1);
+      padding: var(--space-300) 0;
+      border-width: 1px 0;
+      border-radius: 0;
+    }
+  }
+
+  /* On phones the card is full-bleed, so its text blocks keep the page gutter themselves. */
+  .RestaurantCard__Inset {
+    [data-layout="phone"] > & {
+      margin-inline: var(--space-200);
+    }
+  }
+
+  .RestaurantCard__Unavailable {
+    display: flex;
+    align-items: center;
+    gap: var(--space-100);
+    padding: var(--space-150) var(--space-200);
+    border-radius: var(--radius-200);
+    background: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-100);
+
+    [data-layout="phone"] > & {
+      margin-inline: var(--space-200);
+    }
+  }
+
+  .RestaurantCard__Header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-200);
+
+    [data-layout="phone"] > & {
+      gap: var(--space-150);
+      padding-inline: var(--space-200);
+    }
+  }
+
+  .RestaurantCard__Index {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-text);
+    color: var(--color-surface);
+    font-size: var(--font-size-100);
+    font-weight: var(--font-weight-title);
+  }
+
+  .RestaurantCard__Heading {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-50);
+    min-width: 0;
+  }
+
+  .RestaurantCard__Name {
+    font-size: var(--font-size-500);
+    overflow-wrap: anywhere;
+
+    [data-layout="phone"] & {
+      font-size: var(--font-size-400);
+    }
+  }
+
+  .RestaurantCard__Branch {
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .RestaurantCard__Meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-100) var(--space-150);
+    font-size: var(--font-size-100);
+  }
+
+  .RestaurantCard__Separator {
+    color: var(--color-border-strong);
+  }
+
+  .RestaurantCard__Categories {
+    color: var(--color-text-muted);
+  }
+
+  .RestaurantCard__Badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .RestaurantCard__WriteUp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-50);
+    max-width: 72ch;
+  }
+
+  .RestaurantCard__WriteUpText {
+    font-size: var(--font-size-300);
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+
+    [data-layout="phone"] & {
+      font-size: var(--font-size-200);
+    }
+
+    &[data-clamped] {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+      line-clamp: 4;
+      mask-image: linear-gradient(
+        to bottom,
+        #000 calc(100% - 1.75em),
+        transparent
+      );
+    }
+  }
+
+  .RestaurantCard__Details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-300) var(--space-400);
+    align-items: start;
+    margin: 0;
+    padding-top: var(--space-300);
+    border-top: 1px solid var(--color-surface-sunken);
+
+    [data-layout="phone"] > & {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-200);
+      margin-inline: var(--space-200);
+      padding: var(--space-200);
+      border: 0;
+      border-radius: var(--radius-300);
+      background: var(--color-surface-subtle);
+    }
+
+    & dd {
+      margin: 0;
+    }
+  }
+
+  .RestaurantCard__Detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-50);
+  }
+
+  .RestaurantCard__Term {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-75);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .RestaurantCard__Contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+    padding-top: var(--space-50);
+  }
+
+  .RestaurantCard__Actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-100);
+
+    /* Two columns on a 360px phone: tighter padding keeps "โทร 093 916 4541" on one line. */
+    & > a {
+      gap: var(--space-50);
+      padding-inline: var(--space-150);
+      font-size: var(--font-size-100);
+      white-space: nowrap;
+    }
+  }
+
+  .RestaurantCard__WideAction {
+    grid-column: 1 / -1;
+  }
+}

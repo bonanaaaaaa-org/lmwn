@@ -11,6 +11,8 @@ export interface TagLinkProps {
    * so a Tag can combine with the current search text and other Tags.
    */
   href?: string;
+  /** `outline` (40px, the Guide Index) or `filled` (32px grey chip, the Guide header). */
+  variant?: "outline" | "filled";
   className?: string;
   /** The finished `data-testid` from the parent, e.g. `guide-index/guide-card/tag`. */
   testId?: string;
@@ -22,11 +24,18 @@ export function tagHref(tag: string): string {
 }
 
 /** A Tag chip that opens the Guide Index filtered to that Tag. */
-export function TagLink({ tag, href, className, testId }: TagLinkProps) {
+export function TagLink({
+  tag,
+  href,
+  variant = "outline",
+  className,
+  testId,
+}: TagLinkProps) {
   return (
     <Link
       href={href ?? tagHref(tag)}
       className={clsx(styles.TagLink__Root, className)}
+      data-variant={variant}
       data-testid={testId}
     >
       <span aria-hidden="true" className={styles.TagLink__Hash}>

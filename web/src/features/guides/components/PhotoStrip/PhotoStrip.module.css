@@ -1,0 +1,55 @@
+@layer components {
+  .PhotoStrip__Root {
+    position: relative;
+  }
+
+  .PhotoStrip__List {
+    display: grid;
+    grid-auto-columns: calc((100% - 2 * var(--space-150)) / 3);
+    grid-auto-flow: column;
+    gap: var(--space-150);
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    list-style: none;
+    border-radius: var(--radius-300);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    &:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-ring-offset);
+    }
+
+    [data-layout="phone"] > & {
+      grid-auto-columns: 78%;
+      gap: var(--space-100);
+      padding-inline: var(--space-200);
+      border-radius: 0;
+      scroll-padding-inline: var(--space-200);
+    }
+  }
+
+  .PhotoStrip__Item {
+    scroll-snap-align: start;
+  }
+
+  .PhotoStrip__Photo {
+    border-radius: var(--radius-300);
+  }
+
+  .PhotoStrip__Next {
+    position: absolute;
+    top: calc(50% - var(--control-height) / 2);
+    right: var(--space-150);
+    width: var(--control-height);
+    padding: 0;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 0.125rem 0.5rem rgb(17 17 17 / 18%);
+  }
+}

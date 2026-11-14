@@ -1,0 +1,38 @@
+@layer components {
+  .Rating__Root {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-50);
+    line-height: var(--line-height-tight);
+    white-space: nowrap;
+
+    &[data-state="unrated"] {
+      color: var(--color-text-muted);
+    }
+  }
+
+  .Rating__Star {
+    display: block;
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    fill: var(--color-accent);
+    stroke: var(--color-accent-text);
+    stroke-width: 1.2;
+
+    [data-state="unrated"] > & {
+      fill: none;
+      stroke: currentcolor;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+  }
+
+  .Rating__Score {
+    font-weight: var(--font-weight-title);
+  }
+
+  .Rating__Reviews {
+    color: var(--color-text-muted);
+  }
+}
