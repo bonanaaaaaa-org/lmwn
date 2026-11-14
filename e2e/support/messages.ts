@@ -6,6 +6,9 @@ type MessageKey =
   | "app_skipLink_label"
   | "header_tagline_body"
   | "header_backLink_ariaLabel"
+  | "themeToggle_option_systemLabel"
+  | "themeToggle_option_lightLabel"
+  | "themeToggle_option_darkLabel"
   | "app_footer_body"
   | "guideIndex_title"
   | "guideIndex_emptyState_body"
@@ -16,6 +19,7 @@ type MessageKey =
   | "guide_errorPanel_title"
   | "guideIndex_skeleton_label"
   | "errorPanel_retry_label"
+  | "errorPanel_offlineBody"
   | "restaurantCard_readMore_label"
   | "restaurantCard_readMore_expandedLabel"
   | "restaurantCard_unavailable_body"
@@ -47,6 +51,7 @@ type MessageKey =
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
+  themeToggle_trigger_ariaLabel: { theme: string };
   guideIndex_resultCount_body: { count: number };
   guideIndex_emptyState_searchTitle: { query: string };
   guideIndex_errorPanel_searchBody: { query: string };

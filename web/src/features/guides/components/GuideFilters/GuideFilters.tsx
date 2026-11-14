@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { Ref } from "react";
+import { useLayoutEffect, useRef, type Ref } from "react";
 import { ToggleButtonGroup, type Key } from "react-aria-components";
 
 import { FilterChip } from "@/components/common/FilterChip";
@@ -86,6 +86,20 @@ export function GuideFilters({
   const testId = joinTestId(parentTestId, "filters");
   const selected = new Set(selectedKeys(filters));
   const isPhone = layout === "phone";
+  // The filters last sent to onChange. The parent gets `filters` back from the URL in a
+  // transition, so a quick second press can arrive before the first press's filters return
+  // as props; each press builds on what was last asked for, not on this render's props.
+  // New props (the URL caught up, Back, a link) take over again.
+  const latest = useRef(filters);
+  useLayoutEffect(() => {
+    latest.current = filters;
+  }, [filters]);
+  const change = (
+    update: (current: RestaurantFilters) => RestaurantFilters,
+  ) => {
+    latest.current = update(latest.current);
+    onChange(latest.current);
+  };
 
   const toggleChip = (toggle: Toggle) => (
     <FilterChip
@@ -121,7 +135,7 @@ export function GuideFilters({
             [...keys].find((key) => !selected.has(String(key))) ??
             [...selected].find((key) => !keys.has(key));
           if (changed !== undefined) {
-            onChange(applyToggledKey(filters, categories, changed));
+            change((current) => applyToggledKey(current, categories, changed));
           }
         }}
         className={styles.GuideFilters__Chips}
@@ -154,7 +168,7 @@ export function GuideFilters({
         </p>
         <SortSelect
           value={filters.sort}
-          onChange={(sort) => onChange({ ...filters, sort })}
+          onChange={(sort) => change((current) => ({ ...current, sort }))}
           showLabel={!isPhone}
           parentTestId={testId}
         />

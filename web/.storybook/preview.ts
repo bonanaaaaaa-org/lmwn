@@ -20,12 +20,40 @@ const withQueryClient: Decorator = (Story) =>
     createElement(Story),
   );
 
+// The toolbar's theme sets `data-theme` on <html>, as a saved choice does in the app (see
+// `@/lib/theme`). Story tests run once per theme: vitest.storybook.config.ts defines
+// `__STORYBOOK_THEME__` for each run; the Storybook UI starts light.
+declare const __STORYBOOK_THEME__: string | undefined;
+const initialTheme =
+  typeof __STORYBOOK_THEME__ === "string" ? __STORYBOOK_THEME__ : "light";
+
+const withTheme: Decorator = (Story, context) => {
+  document.documentElement.dataset.theme =
+    context.globals.theme === "dark" ? "dark" : "light";
+  return createElement(Story);
+};
+
 // React Aria formats dates, numbers and collation for the app locale (`th-TH`), as in the app.
 const withI18n: Decorator = (Story) =>
   createElement(LocaleProvider, null, createElement(Story));
 
 const preview: Preview = {
-  decorators: [withI18n, withQueryClient],
+  decorators: [withTheme, withI18n, withQueryClient],
+  globalTypes: {
+    theme: {
+      description: "Colour theme",
+      toolbar: {
+        title: "Theme",
+        icon: "mirror",
+        items: [
+          { value: "light", title: "Light", icon: "sun" },
+          { value: "dark", title: "Dark", icon: "moon" },
+        ],
+        dynamicTitle: true,
+      },
+    },
+  },
+  initialGlobals: { theme: initialTheme },
   parameters: {
     controls: {
       matchers: {

@@ -1,6 +1,6 @@
 # Guide to Hidden Gems
 
-LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gateway. Diners browse and search editor-written **Guides**, then read each Guide's restaurants with photos, Working Hours, Open Now, filters and share links. The UI is in Thai.
+LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gateway. Diners browse and search editor-written **Guides**, then read each Guide's restaurants with photos, Working Hours, Open Now, filters and share links. The UI is in Thai, follows the system's light or dark theme, and installs as an app that reopens visited Guides offline.
 
 - **What it does and why:** [the spec](docs/specs/guide-to-hidden-gems.md) (acceptance criteria, edge cases, success criteria)
 - **How it's built and why:** [design decisions](docs/design-decisions.md)
@@ -47,7 +47,7 @@ Browser ──► web (React Router SPA, :3000) ──► api-gateway (FastAPI, 
                                                                                 guides :8888 · restaurants :9999 · images :7777
 ```
 
-- **web** ([`web/`](web/)) is a single-page app: React 19, React Router 8 in SPA mode, TanStack Query, Zod, React Aria, CSS Modules, and Paraglide JS for the Thai copy. Routes are `/` (the Guide Index) and `/guides/:guideId` (a Guide). Search, filter and sort state lives in the URL, so reload, Back and shared links restore the same view. Code is grouped by feature (`web/src/features/guide-index`, `web/src/features/guides`) with shared components in `web/src/components`.
+- **web** ([`web/`](web/)) is a single-page app: React 19, React Router 8 in SPA mode, TanStack Query, Zod, React Aria, CSS Modules, and Paraglide JS for the Thai copy. Routes are `/` (the Guide Index) and `/guides/:guideId` (a Guide). Search, filter and sort state lives in the URL, so reload, Back and shared links restore the same view. Code is grouped by feature (`web/src/features/guide-index`, `web/src/features/guides`) with shared components in `web/src/components`. Production builds add a service worker (see [PWA](#offline-and-install-pwa)).
 - **api-gateway** ([`api-gateway/`](api-gateway/README.md)) is the only thing the browser asks for data. (Locally, photos are the one exception: they load straight from the Data Server on :7777.) It turns the Data Server's ID lists and raw records into two endpoints, `GET /guides?q=&tag=` and `GET /guides/{guideId}` (the Guide with every Guide Item and its Restaurant, in one response), with its own response models and safe error bodies. It is built as ports and adapters: `app/domain` (Guides, Working Hours, search), `app/application` (the two use cases), `app/adapters` (HTTP in, the Data Server out).
 - **Data Server** is the provided `lmwn-assignment-2025-server` npm package, run as published. It has no search, no CORS, returns `200 null` for unknown IDs and leaks Mongo internals; the gateway absorbs all of that ([the facts we verified](docs/design-decisions.md#facts-about-the-provided-data-server)).
 
@@ -68,9 +68,10 @@ The reasoning for each is in the [design decisions](docs/design-decisions.md).
 
 - Server-side rendering and real Open Graph link previews.
 - Pagination, and searching restaurants across Guides.
-- A database, user accounts, and saved or favourite restaurants.
+- A database, user accounts, and saved or favourite restaurants. The PWA's offline copy of Guides already opened is a cache, not a saved list.
+- For the PWA: push notifications, background sync, app-store packaging (TWA), and offline access to Guides never opened.
 - i18n beyond Thai: Thai only; no second locale or language switcher.
-- Dark mode.
+- Per-Guide or per-photo theming, high-contrast themes, and syncing the theme choice across devices.
 - Replacing, modifying or testing the provided Data Server.
 - LINE MAN or Wongnai branding.
 
@@ -78,9 +79,22 @@ The reasoning for each is in the [design decisions](docs/design-decisions.md).
 
 Thai is the only locale. Every user-facing string, including accessible names and `alt` text, is in one catalog, [`web/messages/th.json`](web/messages/th.json), compiled by Paraglide JS into typed functions (`m.notFound_title()`); an unknown key, or a missing or extra param, fails `type-check`. Keys mirror the test IDs. Dates use the Buddhist calendar in `Asia/Bangkok` ("10 มี.ค. 2567") through `web/src/lib/format.ts`. CI fails on any Thai character in `web/app` or `web/src` code outside the test fixtures. Details: [i18n decisions](docs/design-decisions.md#i18n-thai-only).
 
+## Dark mode
+
+The app follows the system's light or dark setting, live. The theme toggle in the header (system, light or dark) overrides it, and the choice is remembered on that device. Every colour is a `light-dark()` token in `web/src/styles/globals.css`, so components carry no theme styles, and a small script in the document head sets the theme before the first paint, so there is no flash. Storybook stories, their axe scans and Lighthouse run in both themes. Details: [Dark mode decisions](docs/design-decisions.md#dark-mode) ([#47](https://github.com/bonanaaaaaa-org/lmwn/issues/47)).
+
 ## Offline and install (PWA)
 
-In progress in [#43](https://github.com/bonanaaaaaa-org/lmwn/issues/43): an installable app that keeps visited Guides readable offline.
+The web app is an installable Progressive Web App (`vite-plugin-pwa` with Workbox and our own worker, `web/src/sw.ts`). The app shell is precached. Gateway responses are network-first (the last good copy after 3 s or offline), and photos are cache-first, so a Guide or search the diner has opened reopens offline, photos included. A Guide never opened shows the error panel's offline message. A new version waits until the diner taps "อัปเดต" (update) in a toast. The worker is registered only in production builds, so `pnpm dev`, Storybook and Vitest never have one.
+
+The quickest way to try it is the [deployed app](https://hidden-gems.bonanaaaaaa.dev): open a Guide, then install it from Chrome's address bar or go offline in DevTools and reload. Locally, run the production build against the gateway, with the gateway and Data Server running (`pnpm --filter api-gateway dev`, instead of `pnpm dev`):
+
+```bash
+pnpm --filter web build
+pnpm --filter web exec vite preview --port 3000   # :3000 is the origin the local gateway allows
+```
+
+Locally, photos come straight from the Data Server on :7777, a different origin, so they aren't cached offline. The PWA e2e specs (in `pnpm test:e2e`) start a second gateway on :4300 that serves photos as the deployed one does. Details: [PWA decisions](docs/design-decisions.md#pwa-43) ([#43](https://github.com/bonanaaaaaa-org/lmwn/issues/43)).
 
 ## Common tasks
 
@@ -91,7 +105,8 @@ pnpm format:check     # oxfmt (web, e2e), ruff format (gateway)
 pnpm lint             # oxlint, stylelint and the Thai copy guard (web), oxlint (e2e), ruff (gateway)
 pnpm type-check       # tsc (web, e2e), pyrefly (gateway)
 pnpm test             # Vitest (web), pytest with a 90% coverage gate (gateway)
-pnpm test:e2e         # Playwright + axe, desktop and mobile; starts pnpm dev, or reuses one already running
+pnpm test:e2e         # Playwright + axe, desktop and mobile; starts pnpm dev, or reuses one already running,
+                      #   plus the PWA specs against a production build on :4173 with a second gateway on :4300
                       #   (first run: pnpm --filter e2e exec playwright install chromium)
 pnpm test:storybook   # every story in headless Chromium: play functions + axe
                       #   (first run: pnpm --filter web exec playwright install chromium)
@@ -112,14 +127,14 @@ Both fail on any axe violation, of any impact, against the WCAG 2.2 A and AA rul
 
 ## Lighthouse
 
-The agreed targets ([#16](https://github.com/bonanaaaaaa-org/lmwn/issues/16)), as the median of 5 runs on both the Guide Index and a Guide page:
+The agreed targets ([#16](https://github.com/bonanaaaaaa-org/lmwn/issues/16)), as the median of 5 runs on both the Guide Index and a Guide page, in the light and dark themes:
 
 | Preset | Performance | Accessibility | Best Practices | SEO |
 | --- | --- | --- | --- | --- |
 | Desktop | 100 | 100 | 100 | 100 |
 | Mobile | ≥ 90 | 100 | 100 | 100 |
 
-Mobile Performance 100 is out of reach for this stack without SSR: the mobile preset simulates a mid-range phone on slow 4G, where everything before the cover paints (JS, CSS, fonts, data and the cover) would have to fit in about 220 KB. At [#16](https://github.com/bonanaaaaaa-org/lmwn/pull/41) the mobile Performance medians were 94 (Guide Index) and 91 (Guide page); every other score was 100.
+Mobile Performance 100 is out of reach for this stack without SSR: the mobile preset simulates a mid-range phone on slow 4G, where everything before the cover paints (JS, CSS, fonts, data and the cover) would have to fit in about 220 KB. At [#16](https://github.com/bonanaaaaaa-org/lmwn/pull/41) the mobile Performance medians were 94 (Guide Index) and 91 (Guide page), and every other score was 100. The PWA and dark mode kept them: with dark mode merged, mobile was 93 and 91 in both themes ([#50](https://github.com/bonanaaaaaa-org/lmwn/pull/50)).
 
 ```bash
 pnpm --filter api-gateway dev   # gateway + Data Server, in another terminal (stop pnpm dev first: :3000 must be free)
@@ -128,7 +143,7 @@ pnpm lighthouse                 # builds the web app, serves it with vite previe
 
 It uses Playwright's headless Chromium (first run: `pnpm --filter web exec playwright install chromium`) or the browser at `CHROME_PATH`.
 
-It writes HTML and JSON reports to `web/lighthouse-reports/`, prints a Markdown table and exits 1 if a score misses its target. To audit the existing build or the deployed site:
+Each page and preset is audited in both themes (dark through Chrome's `--force-dark-mode`; `--theme light` or `--theme dark` audits one). It writes HTML and JSON reports to `web/lighthouse-reports/`, prints a Markdown table and exits 1 if a score misses its target. To audit the existing build or the deployed site:
 
 ```bash
 cd web
@@ -143,7 +158,7 @@ Scores move a few points between runs on a busy machine, which is why it takes t
 
 Every suite also writes [Allure](https://allurereport.org/) results into its own package, labelled by layer: Playwright e2e on desktop and mobile (`e2e/allure-results`), Vitest unit and Storybook story tests (`web/allure-results/unit` and `storybook`), and the gateway's pytest (`api-gateway/allure-results`). Each run of `pnpm test`, `pnpm test:storybook` or `pnpm test:e2e` replaces its suite's results; `pnpm allure` combines whatever exists into `allure-report/index.html` (configured in `allurerc.mjs`) and opens it. Both `allure-results/` and `allure-report/` are git-ignored.
 
-A failed e2e test keeps its Playwright trace, screenshot and video, and the report attaches them; the trace opens in Allure's trace viewer. CI retries a failed e2e test twice, and Allure marks a test that passed on a retry as flaky. Keeping the traces of those flaky tests too is proposed in the open PR [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42).
+A failed e2e test keeps its Playwright trace, screenshot and video, and the report attaches them. CI retries a failed e2e test twice, and Allure marks a test that passed on a retry as flaky; its trace is kept too (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)). Traces replay in Allure's trace viewer. Passing tests keep no trace, which keeps the single-file report small enough to upload.
 
 **CI's reports** are at https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ (the list), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the host is down, that job only warns: the test jobs alone decide whether CI passes.
 

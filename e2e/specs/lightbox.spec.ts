@@ -8,6 +8,7 @@ import {
 } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { DEVICE_TAGS } from "#support/devices";
 import { format } from "#support/messages";
 
 const GATEWAY = process.env.API_BASE_URL ?? "http://localhost:4000";
@@ -164,12 +165,8 @@ test.describe("Guide - Lightbox", () => {
     await expect(stripPhotos(page).nth(1)).toBeFocused();
   });
 
-  test.describe("keyboard", () => {
-    test.skip(
-      ({ isMobile }) => isMobile,
-      "the keyboard-only path is a desktop journey",
-    );
-
+  // The keyboard-only path is a desktop journey (see DEVICE_TAGS in playwright.config.ts).
+  test.describe("keyboard", { tag: DEVICE_TAGS.desktopOnly }, () => {
     test("keeps keyboard focus inside while open; the close button dismisses it", async ({
       page,
     }) => {
@@ -199,12 +196,8 @@ test.describe("Guide - Lightbox", () => {
     });
   });
 
-  test.describe("touch", () => {
-    test.skip(
-      ({ isMobile }) => !isMobile,
-      "touch swipe needs the phone project",
-    );
-
+  // Touch swipe needs the phone project.
+  test.describe("touch", { tag: DEVICE_TAGS.phoneOnly }, () => {
     test("swipes between photos on a touch screen", async ({
       page,
       request,

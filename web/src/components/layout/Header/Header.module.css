@@ -15,23 +15,43 @@
     margin-inline: auto;
     padding-inline: var(--layout-gutter);
 
+    /* The toggle's 48px target sits 8px from the edge, so its icon lines up with the gutter. */
     [data-layout="phone-index"] > & {
+      flex-wrap: nowrap;
       min-height: 3.5rem;
-      padding-inline: var(--space-200);
+      padding-inline: var(--space-200) var(--space-100);
     }
 
+    /*
+     * Back arrow, brand, actions (theme toggle, share). The brand takes the space between and
+     * is centred in it, so it sits a little left of the page centre on narrow phones.
+     */
     [data-layout="phone-guide"] > & {
       flex-wrap: nowrap;
-      gap: var(--space-100);
+      gap: 0;
       min-height: 3.5rem;
       padding-inline: var(--space-100);
     }
   }
 
+  .Header__Actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-100) var(--space-200);
+    min-width: 0;
+
+    [data-layout="phone-guide"] & {
+      gap: 0;
+    }
+  }
+
+  /* One row on every phone down to 320px: below 22.5rem the brand steps down a size. */
   .Header__Brand {
     display: inline-flex;
     align-items: center;
     gap: var(--space-100);
+    min-width: 0;
     min-height: var(--control-height);
     border-radius: var(--radius-100);
     color: var(--color-text);
@@ -42,7 +62,19 @@
     text-decoration: none;
 
     [data-layout="phone-guide"] & {
+      flex: 1 1 auto;
+      justify-content: center;
       font-size: var(--font-size-200);
+
+      @media (width < 22.5rem) {
+        font-size: var(--font-size-100);
+      }
+    }
+
+    [data-layout="phone-index"] & {
+      @media (width < 22.5rem) {
+        font-size: var(--font-size-200);
+      }
     }
 
     &[data-focus-visible] {
@@ -51,12 +83,24 @@
     }
   }
 
+  /*
+   * Never wraps. The size step below 22.5rem makes it fit from 320px up; truncating is only a
+   * last resort on anything narrower.
+   */
+  .Header__BrandText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .Header__Mark {
     flex: none;
     width: 1.5rem;
     height: 1.5rem;
+
+    /* Saffron is a fill under dark ink in both themes. */
     fill: var(--color-accent);
-    stroke: var(--color-text);
+    stroke: var(--color-text-on-accent);
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.5;
@@ -89,7 +133,7 @@
 
   .Header__Spacer {
     flex: none;
-    width: var(--control-height);
+    min-width: var(--control-height);
   }
 
   /* Phones keep the header to one 3.5rem row: the tagline only shows from 48rem up. */

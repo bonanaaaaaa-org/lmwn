@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { DEVICE_TAGS } from "#support/devices";
 import { message } from "#support/messages";
 
 test.describe("Shell - Thai copy", () => {
@@ -29,28 +30,26 @@ test.describe("Shell - Thai copy", () => {
     );
   });
 
-  test("the skip link moves keyboard focus to the main content", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(
-      isMobile,
-      "Skip links serve keyboard users; a touch phone has no Tab key to reach it",
-    );
-    const skipLink = page.getByRole("link", {
-      name: message("app_skipLink_label"),
-    });
+  // Skip links serve keyboard users; a touch phone has no Tab key to reach it.
+  test(
+    "the skip link moves keyboard focus to the main content",
+    { tag: DEVICE_TAGS.desktopOnly },
+    async ({ page }) => {
+      const skipLink = page.getByRole("link", {
+        name: message("app_skipLink_label"),
+      });
 
-    // Under load (dev server, parallel workers) a Tab sent before the app has hydrated is lost.
-    await page.waitForLoadState("networkidle");
-    await page.keyboard.press("Tab");
-    await expect(skipLink).toBeFocused();
-    await expect(skipLink).toBeInViewport();
-    await page.keyboard.press("Enter");
+      // Under load (dev server, parallel workers) a Tab sent before the app has hydrated is lost.
+      await page.waitForLoadState("networkidle");
+      await page.keyboard.press("Tab");
+      await expect(skipLink).toBeFocused();
+      await expect(skipLink).toBeInViewport();
+      await page.keyboard.press("Enter");
 
-    await expect(page.getByRole("main")).toBeFocused();
-    await expect(page).toHaveURL(/#main-content$/);
-  });
+      await expect(page.getByRole("main")).toBeFocused();
+      await expect(page).toHaveURL(/#main-content$/);
+    },
+  );
 });
 
 test.describe("Not Found - Unknown route", () => {

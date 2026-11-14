@@ -44,6 +44,23 @@ const PATHS = {
     "M12 7a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z",
   ],
   gem: ["M6 3h12l4 6-10 12L2 9z", "M2 9h20", "M12 21 8 9l4-6 4 6z"],
+  monitor: [
+    "M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z",
+    "M8 20h8",
+    "M12 16v4",
+  ],
+  sun: [
+    "M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8z",
+    "M12 2v2",
+    "M12 20v2",
+    "m4.9 4.9 1.4 1.4",
+    "m17.7 17.7 1.4 1.4",
+    "M2 12h2",
+    "M20 12h2",
+    "m6.3 17.7-1.4 1.4",
+    "m19.1 4.9-1.4 1.4",
+  ],
+  moon: ["M20.4 14.5A8.5 8.5 0 1 1 9.5 3.6a6.6 6.6 0 0 0 10.9 10.9z"],
 } as const satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof PATHS;
