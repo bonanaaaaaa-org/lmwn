@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
+import { m } from "@/paraglide/messages.js";
+import { sampleEmptyState } from "@/test-utils/fixtures/sampleContent";
+
 import { EmptyState } from "./EmptyState";
 
 const meta = {
@@ -8,9 +11,9 @@ const meta = {
   component: EmptyState,
   tags: ["autodocs"],
   args: {
-    title: "ไม่พบไกด์ที่ตรงกับ “ราเมน”",
-    description: "ลองใช้คำที่สั้นลง หรือเอาแท็ก #คาเฟ่ ออกเพื่อดูไกด์ทั้งหมด",
-    actionLabel: "ล้างการค้นหา",
+    title: sampleEmptyState.searchTitle,
+    description: sampleEmptyState.searchDescription,
+    actionLabel: sampleEmptyState.clearSearch,
     onAction: fn(),
   },
 } satisfies Meta<typeof EmptyState>;
@@ -23,9 +26,9 @@ export const Default: Story = {};
 /** A Guide with no Guide Items yet. */
 export const EmptyGuide: Story = {
   args: {
-    title: "ไกด์นี้ยังไม่มีร้าน",
-    description: "บรรณาธิการกำลังคัดร้านอยู่ ลองดูไกด์อื่นไปก่อน",
-    actionLabel: "ดูไกด์ทั้งหมด",
+    title: m.guide_emptyState_title(),
+    description: m.guide_emptyState_body(),
+    actionLabel: m.guide_emptyState_action_label(),
     actionHref: "/",
     onAction: undefined,
   },
@@ -35,10 +38,10 @@ export const EmptyGuide: Story = {
 export const NoFilterMatch: Story = {
   args: {
     icon: false,
-    meta: "0 จาก 10 ร้าน",
-    title: "ไม่มีร้านที่เปิดอยู่และรับเองที่ร้านได้",
+    meta: sampleEmptyState.filterMeta,
+    title: sampleEmptyState.filterTitle,
     description: undefined,
-    actionLabel: "ล้างตัวกรอง",
+    actionLabel: sampleEmptyState.clearFilters,
     actionVariant: "primary",
   },
 };

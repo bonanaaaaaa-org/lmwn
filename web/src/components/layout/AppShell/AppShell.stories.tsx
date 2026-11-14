@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Skeleton, SkeletonGroup } from "@/components/common/Skeleton";
+import {
+  samplePageContent,
+  sampleOverrides,
+} from "@/test-utils/fixtures/sampleContent";
 
 import { AppShell } from "./AppShell";
 
@@ -12,8 +16,8 @@ const meta = {
   args: {
     children: (
       <>
-        <h1>ไกด์ทั้งหมด</h1>
-        <p>เนื้อหาของหน้าแสดงตรงนี้</p>
+        <h1>{sampleOverrides.pageHeading}</h1>
+        <p>{samplePageContent.body}</p>
       </>
     ),
   },

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "#support/axe";
+import { message } from "#support/messages";
 
 test.describe("Home - Shell", () => {
   test("renders the app heading without console errors", async ({ page }) => {
@@ -13,7 +14,10 @@ test.describe("Home - Shell", () => {
     await page.goto("/");
 
     await expect(
-      page.getByRole("heading", { level: 1, name: /guide to hidden gems/i }),
+      page.getByRole("heading", {
+        level: 1,
+        name: message("guideIndex_title"),
+      }),
     ).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -21,7 +25,10 @@ test.describe("Home - Shell", () => {
   test("has no axe violations (WCAG 2.2 A and AA)", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { level: 1, name: /guide to hidden gems/i }),
+      page.getByRole("heading", {
+        level: 1,
+        name: message("guideIndex_title"),
+      }),
     ).toBeVisible();
 
     await expectNoAxeViolations(page);

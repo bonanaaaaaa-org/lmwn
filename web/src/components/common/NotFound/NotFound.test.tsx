@@ -1,13 +1,27 @@
 import { render, screen } from "@testing-library/react";
 
+import { m } from "@/paraglide/messages.js";
+
 import { NotFound } from "./NotFound";
 
 describe("NotFound", () => {
-  it("names what is missing as the page heading", () => {
-    render(<NotFound title="ไม่พบไกด์นี้" />);
+  it("says the page is missing by default", () => {
+    render(<NotFound />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "ไม่พบไกด์นี้" }),
+      screen.getByRole("heading", { level: 1, name: m.notFound_title() }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(m.notFound_body())).toBeInTheDocument();
+  });
+
+  it("names what is missing as the page heading", () => {
+    render(<NotFound title={m.guide_notFound_title()} />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: m.guide_notFound_title(),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -15,7 +29,7 @@ describe("NotFound", () => {
     render(<NotFound />);
 
     expect(
-      screen.getByRole("link", { name: "กลับไปหน้าไกด์ทั้งหมด" }),
+      screen.getByRole("link", { name: m.notFound_backLink_label() }),
     ).toHaveAttribute("href", "/");
   });
 

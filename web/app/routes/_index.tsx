@@ -1,3 +1,5 @@
+import { m } from "@/paraglide/messages.js";
+
 export default function IndexRoute() {
-  return <h1>Guide to Hidden Gems</h1>;
+  return <h1>{m.guideIndex_title()}</h1>;
 }

@@ -1,15 +1,21 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { m } from "@/paraglide/messages.js";
 import {
   LONG_WRITE_UP,
   makeGuideItem,
   makeRestaurant,
-} from "@/features/guides/lib/fixtures";
+} from "@/test-utils/fixtures/guides";
+import { sampleThaiText } from "@/test-utils/fixtures/sampleContent";
 
 import { needsClamp, RestaurantCard } from "./RestaurantCard";
 
 const card = () => screen.getByTestId("guide/restaurant-card");
+const restaurant = makeRestaurant();
+/** "ONIBUS COFFEE" plus its branch, as the card names it. */
+const fullName = `${restaurant.name} ${m.restaurantCard_branch_body({ branch: restaurant.branch ?? "" })}`;
+const callLabel = m.restaurantCard_call_label({ phone: "093 916 4541" });
 
 describe("RestaurantCard", () => {
   it("names the Restaurant with its branch, Rating, Categories and badges", () => {
@@ -17,27 +23,32 @@ describe("RestaurantCard", () => {
       <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
     );
 
-    expect(
-      screen.getByRole("article", { name: "ONIBUS COFFEE (สาขา One Bangkok)" }),
-    ).toHaveAttribute("id", "item-c77c4d6c-01fa-4e62-8870-563de216a976");
+    expect(screen.getByRole("article", { name: fullName })).toHaveAttribute(
+      "id",
+      "item-c77c4d6c-01fa-4e62-8870-563de216a976",
+    );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      "ONIBUS COFFEE (สาขา One Bangkok)",
+      fullName,
     );
     expect(
-      screen.getByRole("img", { name: "4.3 จาก 5 ดาว, 6 รีวิว" }),
+      screen.getByRole("img", {
+        name: m.rating_ariaLabel({ rating: "4.3", count: 6 }),
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByText("ร้านกาแฟ/ชา, เบเกอรี/เค้ก")).toBeInTheDocument();
+    expect(
+      screen.getByText(restaurant.categories.join(", ")),
+    ).toBeInTheDocument();
     const badges = within(
-      screen.getByRole("list", { name: "บริการ" }),
+      screen.getByRole("list", { name: m.restaurantCard_badges_ariaLabel() }),
     ).getAllByRole("listitem");
     expect(badges.map((badge) => badge.textContent)).toEqual([
-      "Official",
-      "เดลิเวอรี่",
-      "รับเองที่ร้าน",
+      m.restaurantCard_badges_official_label(),
+      m.restaurantCard_badges_delivery_label(),
+      m.restaurantCard_badges_pickup_label(),
     ]);
   });
 
-  it("shows ยังไม่มีรีวิว and no branch for an Unrated Restaurant without one", () => {
+  it("shows no reviews and no branch for an Unrated Restaurant without one", () => {
     render(
       <RestaurantCard
         item={makeGuideItem({
@@ -53,7 +64,7 @@ describe("RestaurantCard", () => {
     expect(screen.getByRole("heading", { level: 2 }).textContent).toBe(
       "ONIBUS COFFEE",
     );
-    expect(screen.getByText("ยังไม่มีรีวิว")).toBeInTheDocument();
+    expect(screen.getByText(m.rating_unrated_label())).toBeInTheDocument();
   });
 
   it("links the address to Google Maps, the phone to a call and the Restaurant to Wongnai", () => {
@@ -61,20 +72,20 @@ describe("RestaurantCard", () => {
       <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,
     );
 
-    expect(
-      screen.getByText("ชั้น 1 One Bangkok ลุมพินี ปทุมวัน กรุงเทพมหานคร"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(restaurant.address)).toBeInTheDocument();
     expect(screen.getByTestId("guide/restaurant-card/map")).toHaveAttribute(
       "href",
       "https://www.google.com/maps/search/?api=1&query=13.7275%2C100.5469",
     );
-    expect(screen.getByRole("link", { name: /ดูแผนที่/ })).toHaveAttribute(
-      "target",
-      "_blank",
-    );
     expect(
-      screen.getByRole("link", { name: "โทร 093 916 4541" }),
-    ).toHaveAttribute("href", "tel:0939164541");
+      screen.getByRole("link", {
+        name: `${m.restaurantCard_map_label()} ${m.restaurantCard_newTab_label()}`,
+      }),
+    ).toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("link", { name: callLabel })).toHaveAttribute(
+      "href",
+      "tel:0939164541",
+    );
     expect(screen.getByTestId("guide/restaurant-card/wongnai")).toHaveAttribute(
       "href",
       "https://www.wongnai.com/restaurants/onibus-coffee-one-bangkok",
@@ -134,15 +145,15 @@ describe("RestaurantCard", () => {
       />,
     );
     expect(screen.getByTestId("guide/restaurant-card/call")).toHaveTextContent(
-      "โทร 093 916 4541",
+      callLabel,
     );
     expect(
       screen.getByTestId("guide/restaurant-card/wongnai"),
-    ).toHaveTextContent("ดูบน Wongnai");
+    ).toHaveTextContent(m.restaurantCard_wongnai_shortLabel());
     expect(screen.getAllByTestId("guide/restaurant-card/call")).toHaveLength(1);
   });
 
-  it("cuts a long write-up to about 4 lines until อ่านเพิ่มเติม is pressed", async () => {
+  it("cuts a long write-up to about 4 lines until read more is pressed", async () => {
     const user = userEvent.setup();
     render(
       <RestaurantCard
@@ -152,7 +163,9 @@ describe("RestaurantCard", () => {
         parentTestId="guide"
       />,
     );
-    const readMore = screen.getByRole("button", { name: "อ่านเพิ่มเติม" });
+    const readMore = screen.getByRole("button", {
+      name: m.restaurantCard_readMore_label(),
+    });
     const writeUp = screen.getByText(LONG_WRITE_UP);
     expect(readMore).toHaveAttribute("aria-expanded", "false");
     expect(readMore).toHaveAttribute("aria-controls", writeUp.id);
@@ -164,7 +177,9 @@ describe("RestaurantCard", () => {
       screen.getByTestId("guide/restaurant-card/read-more"),
     ).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("button", { name: "แสดงน้อยลง" }),
+      screen.getByRole("button", {
+        name: m.restaurantCard_readMore_expandedLabel(),
+      }),
     ).toBeInTheDocument();
     expect(writeUp).not.toHaveAttribute("data-clamped");
   });
@@ -172,7 +187,7 @@ describe("RestaurantCard", () => {
   it("shows a short write-up in full with no read-more", () => {
     render(<RestaurantCard item={makeGuideItem()} index={1} />);
     expect(
-      screen.queryByRole("button", { name: "อ่านเพิ่มเติม" }),
+      screen.queryByRole("button", { name: m.restaurantCard_readMore_label() }),
     ).not.toBeInTheDocument();
   });
 
@@ -180,7 +195,7 @@ describe("RestaurantCard", () => {
     render(
       <RestaurantCard
         item={makeGuideItem({
-          description: "RISE ลุกขึ้นแล้วดื่มกาแฟ !",
+          description: sampleThaiText.writeUp,
           restaurant: null,
         })}
         index={3}
@@ -188,15 +203,24 @@ describe("RestaurantCard", () => {
       />,
     );
     expect(card()).toHaveAttribute("data-state", "unavailable");
-    expect(screen.getByRole("article", { name: "ร้านที่ 3" })).toBe(card());
     expect(
-      within(card()).getByText("ไม่สามารถโหลดข้อมูลร้านได้"),
+      screen.getByRole("article", {
+        name: m.restaurantCard_unavailable_ariaLabel({ index: 3 }),
+      }),
+    ).toBe(card());
+    expect(
+      within(card()).getByText(m.restaurantCard_unavailable_body()),
     ).toBeInTheDocument();
     expect(
-      within(card()).getByText("RISE ลุกขึ้นแล้วดื่มกาแฟ !"),
+      within(card()).getByText(sampleThaiText.writeUp),
     ).toBeInTheDocument();
     expect(
-      within(card()).getByRole("img", { name: "รูปที่ 1 จาก 4" }),
+      within(card()).getByRole("img", {
+        name: m.restaurantCard_photoStrip_photo_unnamedAlt({
+          position: 1,
+          total: 4,
+        }),
+      }),
     ).toBeInTheDocument();
     expect(within(card()).queryByRole("heading")).not.toBeInTheDocument();
     expect(within(card()).queryByRole("link")).not.toBeInTheDocument();
@@ -222,14 +246,20 @@ describe("RestaurantCard Wongnai link", () => {
 
 describe("needsClamp", () => {
   it("clamps long write-ups, sooner on a phone", () => {
-    expect(needsClamp("สั้น ๆ", "desktop")).toBe(false);
+    expect(needsClamp(sampleThaiText.short, "desktop")).toBe(false);
     expect(needsClamp(LONG_WRITE_UP, "phone")).toBe(true);
     expect(needsClamp(LONG_WRITE_UP, "desktop")).toBe(true);
-    expect(needsClamp("ก".repeat(200), "desktop")).toBe(false);
-    expect(needsClamp("ก".repeat(200), "phone")).toBe(true);
+    expect(needsClamp(sampleThaiText.consonant.repeat(200), "desktop")).toBe(
+      false,
+    );
+    expect(needsClamp(sampleThaiText.consonant.repeat(200), "phone")).toBe(
+      true,
+    );
   });
 
   it("does not count Thai vowels and tone marks above or below the line", () => {
-    expect(needsClamp("กิ่".repeat(100), "phone")).toBe(false);
+    expect(
+      needsClamp(sampleThaiText.consonantWithMarks.repeat(100), "phone"),
+    ).toBe(false);
   });
 });
