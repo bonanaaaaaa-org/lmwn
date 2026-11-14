@@ -18,3 +18,19 @@ resource "google_firebase_hosting_site" "default" {
 
   depends_on = [google_firebase_project.this]
 }
+
+# A second site for the static Storybook build (web/storybook-static), so
+# reviewers can browse the components and their states: https://<project>-storybook.web.app.
+# The deploy job uploads it with web/firebase.json's "storybook" target.
+resource "google_firebase_hosting_site" "storybook" {
+  provider = google-beta
+
+  site_id = local.storybook_site_id
+
+  depends_on = [google_firebase_project.this]
+}
+
+locals {
+  storybook_hosting_url = "https://${local.storybook_site_id}.web.app"
+  storybook_url         = var.storybook_domain != "" ? "https://${var.storybook_domain}" : local.storybook_hosting_url
+}

@@ -225,6 +225,10 @@ jobs:
           api_domain=$(sed -n 's/^api_domain *= *"\(.*\)"$/\1/p' infra/env/prod.tfvars)
           [[ -n $api_domain ]] || { echo "::error::no api_domain in infra/env/prod.tfvars"; exit 1; }
           VITE_API_BASE_URL="https://$api_domain" pnpm turbo run build --filter=web
+      # Stories use fixtures only: built without VITE_API_BASE_URL (deploy-hosting.sh checks that the
+      # bundle never names the API domain).
+      - name: Build the Storybook
+        run: pnpm turbo run build-storybook --filter=web
       - uses: docker/setup-buildx-action@v4.4.1
       - uses: google-github-actions/auth@v3.0.0
         with:
@@ -256,15 +260,28 @@ jobs:
       - name: Public URLs
         id: urls
         run: echo "web_url=$WEB_URL" >>"$GITHUB_OUTPUT"
-      - name: Deploy the web app to Firebase Hosting
+      - name: Deploy the web app and the Storybook to Firebase Hosting
         run: infra/scripts/deploy-hosting.sh
       # The checks below need no cloud access: drop the credentials file before running them.
       - name: Remove the Google credentials
         run: rm -f "$GOOGLE_APPLICATION_CREDENTIALS" gha-creds-*.json
+      # Until Google reports the Storybook domain active with its certificate (minutes to hours after
+      # its first deploy), the checks use the Storybook's web.app URL, which serves the same release,
+      # and the job warns. Once the domain is ready, it is checked itself.
+      - name: Storybook URL to check
+        run: |
+          set -euo pipefail
+          if [[ $STORYBOOK_DOMAIN_READY == true ]]; then
+            echo "STORYBOOK_CHECK_URL=$STORYBOOK_URL" >>"$GITHUB_ENV"
+          else
+            echo "::warning title=Storybook domain pending::$STORYBOOK_URL has no active certificate yet; checking $STORYBOOK_HOSTING_URL instead."
+            echo "STORYBOOK_CHECK_URL=$STORYBOOK_HOSTING_URL" >>"$GITHUB_ENV"
+          fi
       - name: Smoke-test the deploy
-        run: infra/scripts/smoke-test.sh "$API_URL" "$WEB_URL"
-      - name: E2E against the deployed site (Playwright + axe, desktop + mobile)
-        run: PLAYWRIGHT_BASE_URL="$WEB_URL" API_BASE_URL="$API_URL" pnpm --filter e2e test:e2e
+        run: infra/scripts/smoke-test.sh "$API_URL" "$WEB_URL" "$STORYBOOK_CHECK_URL"
+      # Includes specs/storybook.spec.ts: every story renders with no request off the Storybook's origin.
+      - name: E2E against the deployed site and Storybook (Playwright + axe, desktop + mobile)
+        run: PLAYWRIGHT_BASE_URL="$WEB_URL" API_BASE_URL="$API_URL" STORYBOOK_URL="$STORYBOOK_CHECK_URL" pnpm --filter e2e test:e2e
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v7.0.2

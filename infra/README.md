@@ -4,6 +4,7 @@ Terraform for lmwn's prod Google Cloud project, and the scripts CI runs to deplo
 
 - Web app: https://hidden-gems.bonanaaaaaa.dev (Firebase Hosting)
 - Gateway: https://api-hidden-gems.bonanaaaaaa.dev (Cloud Run)
+- Storybook: https://storybook-hidden-gems.bonanaaaaaa.dev (Firebase Hosting, its own site)
 
 ## Who provides what
 
@@ -23,7 +24,7 @@ This directory defines the rest, as one root module applied to prod:
 | `registry.tf` | Artifact Registry repository `lmwn`. It keeps the 5 newest versions of each image and deletes others after 7 days |
 | `run.tf` | Cloud Run service `api-gateway` (below) |
 | `iam.tf` | Runtime service account `api-gateway-run`, with `roles/logging.logWriter` only (neither container calls a Google API) |
-| `firebase.tf` | Firebase on the project, and the default Hosting site `https://lmwn-prod-df7136.web.app` |
+| `firebase.tf` | Firebase on the project, the default Hosting site `https://lmwn-prod-df7136.web.app` (web app), and the site `https://lmwn-prod-df7136-storybook.web.app` (Storybook) |
 | `domains.tf` | The custom domains, their Cloudflare records and the zone's Search Console verification (below) |
 | `env/prod.tfvars` | The domains and zone |
 | `tests/` | `terraform test` with mock providers: what prod plans, without cloud access |
@@ -48,21 +49,24 @@ The provided data server listens on three ports (guides `:8888`, restaurants `:9
 
 Hosting serves `web/build/client`, built in the deploy job with `VITE_API_BASE_URL` set to the API domain. `web/firebase.json` rewrites every path except `/assets/**` to `/index.html` (the SPA), so a missing hashed file answers 404 rather than an immutably cached page. It sends `Cache-Control: no-cache` everywhere, and `public, max-age=31536000, immutable` for the content-hashed `/assets/**` (the later matching rule wins), plus `X-Content-Type-Options: nosniff` and `Referrer-Policy`. Terraform only creates the site. The Firebase CLI (pinned in `scripts/deploy-hosting.sh`) uploads the files, authenticated through the same workload identity.
 
+**Storybook.** A second site, `lmwn-prod-df7136-storybook`, serves the static Storybook (`web/storybook-static`, from `pnpm build-storybook`). `web/firebase.json` lists both sites as hosting targets, `web` and `storybook`. `deploy-hosting.sh` writes an uncommitted `web/.firebaserc` that maps them to the site IDs from Terraform's outputs (`hosting_site_id`, `storybook_site_id`), then deploys both in one `firebase deploy`. The Storybook sends `no-cache` everywhere and `public, max-age=31536000, immutable` for the hashed `/assets/**`. It also sends `X-Robots-Tag: noindex, nofollow` (kept out of search results), `nosniff` and `Referrer-Policy`. It has no rewrites, so a missing file is 404. Stories use fixtures only. The script refuses a Storybook build that names the API domain, and the gateway doesn't allow the Storybook's origins.
+
 ## Custom domains
 
-Terraform creates the Hosting custom domain (`web_domain`), the Cloud Run domain mapping (`api_domain`), and their records in the Cloudflare zone `bonanaaaaaa.dev`. All records are **DNS only**, not proxied, so Google can issue the certificates:
+Terraform creates the Hosting custom domains (`web_domain`, `storybook_domain`), the Cloud Run domain mapping (`api_domain`), and their records in the Cloudflare zone `bonanaaaaaa.dev`. All records are **DNS only**, not proxied, so Google can issue the certificates:
 
 - `hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136"` (Firebase Hosting);
+- `storybook-hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136-storybook"` (Firebase Hosting, the Storybook's site);
 - `api-hidden-gems`: `CNAME ghs.googlehosted.com` (Cloud Run);
 - a `google-site-verification=…` TXT at the apex, for lmwn's deploy identity. It sits beside personal-finance's own TXT. With it, the identity verifies `bonanaaaaaa.dev` through the Site Verification API, which Cloud Run requires before it maps `api-hidden-gems`.
 
 The output `custom_domain_dns_records` lists what Hosting and Cloud Run ask for, so you can compare it with these records. A domain mapping's name is the domain, so it can't be replaced in place: `scripts/apply.sh` untaints a mapping that a failed apply left tainted. To change the domain, delete the old mapping first.
 
-**First deploy.** The certificates take minutes to a few hours to issue, and `.dev` is HTTPS only, so nothing serves on the domains until then. The first deploy's smoke test and Playwright run fail until the certificates exist. Once Firebase console → Hosting shows the domain active and `gcloud beta run domain-mappings describe --domain api-hidden-gems.bonanaaaaaa.dev --region asia-southeast1` shows `Ready`, re-run the **Deploy prod** job. Don't add these records by hand: Cloudflare refuses duplicates. Delete a hand-made record with the same name and type first, or import it.
+**First deploy.** The certificates take minutes to a few hours to issue, and `.dev` is HTTPS only, so nothing serves on the domains until then. The first deploy's smoke test and Playwright run fail until the certificates exist. The Storybook domain is handled without a re-run: until Hosting reports it active with its certificate (`storybook_domain_ready`, read when each deploy plans), the deploy job checks the Storybook on `https://lmwn-prod-df7136-storybook.web.app`, which serves the same release, and warns. Every check still has to pass there. The first deploy after the certificate is issued checks the domain itself. For the web and API domains: once Firebase console → Hosting shows the domain active and `gcloud beta run domain-mappings describe --domain api-hidden-gems.bonanaaaaaa.dev --region asia-southeast1` shows `Ready`, re-run the **Deploy prod** job. Don't add these records by hand: Cloudflare refuses duplicates. Delete a hand-made record with the same name and type first, or import it.
 
 ## Pipeline (`.github/workflows/ci.yml`)
 
-- **Pull requests:** Verify, E2E and **Infrastructure checks** (`terraform fmt -check`, `validate`, `test` with mock providers, `shellcheck`). None of them has credentials. The pr project isn't billed, so nothing deploys from pull requests, and prod isn't planned before a merge.
+- **Pull requests:** Verify (which also builds the Storybook and runs the story tests), E2E and **Infrastructure checks** (`terraform fmt -check`, `validate`, `test` with mock providers, `shellcheck`). None of them has credentials. The pr project isn't billed, so nothing deploys from pull requests, and prod isn't planned before a merge.
 - **Push to `main`:** the same checks, then **Deploy prod** (`environment: prod`), which runs one at a time and is never cancelled half-way. It:
   1. stops if `main` has moved on since this commit;
   2. installs dependencies (before any credential exists in the job);
@@ -71,8 +75,8 @@ The output `custom_domain_dns_records` lists what Hosting and Cloud Run ask for,
   5. makes sure the registry exists (`ensure-registry.sh`, a targeted apply that changes nothing after the first run);
   6. builds and pushes the images;
   7. plans and applies (the plan's changes go to the job summary);
-  8. deploys the web app to Hosting. It was built before authentication, with `VITE_API_BASE_URL` set to the API domain in `env/prod.tfvars`, and `deploy-hosting.sh` checks the bundle against the `api_url` output;
-  9. removes the Google credentials file, then runs `scripts/smoke-test.sh` and the Playwright suite against the deployed site (`PLAYWRIGHT_BASE_URL`, `API_BASE_URL`).
+  8. deploys the web app and the Storybook to Hosting in one `firebase deploy`. Both were built before authentication: the web app with `VITE_API_BASE_URL` set to the API domain in `env/prod.tfvars` (`deploy-hosting.sh` checks the bundle against the `api_url` output), and the Storybook with fixtures only (the script checks that it never names the API domain). A Storybook build or deploy failure fails the job;
+  9. removes the Google credentials file, then runs `scripts/smoke-test.sh` and the Playwright suite against the deployed site and Storybook (`PLAYWRIGHT_BASE_URL`, `API_BASE_URL`, `STORYBOOK_URL`). The suite's `specs/storybook.spec.ts` renders every story and fails on an error display, a failed request, or any request off the Storybook's origin.
 
 Only the Terraform steps hold the R2 key pair and the Cloudflare token.
 

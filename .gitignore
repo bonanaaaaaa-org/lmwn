@@ -21,6 +21,9 @@ coverage.xml
 *.egg-info/
 .turbo/
 storybook-static/
+# Written by infra/scripts/deploy-hosting.sh (hosting targets → sites) and the Firebase CLI
+web/.firebaserc
+.firebase/
 playwright-report/
 test-results/
 blob-report/

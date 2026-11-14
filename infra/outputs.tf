@@ -28,6 +28,21 @@ output "hosting_site_id" {
   value       = google_firebase_hosting_site.default.site_id
 }
 
+output "storybook_url" {
+  description = "The Storybook's public origin: its custom domain, or its web.app URL without one."
+  value       = local.storybook_url
+}
+
+output "storybook_hosting_url" {
+  description = "The Storybook on Firebase Hosting's own domain."
+  value       = local.storybook_hosting_url
+}
+
+output "storybook_site_id" {
+  description = "Firebase Hosting site the deploy job uploads the Storybook to (web/firebase.json's storybook target)."
+  value       = google_firebase_hosting_site.storybook.site_id
+}
+
 output "image_repository" {
   description = "Where the deploy job pushes images (append /api-gateway:<tag> or /data-server:<tag>)."
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.images.repository_id}"
@@ -43,6 +58,11 @@ output "web_domain_ready" {
   value       = local.web_domain_ready
 }
 
+output "storybook_domain_ready" {
+  description = "Whether Hosting serves the Storybook domain with an active certificate. Until then the deploy job smoke-tests its web.app URL."
+  value       = local.storybook_domain_ready
+}
+
 output "api_domain_ready" {
   description = "Whether the API domain's mapping reports Ready (its certificate is issued)."
   value       = local.api_domain_ready
@@ -52,7 +72,7 @@ output "custom_domain_dns_records" {
   description = "DNS records Hosting and Cloud Run ask for, to compare with the fixed records in domains.tf. Hosting's list fills in after its first apply, the mapping's once Cloud Run has made it."
   value = concat(
     flatten([
-      for d in google_firebase_hosting_custom_domain.web : [
+      for d in concat(google_firebase_hosting_custom_domain.web, google_firebase_hosting_custom_domain.storybook) : [
         for u in d.required_dns_updates : [
           for want in u.desired : [
             for r in want.records : { name = r.domain_name, type = r.type, data = r.rdata }

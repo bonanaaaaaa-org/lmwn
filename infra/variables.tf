@@ -61,8 +61,19 @@ variable "api_domain" {
   }
 }
 
+variable "storybook_domain" {
+  description = "The Storybook's custom domain on its own Firebase Hosting site, such as storybook-hidden-gems.example.dev (domains.tf). Empty: none."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.storybook_domain == "" || can(regex("^([a-z0-9]([a-z0-9-]*[a-z0-9])?\\.)+[a-z]{2,}$", var.storybook_domain))
+    error_message = "storybook_domain must be a lower-case host name, without scheme or path."
+  }
+}
+
 variable "dns_zone" {
-  description = "The Cloudflare zone web_domain and api_domain are in. Set: Terraform verifies it for the deploy identity in Google Search Console and keeps the domains' DNS records there. Empty: DNS is managed by hand."
+  description = "The Cloudflare zone web_domain, api_domain and storybook_domain are in. Set: Terraform verifies it for the deploy identity in Google Search Console and keeps the domains' DNS records there. Empty: DNS is managed by hand."
   type        = string
   default     = ""
 
@@ -72,9 +83,9 @@ variable "dns_zone" {
   }
   validation {
     condition = var.dns_zone == "" || alltrue([
-      for d in compact([var.web_domain, var.api_domain]) : endswith(d, ".${var.dns_zone}")
+      for d in compact([var.web_domain, var.api_domain, var.storybook_domain]) : endswith(d, ".${var.dns_zone}")
     ])
-    error_message = "web_domain and api_domain must be inside dns_zone."
+    error_message = "web_domain, api_domain and storybook_domain must be inside dns_zone."
   }
 }
 
