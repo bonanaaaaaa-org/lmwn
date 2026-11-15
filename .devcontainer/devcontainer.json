@@ -10,9 +10,28 @@
     "options": ["--platform=linux/amd64"]
   },
   "runArgs": ["--platform=linux/amd64"],
+  // Zed publishes forwardPorts as Docker ports (VS Code tunnels them instead). Published ports
+  // arrive on the container's network interface, not its loopback, so the dev servers listen on
+  // every interface here (vite.config.ts, api-gateway's start:api-gw, web's storybook script).
+  // Don't also list them in appPort: Docker can't bind a host port twice and the container comes
+  // up with no network.
+  "containerEnv": { "DEV_HOST": "0.0.0.0" },
   "remoteUser": "node",
-  // --with-deps: also apt-get installs Chromium's and MongoDB's system libraries (sudo).
-  "postCreateCommand": "./setup.sh --with-deps",
+  // Skip the remote-user UID remap. Zed's remap build drops the amd64 platform above and fails on
+  // arm64 hosts; Docker Desktop on macOS doesn't need the remap, and node is already UID 1000.
+  "updateRemoteUserUID": false,
+  // The container keeps its own node_modules and .venv in Docker volumes, so its Linux packages
+  // and the host's macOS ones don't overwrite each other through the shared clone (a pnpm install
+  // or uv sync on either side, the pre-commit hook's included, would otherwise break the other).
+  "mounts": [
+    { "type": "volume", "source": "guide-${devcontainerId}-venv", "target": "${containerWorkspaceFolder}/.venv" },
+    { "type": "volume", "source": "guide-${devcontainerId}-node_modules", "target": "${containerWorkspaceFolder}/node_modules" },
+    { "type": "volume", "source": "guide-${devcontainerId}-api-gateway-node_modules", "target": "${containerWorkspaceFolder}/api-gateway/node_modules" },
+    { "type": "volume", "source": "guide-${devcontainerId}-e2e-node_modules", "target": "${containerWorkspaceFolder}/e2e/node_modules" },
+    { "type": "volume", "source": "guide-${devcontainerId}-web-node_modules", "target": "${containerWorkspaceFolder}/web/node_modules" }
+  ],
+  // Hands the volumes above to node, then runs ./setup.sh (see the script for why it's a script).
+  "postCreateCommand": ".devcontainer/post-create.sh",
   "forwardPorts": [3000, 4000, 8888, 9999, 7777, 6006],
   "portsAttributes": {
     "3000": { "label": "Web app", "onAutoForward": "openBrowser" },
