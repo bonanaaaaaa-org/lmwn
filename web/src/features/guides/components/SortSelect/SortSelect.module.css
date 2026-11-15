@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .SortSelect__Root {
     display: inline-flex;
     align-items: center;

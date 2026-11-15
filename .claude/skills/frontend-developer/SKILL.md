@@ -308,7 +308,7 @@ oxlint also bans importing `@/test-utils/**` from production code (anything but 
 
 ### CSS Modules
 
-- File: `ComponentName.module.css`, wrapped in `@layer components { ... }`
+- File: `ComponentName.module.css`, wrapped in the cascade layer of its folder (see Layers below): `@layer components { ... }` under `components/common/`, `@layer layout { ... }` under `components/layout/`, `@layer features { ... }` under `features/`
 - Class names follow `{ComponentName}__{ElementName}` in PascalCase (`.Tag__Root`, `.RestaurantCard__Title`) — Stylelint enforces it, derived from the file name
 - Scoped class naming at build: `generateScopedName: "[local]__[hash:base64:5]"`
 - Use **CSS custom properties** (design tokens) from `globals.css`
@@ -317,7 +317,15 @@ oxlint also bans importing `@/test-utils/**` from production code (anything but 
 
 ### Layers and tokens (globals.css)
 
-`globals.css` declares `@layer reset, base, components;` and defines tokens as custom properties on `:root` in `base`. Add new tokens there (kebab-case, e.g. `--color-text-muted`, `--space-200`, `--radius-100`) rather than hard-coding values in components.
+`globals.css` declares `@layer reset, base, components, layout, features;` (lowest first; `CSS_LAYER_ORDER` in `src/styles/layers.ts` repeats it for the document head, and a unit test keeps the two in sync). Each folder's stylesheets sit in its own layer, so a later layer beats an earlier one whatever the specificity or bundle order:
+
+- `components` — `src/components/common/**` (generic atoms and molecules)
+- `layout` — `src/components/layout/**` (app shell, header): may restyle common components
+- `features` — `src/features/**`: may restyle common and layout components
+
+To restyle a common component from a feature, pass a `className` and write a plain single-class rule (`.SkeletonCard__Cover { border-radius: 0; }`): never double a selector to win on specificity. A feature that overrides a property the component also sets in a state (`[data-hovered]`, `[data-pressed]`) owns that property's states too, since the feature rule beats the component's state rule. Stylelint's `custom/enforce-css-layer` rule (`stylelint-plugins/enforce-css-layer.mjs`, folder map in `stylelint.config.mjs`) rejects a stylesheet in the wrong layer or with rules outside its layer; a new top-level folder with stylesheets gets a layer in all three places.
+
+`base` defines tokens as custom properties on `:root` in `base`. Add new tokens there (kebab-case, e.g. `--color-text-muted`, `--space-200`, `--radius-100`) rather than hard-coding values in components.
 
 ### Styling rules
 

@@ -4,4 +4,5 @@
  * bundles all CSS into one file whose first rule may come from a component (and a layer's
  * rank is set where it first appears). A unit test keeps the two in sync.
  */
-export const CSS_LAYER_ORDER = "@layer reset, base, components;";
+export const CSS_LAYER_ORDER =
+  "@layer reset, base, components, layout, features;";

@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .GuideIndexView__Root {
     display: flex;
     flex-direction: column;
@@ -68,7 +68,7 @@
     }
   }
 
-  .GuideIndexView__TagSkeletonRow .GuideIndexView__TagSkeleton {
+  .GuideIndexView__TagSkeleton {
     flex: none;
     border-radius: var(--radius-pill);
   }

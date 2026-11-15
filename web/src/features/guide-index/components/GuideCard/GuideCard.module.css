@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .GuideCard__Root {
     position: relative;
     display: flex;

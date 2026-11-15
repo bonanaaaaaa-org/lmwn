@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .PhotoStrip__Root {
     position: relative;
   }

@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .RestaurantCard__Root {
     display: flex;
     flex-direction: column;

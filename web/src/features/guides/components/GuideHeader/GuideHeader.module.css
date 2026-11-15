@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .GuideHeader__Root {
     display: flex;
     flex-direction: column;
