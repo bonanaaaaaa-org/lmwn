@@ -15,7 +15,8 @@ import type { WorkingDay } from "./types";
 const BANGKOK = "Asia/Bangkok";
 
 /** 2026-11-16 is a Monday. Bangkok is UTC+7 all year. */
-const bangkok = (isoLocal: string) => new Date(`${isoLocal}+07:00`);
+const bangkok = (isoLocal: string) =>
+  Temporal.Instant.from(`${isoLocal}+07:00`);
 
 /** Monday 18:00–02:00 only; every other day closed. */
 const mondayLateNight: WorkingDay[] = [
@@ -34,20 +35,17 @@ describe.each(["Asia/Bangkok", "UTC", "America/Los_Angeles"])(
   (viewerTimeZone) => {
     it("runs with that viewer time zone", () => {
       process.env.TZ = viewerTimeZone;
-      const offset = new Date("2026-11-16T12:00:00Z").getTimezoneOffset();
-      const expected = {
-        "Asia/Bangkok": -420,
-        UTC: 0,
-        "America/Los_Angeles": 480,
-      };
-      expect(offset).toBe(expected[viewerTimeZone as keyof typeof expected]);
+      expect(Temporal.Now.timeZoneId()).toBe(viewerTimeZone);
     });
 
     it("reads the weekday and minutes in the gateway's time zone", () => {
       process.env.TZ = viewerTimeZone;
       // Monday 23:30 UTC is already Tuesday 06:30 in Bangkok.
       expect(
-        weekdayAndMinutes(new Date("2026-11-16T23:30:00Z"), BANGKOK),
+        weekdayAndMinutes(
+          Temporal.Instant.from("2026-11-16T23:30:00Z"),
+          BANGKOK,
+        ),
       ).toEqual({ day: 2, minutes: 390 });
       // Sunday wraps to ISO weekday 7, midnight to 0 minutes.
       expect(

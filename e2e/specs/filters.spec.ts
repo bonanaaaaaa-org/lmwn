@@ -64,8 +64,8 @@ const CATEGORIES = [COFFEE_TEA, FAST_FOOD, CAFE]; // first-seen order
 const LMWN_INDEX = 3;
 
 // Instants as UTC; Bangkok is UTC+7 with no DST.
-const TUE_0815_BANGKOK = new Date("2026-11-10T01:15:00Z");
-const MON_NOON_BANGKOK = new Date("2026-11-09T05:00:00Z");
+const TUE_0815_BANGKOK = Temporal.Instant.from("2026-11-10T01:15:00Z");
+const MON_NOON_BANGKOK = Temporal.Instant.from("2026-11-09T05:00:00Z");
 
 interface GatewayGuide {
   items: {
@@ -543,7 +543,7 @@ test.describe("Filters - Open Now", () => {
   test("Tuesday 08:15 in Bangkok shows only what is open then", async ({
     page,
   }) => {
-    await page.clock.install({ time: TUE_0815_BANGKOK });
+    await page.clock.install({ time: TUE_0815_BANGKOK.epochMilliseconds });
     await openGuide(page);
 
     await openNowChip(page).click();
@@ -566,7 +566,7 @@ test.describe("Filters - Open Now", () => {
   test("Monday noon in Bangkok leaves out the Restaurant closed on Mondays", async ({
     page,
   }) => {
-    await page.clock.install({ time: MON_NOON_BANGKOK });
+    await page.clock.install({ time: MON_NOON_BANGKOK.epochMilliseconds });
     await openGuide(page, `?${params([["openNow", "1"]])}`);
 
     await expectPressed(openNowChip(page), true);

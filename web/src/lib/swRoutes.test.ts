@@ -2,6 +2,7 @@ import {
   isGatewayGuidesRequest,
   isGatewayPhotoRequest,
   isShellNavigation,
+  isTemporalPolyfillRequest,
 } from "@/lib/swRoutes";
 
 const API = "https://api-hidden-gems.bonanaaaaaa.dev";
@@ -92,5 +93,33 @@ describe("isShellNavigation", () => {
       isShellNavigation("navigate", url("https://other.example/"), origin),
     ).toBe(false);
     expect(isShellNavigation("cors", url(`${origin}/`), origin)).toBe(false);
+  });
+});
+
+describe("isTemporalPolyfillRequest", () => {
+  const ORIGIN = "https://hidden-gems.bonanaaaaaa.dev";
+
+  it("matches the polyfill's hashed chunk on this origin", () => {
+    expect(
+      isTemporalPolyfillRequest(
+        url(`${ORIGIN}/assets/temporalPolyfill-Db6rKTpx.js`),
+        ORIGIN,
+      ),
+    ).toBe(true);
+  });
+
+  it("leaves other assets and other origins alone", () => {
+    expect(
+      isTemporalPolyfillRequest(
+        url(`${ORIGIN}/assets/entry.client-a1.js`),
+        ORIGIN,
+      ),
+    ).toBe(false);
+    expect(
+      isTemporalPolyfillRequest(
+        url("https://evil.example/assets/temporalPolyfill-Db6rKTpx.js"),
+        ORIGIN,
+      ),
+    ).toBe(false);
   });
 });
