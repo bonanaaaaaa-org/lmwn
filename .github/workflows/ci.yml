@@ -9,9 +9,9 @@ name: CI
 # (infra/README.md). Cloud access is only through workload identity federation; no cloud key is
 # stored in GitHub.
 #
-# Every run ends with Allure report, which combines the test results and uploads them to the
-# shared report host (README, Test reports). Its GitHub OIDC token can only write this
-# repository's test reports.
+# Every run ends with Allure report, which combines the test results, with the test history it
+# reads back from the shared report host, and uploads them there (README, Test reports). Its
+# GitHub OIDC token can only read and write this repository's test reports.
 on:
   pull_request:
   push:
@@ -152,9 +152,9 @@ jobs:
 
   # One combined Allure report per run, uploaded to the shared report host (repo-management's
   # allure-reports Worker) as pr-<number> for a pull request and as the branch name for a push.
-  # The report carries the test history of earlier runs (Actions cache). Test jobs decide pass or
-  # fail: this job runs after failed ones too, and a missing ALLURE_REPORTS_URL, an unreachable
-  # host or a cache miss only warns.
+  # The report carries the test history of earlier runs, read back from the host. Test jobs decide
+  # pass or fail: this job runs after failed ones too, and a missing ALLURE_REPORTS_URL, an
+  # unreachable host or missing history only warns.
   allure-report:
     name: Allure report
     needs: [verify, e2e]
@@ -166,8 +166,8 @@ jobs:
       contents: read
       id-token: write
     env:
-      # Whose test history this run continues: the report name (pr-<number> or the branch).
-      HISTORY_SCOPE: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
+      # The report's name on the host: pr-<number> for a pull request, else the branch.
+      REPORT: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -190,22 +190,37 @@ jobs:
         with:
           pattern: allure-results-*
           path: allure-artifacts
-      # Test history (trends, each test's earlier runs, flaky / new / regressed marks): the earlier
-      # runs' allure-history/history.jsonl (allurerc.mjs) comes from the Actions cache. A pull
-      # request starts from its own last run, or else from main's latest; a push from its branch's
-      # last run, or else main's. No cache entry yet just means a report without history.
-      - name: Restore the test history
-        id: history
+      # Test history (trends, each test's earlier runs, flaky / new / regressed marks): each report
+      # carries its history/history.jsonl, and this reads the previous one back from the report host
+      # (repo-management's README, Test history and flaky tests) into allurerc.mjs's historyPath.
+      # This report's own name first, then the base branch's (main for a push), so a pull request's
+      # history starts from main's. No history, or a host that can't serve it, only means a report
+      # without history.
+      - name: Fetch the test history
+        if: ${{ steps.install.outcome == 'success' && steps.download.outcome == 'success' && vars.ALLURE_REPORTS_URL != '' }}
         continue-on-error: true
-        uses: actions/cache/restore@v6.1.0
-        with:
-          path: allure-history
-          key: allure-history-${{ env.HISTORY_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            allure-history-${{ env.HISTORY_SCOPE }}-
-            allure-history-main-
+        timeout-minutes: 2
+        env:
+          ALLURE_REPORTS_URL: ${{ vars.ALLURE_REPORTS_URL }}
+          BASE: ${{ github.base_ref || github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          slug() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '-' | cut -c1-100; }
+          token=$(curl -sSf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$ALLURE_REPORTS_URL" | jq -r .value)
+          base="$ALLURE_REPORTS_URL/api/reports/${GITHUB_REPOSITORY#*/}"
+          for report in "$(slug "$REPORT")" "$(slug "$BASE")"; do
+            if curl -sSf --create-dirs -H "Authorization: Bearer $token" \
+              "$base/$report/history/history.jsonl" -o allure-history/history.jsonl; then
+              echo "Test history from the $report report ($(wc -l <allure-history/history.jsonl) runs)."
+              exit 0
+            fi
+          done
+          rm -f allure-history/history.jsonl
+          echo "No test history yet: this report starts it."
       # Every directory holding results, wherever an artifact put it. Single-file report
-      # (allurerc.mjs), so the upload is a few requests. Generating appends this run to the history.
+      # (allurerc.mjs), so the upload is a few requests. Generating appends this run to the history
+      # (and starts one when there was none).
       - name: Generate the report
         id: generate
         if: ${{ steps.install.outcome == 'success' && steps.download.outcome == 'success' }}
@@ -220,16 +235,12 @@ jobs:
           fi
           printf 'Results: %s\n' "${dirs[@]}"
           pnpm exec allure generate --clean "${dirs[@]}"
+          # The updated history goes up with the report, for the next run to fetch.
+          if [[ -f allure-history/history.jsonl ]]; then
+            mkdir -p allure-report/history
+            cp allure-history/history.jsonl allure-report/history/
+          fi
           echo "generated=true" >>"$GITHUB_OUTPUT"
-      # Each run saves under its own key (cache entries can't be overwritten); the next run restores
-      # the newest one for its scope. Only after a report was generated, so the history has this run.
-      - name: Save the test history
-        if: ${{ steps.generate.outputs.generated == 'true' }}
-        continue-on-error: true
-        uses: actions/cache/save@v6.1.0
-        with:
-          path: allure-history
-          key: ${{ steps.history.outputs.cache-primary-key || format('allure-history-{0}-{1}-{2}', env.HISTORY_SCOPE, github.run_id, github.run_attempt) }}
       - name: No report host
         if: ${{ steps.generate.outputs.generated == 'true' && vars.ALLURE_REPORTS_URL == '' }}
         run: |
@@ -245,7 +256,6 @@ jobs:
         timeout-minutes: 5
         env:
           ALLURE_REPORTS_URL: ${{ vars.ALLURE_REPORTS_URL }}
-          REPORT: ${{ env.HISTORY_SCOPE }}
         working-directory: allure-report
         run: |
           set -euo pipefail
