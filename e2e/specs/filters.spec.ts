@@ -17,7 +17,8 @@ const CAFE_GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb";
 const GUIDE_PATH = `/guides/${CAFE_GUIDE_ID}`;
 const TOTAL = 10;
 
-// Its Restaurants in guide order (index → name), and the facts these specs rely on.
+// Its Restaurants in guide order (index → name), and the facts these specs rely on. All are
+// Official except F.I.X COFFEE and Starbucks.
 const R = {
   onibus: "ONIBUS COFFEE", // ร้านกาแฟ/ชา, 4.29 (6), delivery + pickup, daily 08:00–17:00
   kfc: "KFC", // ฟาสต์ฟู้ด/จานด่วน, 4.0 (2), delivery, daily 10:00–22:00
@@ -76,6 +77,7 @@ interface GatewayGuide {
       numberOfReviews: number;
       delivery: boolean;
       pickup: boolean;
+      official: boolean;
     } | null;
   }[];
 }
@@ -90,9 +92,10 @@ async function screenshot(
   page: Page,
   testInfo: TestInfo,
   name: string,
+  issue = 13,
 ): Promise<void> {
   await page.screenshot({
-    path: `../test-screenshots/guide/issue-13/${name}-${testInfo.project.name}.png`,
+    path: `../test-screenshots/guide/issue-${issue}/${name}-${testInfo.project.name}.png`,
     fullPage: true,
   });
 }
@@ -109,6 +112,7 @@ const categoryChip = (page: Page, name: string) =>
 const openNowChip = (page: Page) => page.getByTestId("guide/filters/open-now");
 const deliveryChip = (page: Page) => page.getByTestId("guide/filters/delivery");
 const pickupChip = (page: Page) => page.getByTestId("guide/filters/pickup");
+const officialChip = (page: Page) => page.getByTestId("guide/filters/official");
 const sortTrigger = (page: Page) =>
   page.getByTestId("guide/filters/sort-select/trigger");
 const emptyState = (page: Page) => page.getByTestId("guide/empty-state");
@@ -187,6 +191,18 @@ test.describe("Filters - Seed", () => {
       false,
       true,
       false,
+      false,
+      true,
+      true,
+      false,
+      true,
+    ]);
+    expect(restaurants.map((r) => r?.official)).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
       false,
       true,
       true,
@@ -299,6 +315,219 @@ test.describe("Filters - Toggles", () => {
         ["pickup", "1"],
       ]),
     );
+  });
+});
+
+test.describe("Filters - Official", () => {
+  const OFFICIAL = GUIDE_ORDER.filter(
+    (name) => name !== R.fix && name !== R.starbucks,
+  );
+
+  test("shows only Official Restaurants, kept through a reload and Back", async ({
+    page,
+  }) => {
+    await openGuide(page);
+    await expect(officialChip(page)).toHaveText(
+      message("guideFilters_official_label"),
+    );
+    // Worded like the card badge.
+    await expect(officialChip(page)).toHaveText(
+      message("restaurantCard_badges_official_label"),
+    );
+    await expectPressed(officialChip(page), false);
+    // Right after Open Now (phones then show the Categories, desktop delivery).
+    await expect(
+      toolbar(page).locator(
+        '[data-testid="guide/filters/open-now"] + [data-testid="guide/filters/official"]',
+      ),
+    ).toHaveCount(1);
+
+    await officialChip(page).click();
+    await expectPressed(officialChip(page), true);
+    await expectRestaurants(page, OFFICIAL);
+    await expectCount(page, OFFICIAL.length);
+    expect(query(page)).toBe(params([["official", "1"]]));
+
+    await page.reload();
+    await expect(toolbar(page)).toBeVisible({ timeout: 15_000 });
+    await expectPressed(officialChip(page), true);
+    await expectRestaurants(page, OFFICIAL);
+    await expectCount(page, OFFICIAL.length);
+
+    // AND with the other filters.
+    await categoryChip(page, COFFEE_TEA).click();
+    await expectRestaurants(page, [R.onibus, R.arabica, R.riseBkk]);
+    await expectCount(page, 3);
+    expect(query(page)).toBe(
+      params([
+        ["category", COFFEE_TEA],
+        ["official", "1"],
+      ]),
+    );
+
+    await page.goBack();
+    await expectPressed(categoryChip(page, COFFEE_TEA), false);
+    await expectPressed(officialChip(page), true);
+    await expectRestaurants(page, OFFICIAL);
+    expect(query(page)).toBe(params([["official", "1"]]));
+
+    await page.goBack();
+    await expectPressed(officialChip(page), false);
+    await expectRestaurants(page, GUIDE_ORDER);
+    await expectCount(page, TOTAL);
+    expect(query(page)).toBe("");
+  });
+
+  test("with nothing matching, clearing the filters turns it off; axe stays clean", async ({
+    page,
+  }, testInfo) => {
+    await openGuide(page, `?${params([["official", "1"]])}`);
+    await expectPressed(officialChip(page), true);
+    await screenshot(page, testInfo, "01-official-on", 64);
+    await expectNoAxeViolations(page);
+
+    // KFC is Official but has no pickup.
+    await categoryChip(page, FAST_FOOD).click();
+    await expectRestaurants(page, [R.kfc]);
+    await pickupChip(page).click();
+    await expect(emptyState(page)).toBeVisible();
+    await expectCount(page, 0);
+    await expectNoAxeViolations(page);
+
+    await page.getByTestId("guide/empty-state/action").click();
+
+    await expect(emptyState(page)).toHaveCount(0);
+    await expectPressed(officialChip(page), false);
+    await expectRestaurants(page, GUIDE_ORDER);
+    await expectCount(page, TOTAL);
+    expect(query(page)).toBe("");
+  });
+});
+
+test.describe("Filters - Restaurant card links", () => {
+  const card = (page: Page, name: string) =>
+    cards(page).filter({
+      has: page.getByRole("heading", {
+        level: 2,
+        name: new RegExp(`^${escapeRegExp(name)}`),
+      }),
+    });
+  const cardCategory = (page: Page, name: string, category: string) =>
+    card(page, name)
+      .getByTestId("guide/restaurant-card/category")
+      .filter({ hasText: new RegExp(`^${escapeRegExp(category)}$`) });
+  const cardBadge = (
+    page: Page,
+    name: string,
+    badge: "delivery" | "pickup" | "official",
+  ) => card(page, name).getByTestId(`guide/restaurant-card/badge-${badge}`);
+
+  async function expectSelected(link: Locator, selected: boolean) {
+    if (selected) await expect(link).toHaveAttribute("aria-current", "true");
+    else await expect(link).not.toHaveAttribute("aria-current");
+  }
+
+  test("a Category chip and the badges toggle their filters, keeping the sort; Back undoes", async ({
+    page,
+  }, testInfo) => {
+    await openGuide(page, `?${params([["sort", "rating"]])}`);
+    const fastFood = cardCategory(page, R.kfc, FAST_FOOD);
+    await expect(fastFood).toHaveAccessibleName(
+      format("restaurantCard_filterLink_ariaLabel", { filter: FAST_FOOD }),
+    );
+    await expectSelected(fastFood, false);
+
+    await fastFood.click();
+    await expectRestaurants(page, [R.kfc]);
+    await expectCount(page, 1);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["sort", "rating"],
+      ]),
+    );
+    await expectSelected(fastFood, true);
+    await expect(fastFood).toHaveAccessibleName(
+      format("restaurantCard_filterLink_selectedAriaLabel", {
+        filter: FAST_FOOD,
+      }),
+    );
+    // The card and the toolbar agree.
+    await expectPressed(categoryChip(page, FAST_FOOD), true);
+
+    await cardBadge(page, R.kfc, "delivery").click();
+    await expectSelected(cardBadge(page, R.kfc, "delivery"), true);
+    await expectPressed(deliveryChip(page), true);
+    await cardBadge(page, R.kfc, "official").click();
+    await expectSelected(cardBadge(page, R.kfc, "official"), true);
+    await expectPressed(officialChip(page), true);
+    await expectRestaurants(page, [R.kfc]);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["delivery", "1"],
+        ["official", "1"],
+        ["sort", "rating"],
+      ]),
+    );
+    await screenshot(page, testInfo, "01-card-chip-and-badges-selected", 65);
+    await expectNoAxeViolations(page);
+    await page.emulateMedia({ colorScheme: "dark" });
+    await screenshot(
+      page,
+      testInfo,
+      "02-card-chip-and-badges-selected-dark",
+      65,
+    );
+    await expectNoAxeViolations(page);
+    await page.emulateMedia({ colorScheme: "light" });
+
+    // A second press turns each off.
+    await cardBadge(page, R.kfc, "delivery").click();
+    await expectSelected(cardBadge(page, R.kfc, "delivery"), false);
+    await expectPressed(deliveryChip(page), false);
+    await cardBadge(page, R.kfc, "official").click();
+    await expectPressed(officialChip(page), false);
+    await fastFood.click();
+    await expectRestaurants(page, RATING_ORDER);
+    await expectCount(page, TOTAL);
+    expect(query(page)).toBe(params([["sort", "rating"]]));
+    await expectSelected(fastFood, false);
+
+    await page.goBack();
+    await expectRestaurants(page, [R.kfc]);
+    await expectSelected(fastFood, true);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["sort", "rating"],
+      ]),
+    );
+  });
+
+  test("the pickup badge filters the list, even when its own card stays", async ({
+    page,
+  }) => {
+    await openGuide(page);
+    const pickup = cardBadge(page, R.onibus, "pickup");
+
+    await pickup.click();
+    await expectRestaurants(page, [
+      R.onibus,
+      R.lmwn,
+      R.keen,
+      R.rise,
+      R.riseBkk,
+    ]);
+    await expectCount(page, 5);
+    expect(query(page)).toBe(params([["pickup", "1"]]));
+    await expectSelected(pickup, true);
+    await expectPressed(pickupChip(page), true);
+
+    await page.goBack();
+    await expectRestaurants(page, GUIDE_ORDER);
+    await expectSelected(pickup, false);
+    expect(query(page)).toBe("");
   });
 });
 
@@ -528,6 +757,15 @@ test.describe("Filters - Unavailable Restaurant", () => {
     await deliveryChip(page).click();
     await expect(unavailable).toHaveCount(1);
     await expect(cards(page)).toHaveCount(TOTAL);
+
+    // Official: LMWN Cafe would match too.
+    await officialChip(page).click();
+    await expect(unavailable).toHaveCount(0);
+    await expect(cards(page)).toHaveCount(7);
+    await expectCount(page, 7);
+
+    await officialChip(page).click();
+    await expect(unavailable).toHaveCount(1);
 
     await categoryChip(page, CAFE).click();
     await expect(unavailable).toHaveCount(0);

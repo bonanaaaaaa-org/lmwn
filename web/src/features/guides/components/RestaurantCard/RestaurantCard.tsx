@@ -11,6 +11,7 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { Rating } from "@/components/common/Rating";
 import { ShareButton } from "@/components/common/ShareButton";
+import { TagLink } from "@/components/common/TagLink";
 import { PhotoStrip } from "@/features/guides/components/PhotoStrip";
 import { WorkingHours } from "@/features/guides/components/WorkingHours";
 import {
@@ -21,6 +22,12 @@ import {
   safeWebUrl,
   telHref,
 } from "@/features/guides/lib/links";
+import {
+  isRestaurantFilterOn,
+  toggleRestaurantFilter,
+  type RestaurantFilters,
+  type RestaurantFilterToggle,
+} from "@/features/guides/lib/restaurantFilters";
 import {
   THAILAND_TIME_ZONE,
   type GuideItem,
@@ -52,6 +59,13 @@ export interface RestaurantCardProps {
   share?: ShareTarget;
   /** Opened from a shared link: a saffron ring that doesn't move the card. */
   highlighted?: boolean;
+  /** The Guide page's current filters; with `filtersHref`, Categories and badges become filter links. */
+  filters?: RestaurantFilters;
+  /**
+   * The Guide page URL for a set of filters (the toolbar's URL). Given it, each Category chip
+   * and badge links to `filters` with its own filter toggled, and shows as selected while on.
+   */
+  filtersHref?: (filters: RestaurantFilters) => string;
   className?: string;
   /** The page's test ID; the card is `{parent}/restaurant-card`, its share button `…/share`. */
   parentTestId?: string;
@@ -93,11 +107,91 @@ function RestaurantName({ restaurant }: { restaurant: Restaurant }) {
   );
 }
 
+/** Filter links on a card: the page's filters, a way to build an href, and the card's test ID. */
+interface FilterLinks {
+  filters: RestaurantFilters;
+  href: (filters: RestaurantFilters) => string;
+  testId: string;
+}
+
+/**
+ * A Category or badge that toggles its filter on the Guide page, like the toolbar: selected
+ * while that filter is on, and pressing it again turns it off. Scroll stays put.
+ */
+function FilterChip({
+  links,
+  toggle,
+  label,
+  icon,
+  testId,
+}: {
+  links: FilterLinks;
+  toggle: RestaurantFilterToggle;
+  label: string;
+  icon?: "check";
+  testId: string;
+}) {
+  const isSelected = isRestaurantFilterOn(links.filters, toggle);
+  return (
+    <TagLink
+      tag={label}
+      href={links.href(toggleRestaurantFilter(links.filters, toggle))}
+      variant="filled"
+      hash={false}
+      // Selected chips end in a check, so the Official one drops its leading check.
+      icon={isSelected ? undefined : icon}
+      isSelected={isSelected}
+      aria-label={
+        isSelected
+          ? m.restaurantCard_filterLink_selectedAriaLabel({ filter: label })
+          : m.restaurantCard_filterLink_ariaLabel({ filter: label })
+      }
+      routerOptions={{ preventScrollReset: true }}
+      testId={testId}
+    />
+  );
+}
+
+function Categories({
+  restaurant,
+  links,
+}: {
+  restaurant: Restaurant;
+  links?: FilterLinks;
+}) {
+  if (!links) {
+    return (
+      <span className={styles.RestaurantCard__Categories}>
+        {restaurant.categories.join(", ")}
+      </span>
+    );
+  }
+  return (
+    <ul
+      className={styles.RestaurantCard__Chips}
+      aria-label={m.restaurantCard_categories_ariaLabel()}
+    >
+      {restaurant.categories.map((category) => (
+        <li key={category}>
+          <FilterChip
+            links={links}
+            toggle={{ category }}
+            label={category}
+            testId={`${links.testId}/category`}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Badges({
   restaurant,
+  links,
   className,
 }: {
   restaurant: Restaurant;
+  links?: FilterLinks;
   className?: string;
 }) {
   const badges = [
@@ -129,7 +223,17 @@ function Badges({
     >
       {shown.map((badge) => (
         <li key={badge.key}>
-          <Badge variant={badge.variant}>{badge.label}</Badge>
+          {links ? (
+            <FilterChip
+              links={links}
+              toggle={badge.key}
+              label={badge.label}
+              icon={badge.variant === "official" ? "check" : undefined}
+              testId={`${links.testId}/badge-${badge.key}`}
+            />
+          ) : (
+            <Badge variant={badge.variant}>{badge.label}</Badge>
+          )}
         </li>
       ))}
     </ul>
@@ -195,10 +299,14 @@ export function RestaurantCard({
   clamp = false,
   share,
   highlighted = false,
+  filters,
+  filtersHref,
   className,
   parentTestId,
 }: RestaurantCardProps) {
   const testId = joinTestId(parentTestId, "restaurant-card");
+  const links: FilterLinks | undefined =
+    filters && filtersHref ? { filters, href: filtersHref, testId } : undefined;
   const nameId = useId();
   const writeUpId = useId();
   const [expanded, setExpanded] = useState(false);
@@ -252,12 +360,10 @@ export function RestaurantCard({
                   >
                     |
                   </span>
-                  <span className={styles.RestaurantCard__Categories}>
-                    {restaurant.categories.join(", ")}
-                  </span>
+                  <Categories restaurant={restaurant} links={links} />
                 </>
               )}
-              {isDesktop && <Badges restaurant={restaurant} />}
+              {isDesktop && <Badges restaurant={restaurant} links={links} />}
             </div>
           </div>
           {share && (
@@ -276,6 +382,7 @@ export function RestaurantCard({
       {restaurant && !isDesktop && (
         <Badges
           restaurant={restaurant}
+          links={links}
           className={styles.RestaurantCard__Inset}
         />
       )}

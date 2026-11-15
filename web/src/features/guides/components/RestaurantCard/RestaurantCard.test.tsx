@@ -1,6 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import {
+  NO_RESTAURANT_FILTERS,
+  restaurantFiltersHref,
+  type RestaurantFilters,
+} from "@/features/guides/lib/restaurantFilters";
 import { guideItemShareTarget } from "@/features/guides/lib/share";
 import { m } from "@/paraglide/messages.js";
 import {
@@ -348,5 +353,77 @@ describe("needsClamp", () => {
     );
 
     expect(card()).toHaveAttribute("data-highlighted");
+  });
+
+  describe("filter links", () => {
+    const filtersHref = (filters: RestaurantFilters) =>
+      restaurantFiltersHref("/guides/1", filters);
+    const renderLinked = (filters: RestaurantFilters, layout?: "phone") =>
+      render(
+        <RestaurantCard
+          item={makeGuideItem()}
+          index={1}
+          layout={layout}
+          filters={filters}
+          filtersHref={filtersHref}
+          parentTestId="guide"
+        />,
+      );
+    const [coffee, bakery] = restaurant.categories as [string, string];
+
+    it("links each Category and badge to its filter, keeping the other filters", () => {
+      renderLinked({ ...NO_RESTAURANT_FILTERS, sort: "rating" });
+
+      const categories = screen.getAllByTestId(
+        "guide/restaurant-card/category",
+      );
+      expect(categories.map((link) => link.textContent)).toEqual([
+        coffee,
+        bakery,
+      ]);
+      expect(
+        screen.getByRole("link", {
+          name: m.restaurantCard_filterLink_ariaLabel({ filter: coffee }),
+        }),
+      ).toHaveAttribute(
+        "href",
+        `/guides/1?${new URLSearchParams({ category: coffee, sort: "rating" }).toString()}`,
+      );
+      for (const [key, param] of [
+        ["delivery", "delivery=1&sort=rating"],
+        ["pickup", "pickup=1&sort=rating"],
+        ["official", "official=1&sort=rating"],
+      ] as const) {
+        const badge = screen.getByTestId(`guide/restaurant-card/badge-${key}`);
+        expect(badge).toHaveAttribute("href", `/guides/1?${param}`);
+        expect(badge).not.toHaveAttribute("aria-current");
+      }
+    });
+
+    it("shows a Category or badge whose filter is on as selected, linking to it off", () => {
+      renderLinked(
+        { ...NO_RESTAURANT_FILTERS, categories: [coffee], delivery: true },
+        "phone",
+      );
+
+      const selected = screen.getByRole("link", {
+        name: m.restaurantCard_filterLink_selectedAriaLabel({ filter: coffee }),
+      });
+      expect(selected).toHaveAttribute("aria-current", "true");
+      expect(selected).toHaveAttribute("href", `/guides/1?delivery=1`);
+      const delivery = screen.getByTestId(
+        "guide/restaurant-card/badge-delivery",
+      );
+      expect(delivery).toHaveAttribute("aria-current", "true");
+      expect(delivery).toHaveAttribute(
+        "href",
+        `/guides/1?${new URLSearchParams({ category: coffee }).toString()}`,
+      );
+      expect(
+        screen.getByRole("list", {
+          name: m.restaurantCard_categories_ariaLabel(),
+        }),
+      ).toBeInTheDocument();
+    });
   });
 });

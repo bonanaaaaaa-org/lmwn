@@ -45,6 +45,8 @@ type MessageKey =
   | "guideFilters_openNow_label"
   | "guideFilters_delivery_label"
   | "guideFilters_pickup_label"
+  | "guideFilters_official_label"
+  | "restaurantCard_badges_official_label"
   | "sortSelect_guideOrder_label"
   | "sortSelect_rating_label"
   | "guide_emptyState_filteredTitle"
@@ -52,6 +54,8 @@ type MessageKey =
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
+  restaurantCard_filterLink_ariaLabel: { filter: string };
+  restaurantCard_filterLink_selectedAriaLabel: { filter: string };
   themeToggle_trigger_ariaLabel: { theme: string };
   guideIndex_resultCount_body: { count: number };
   guideIndex_emptyState_searchTitle: { query: string };

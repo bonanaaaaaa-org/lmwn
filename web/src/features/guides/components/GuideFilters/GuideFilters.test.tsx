@@ -36,7 +36,7 @@ function renderFilters(
 const chip = (name: string) => screen.getByRole("button", { name });
 
 describe("GuideFilters", () => {
-  it("offers a chip per Category, then Open Now, delivery and pickup", () => {
+  it("offers a chip per Category, then Open Now, Official, delivery and pickup", () => {
     renderFilters();
 
     const toolbar = screen.getByTestId("guide/filters");
@@ -55,6 +55,9 @@ describe("GuideFilters", () => {
     expect(screen.getByTestId("guide/filters/pickup")).toHaveTextContent(
       m.guideFilters_pickup_label(),
     );
+    expect(screen.getByTestId("guide/filters/official")).toHaveTextContent(
+      m.guideFilters_official_label(),
+    );
     expect(
       within(toolbar).getByText(m.guideFilters_category_title()),
     ).toBeInTheDocument();
@@ -63,7 +66,7 @@ describe("GuideFilters", () => {
     ).toBeInTheDocument();
   });
 
-  it("puts Open Now first and drops the Category title on a phone", () => {
+  it("puts Open Now and Official first and drops the Category title on a phone", () => {
     renderFilters({}, { layout: "phone" });
 
     const chips = within(
@@ -71,6 +74,7 @@ describe("GuideFilters", () => {
     ).getAllByRole("button");
     expect(chips.map((button) => button.textContent)).toEqual([
       m.guideFilters_openNow_label(),
+      m.guideFilters_official_label(),
       ...CATEGORIES,
       m.guideFilters_delivery_label(),
       m.guideFilters_pickup_label(),
@@ -127,6 +131,7 @@ describe("GuideFilters", () => {
     ["openNow", m.guideFilters_openNow_label],
     ["delivery", m.guideFilters_delivery_label],
     ["pickup", m.guideFilters_pickup_label],
+    ["official", m.guideFilters_official_label],
   ] as const)("toggles %s", async (toggle, label) => {
     const user = userEvent.setup();
     const { onChange } = renderFilters({ [toggle]: true });
@@ -134,6 +139,47 @@ describe("GuideFilters", () => {
     await user.click(chip(label()));
 
     expect(onChange).toHaveBeenCalledWith(NO_RESTAURANT_FILTERS);
+  });
+
+  it("puts Official after Open Now and before delivery on desktop", () => {
+    renderFilters();
+
+    const toggles = within(
+      screen.getByRole("toolbar", { name: m.guideFilters_group_ariaLabel() }),
+    )
+      .getAllByRole("button")
+      .slice(CATEGORIES.length);
+    expect(toggles.map((button) => button.textContent)).toEqual([
+      m.guideFilters_openNow_label(),
+      m.guideFilters_official_label(),
+      m.guideFilters_delivery_label(),
+      m.guideFilters_pickup_label(),
+    ]);
+  });
+
+  it.each([
+    [false, "badge-check"],
+    [true, "check"],
+  ])(
+    "gives Official a badge-check icon, a check once selected (%s)",
+    (official, icon) => {
+      renderFilters({ official });
+
+      expect(
+        screen
+          .getByTestId("guide/filters/official")
+          .querySelector("[data-icon]"),
+      ).toHaveAttribute("data-icon", icon);
+    },
+  );
+
+  it("labels the Official chip like the card's Official badge", () => {
+    renderFilters({ official: true });
+
+    expect(chip(m.restaurantCard_badges_official_label())).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("changes the sort, keeping the filters", async () => {
