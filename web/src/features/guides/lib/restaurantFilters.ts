@@ -2,7 +2,7 @@
  * Filtering and sorting a Guide's Restaurants (the Guide page toolbar). Pure functions: the
  * page reads the state from the URL and passes "now" in, so Open Now is testable.
  *
- * URL: `?category=A&category=B&openNow=1&delivery=1&pickup=1&sort=rating` — `category`
+ * URL: `?category=A&category=B&openNow=1&delivery=1&pickup=1&official=1&sort=rating` — `category`
  * repeated once per Category (RFC 3986 style, like the Guide Index's `tag`); guide order is
  * the default sort and is left out.
  */
@@ -19,6 +19,8 @@ export interface RestaurantFilters {
   openNow: boolean;
   delivery: boolean;
   pickup: boolean;
+  /** Official Restaurants only (`restaurant.official`). */
+  official: boolean;
   sort: RestaurantSort;
 }
 
@@ -27,6 +29,7 @@ export const NO_RESTAURANT_FILTERS: RestaurantFilters = {
   openNow: false,
   delivery: false,
   pickup: false,
+  official: false,
   sort: "guide",
 };
 
@@ -45,6 +48,7 @@ export function parseRestaurantFilters(
     openNow: params.get("openNow") === ON,
     delivery: params.get("delivery") === ON,
     pickup: params.get("pickup") === ON,
+    official: params.get("official") === ON,
     sort: params.get("sort") === "rating" ? "rating" : "guide",
   };
 }
@@ -60,6 +64,7 @@ export function toRestaurantSearchParams(
   if (filters.openNow) params.set("openNow", ON);
   if (filters.delivery) params.set("delivery", ON);
   if (filters.pickup) params.set("pickup", ON);
+  if (filters.official) params.set("official", ON);
   if (filters.sort !== "guide") params.set("sort", filters.sort);
   return params;
 }
@@ -88,7 +93,8 @@ export function hasRestaurantFilter(filters: RestaurantFilters): boolean {
     filters.categories.length > 0 ||
     filters.openNow ||
     filters.delivery ||
-    filters.pickup
+    filters.pickup ||
+    filters.official
   );
 }
 
@@ -133,6 +139,7 @@ function matches(
       )) &&
     (!filters.delivery || restaurant.delivery) &&
     (!filters.pickup || restaurant.pickup) &&
+    (!filters.official || restaurant.official) &&
     (!filters.openNow || isOpenNow(restaurant.workingHours, now, timeZone))
   );
 }
@@ -151,8 +158,8 @@ function byRating(a: PlacedGuideItem, b: PlacedGuideItem): number {
 }
 
 /**
- * The Guide Items to show, in display order. Categories match any one; Open Now, delivery
- * and pickup must all hold too. Unknown Categories are ignored. Unavailable Restaurants show
+ * The Guide Items to show, in display order. Categories match any one; Open Now, delivery,
+ * pickup and official must all hold too. Unknown Categories are ignored. Unavailable Restaurants show
  * only while no Restaurant-based filter is on. Rating sort: best first, Unrated after the
  * rated, Unavailable last, ties in guide order.
  */

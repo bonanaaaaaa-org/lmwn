@@ -93,6 +93,7 @@ Everything is **required** unless marked _Deferred_.
   - Open Now
   - delivery
   - pickup
+  - official
 - **And** they can sort by guide order (the default) or by Rating, with Unrated Restaurants last.
 - **Given** filters are set, **then** a count shows "N of M" and the state is kept in the URL.
 - **Given** nothing matches, **then** an empty state offers "ล้างตัวกรอง" (clear filters).

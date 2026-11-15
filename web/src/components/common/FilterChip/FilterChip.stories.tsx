@@ -80,6 +80,20 @@ export const ClockSelected: Story = {
   args: { ...Clock.args, selected: true },
 };
 
+/** Official carries a badge check while unselected. */
+export const Official: Story = {
+  args: {
+    label: m.guideFilters_official_label(),
+    icon: "badge-check",
+    testId: "guide/filters/official",
+  },
+};
+
+/** Selected, the check replaces the badge check. */
+export const OfficialSelected: Story = {
+  args: { ...Official.args, selected: true },
+};
+
 /** In a ToggleButtonGroup, as the Guide page uses it: arrows move, Space toggles. */
 export const InGroup: Story = {
   render: function Render(args) {
