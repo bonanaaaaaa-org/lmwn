@@ -4,7 +4,7 @@
 # rest from env/prod.tfvars.
 
 variable "project_id" {
-  description = "The GCP project, created by repo-management (GCP_PROJECT_ID)."
+  description = "The GCP project, created by the provider repo (GCP_PROJECT_ID)."
   type        = string
 
   validation {

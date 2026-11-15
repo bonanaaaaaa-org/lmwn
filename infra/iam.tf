@@ -1,5 +1,5 @@
 # The identity Cloud Run runs as. Neither container calls a Google API, so it
-# only writes logs. The deploy service account (repo-management) owns the
+# only writes logs. The deploy service account (provider repo) owns the
 # project, so this configuration manages the account itself.
 resource "google_service_account" "run" {
   account_id   = "api-gateway-run"

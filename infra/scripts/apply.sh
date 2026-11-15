@@ -25,8 +25,7 @@ trap 'rm -f "$plan"' EXIT
 
 # A tainted Cloud Run domain mapping can never be replaced in place (the
 # replacement has the same name, the domain), so one a failed apply left
-# tainted is kept, and the plan's refresh reads what Cloud Run has
-# (personal-finance's apply.sh does the same).
+# tainted is kept, and the plan's refresh reads what Cloud Run has.
 mapping='google_cloud_run_domain_mapping.api[0]'
 if terraform -chdir="$tf_dir" state pull |
   jq -e '.resources[]? | select(.type == "google_cloud_run_domain_mapping" and .name == "api")

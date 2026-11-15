@@ -1,5 +1,5 @@
 # Both Google providers act in the prod project and bill API quota to it
-# (user_project_override): the deploy identity lives in repo-management's
+# (user_project_override): the deploy identity lives in the provider repo's
 # management project, where the Firebase and other APIs are not enabled.
 provider "google" {
   project               = var.project_id
