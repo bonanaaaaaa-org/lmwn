@@ -15,7 +15,9 @@
 | | URL |
 | --- | --- |
 | เว็บแอป | https://hidden-gems.bonanaaaaaa.dev |
-| API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (ไกด์ทั้งหมด), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
+| API gateway: health | https://api-hidden-gems.bonanaaaaaa.dev/health |
+| API gateway: Guides | https://api-hidden-gems.bonanaaaaaa.dev/guides (ไกด์ทั้งหมด กรองด้วย `?q=` และ `?tag=`), `https://api-hidden-gems.bonanaaaaaa.dev/guides/{guideId}` (ไกด์เดียว) |
+| API gateway: API docs | https://api-hidden-gems.bonanaaaaaa.dev/docs (OpenAPI) |
 | Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (ทุกคอมโพเนนต์ในทุกสถานะ ใช้ข้อมูลจำลองเท่านั้น) |
 | รายงานผลทดสอบ Allure | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ รวมทุกรายงาน: `main` สำหรับการ push เข้า `main` ล่าสุด และ `pr-<number>` สำหรับ pull request เปิดดูได้สาธารณะ ไม่ต้องลงชื่อเข้าใช้ |
 
@@ -32,10 +34,12 @@
 | | URL |
 | --- | --- |
 | เว็บแอป | http://localhost:3000 |
-| API gateway | http://localhost:4000: `/health` ตอบกลับ `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
-| Data Server: ไกด์ | http://localhost:8888 (`/guides`, `/guides/{id}`) |
-| Data Server: ร้าน | http://localhost:9999 (`/restaurants/{id}`) |
-| Data Server: รูปภาพ | http://localhost:7777 (`/r/{width}/{height}/{file}`) |
+| API gateway: health | http://localhost:4000/health (ตอบกลับ `{"status":"ok"}`) |
+| API gateway: Guides | http://localhost:4000/guides (ไกด์ทั้งหมด กรองด้วย `?q=` และ `?tag=`), `http://localhost:4000/guides/{guideId}` (ไกด์เดียว) |
+| API gateway: API docs | http://localhost:4000/docs (OpenAPI) |
+| Data Server: ไกด์ | http://localhost:8888/guides, `http://localhost:8888/guides/{id}` |
+| Data Server: ร้าน | `http://localhost:9999/restaurants/{id}` |
+| Data Server: รูปภาพ | `http://localhost:7777/r/{width}/{height}/{file}` |
 | Storybook | http://localhost:6006 ด้วย `pnpm --filter web storybook` หรือ `./dev.sh --storybook` |
 
 `pnpm test:e2e` เปิด production preview ที่ :4173 และ gateway ตัวที่สองที่ :4300 สำหรับ spec ของ PWA ด้วย

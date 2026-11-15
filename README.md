@@ -15,7 +15,9 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 | | URL |
 | --- | --- |
 | Web app | https://hidden-gems.bonanaaaaaa.dev |
-| API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (every Guide), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
+| API gateway: health | https://api-hidden-gems.bonanaaaaaa.dev/health |
+| API gateway: Guides | https://api-hidden-gems.bonanaaaaaa.dev/guides (every Guide; `?q=` and `?tag=` filter), `https://api-hidden-gems.bonanaaaaaa.dev/guides/{guideId}` (one Guide) |
+| API gateway: API docs | https://api-hidden-gems.bonanaaaaaa.dev/docs (OpenAPI) |
 | Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (every component and its states, with fixtures only) |
 | Allure test reports | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ lists every report: `main` for the latest push to `main`, `pr-<number>` for a pull request. Public, no sign-in needed. |
 
@@ -32,10 +34,12 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 | | URL |
 | --- | --- |
 | Web app | http://localhost:3000 |
-| API gateway | http://localhost:4000: `/health` answers `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
-| Data Server: guides | http://localhost:8888 (`/guides`, `/guides/{id}`) |
-| Data Server: restaurants | http://localhost:9999 (`/restaurants/{id}`) |
-| Data Server: images | http://localhost:7777 (`/r/{width}/{height}/{file}`) |
+| API gateway: health | http://localhost:4000/health (answers `{"status":"ok"}`) |
+| API gateway: Guides | http://localhost:4000/guides (every Guide; `?q=` and `?tag=` filter), `http://localhost:4000/guides/{guideId}` (one Guide) |
+| API gateway: API docs | http://localhost:4000/docs (OpenAPI) |
+| Data Server: guides | http://localhost:8888/guides, `http://localhost:8888/guides/{id}` |
+| Data Server: restaurants | `http://localhost:9999/restaurants/{id}` |
+| Data Server: images | `http://localhost:7777/r/{width}/{height}/{file}` |
 | Storybook | http://localhost:6006, with `pnpm --filter web storybook` or `./dev.sh --storybook` |
 
 `pnpm test:e2e` also starts a production preview on :4173 and a second gateway on :4300 for the PWA specs.
