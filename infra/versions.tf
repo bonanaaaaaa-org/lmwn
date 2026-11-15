@@ -14,7 +14,7 @@ terraform {
       version = "~> 8.7"
     }
     # The custom domains' DNS records in the bonanaaaaaa.dev Cloudflare zone
-    # (domains.tf), with the zone-scoped token repo-management publishes as
+    # (domains.tf), with the zone-scoped token the provider repo publishes as
     # the prod environment secret CLOUDFLARE_API_TOKEN.
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -22,7 +22,7 @@ terraform {
     }
   }
 
-  # State lives in the R2 bucket repo-management made for this repository,
+  # State lives in the R2 bucket the provider repo made for this repository,
   # under the prod key. Bucket, key, region and endpoint come from the GitHub
   # environment's TF_STATE_* variables through scripts/backend-init.sh; the R2
   # key pair only from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY. The settings

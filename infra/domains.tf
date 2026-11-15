@@ -1,8 +1,7 @@
 # Custom domains: the web app on a Firebase Hosting custom domain (web_domain),
 # the Storybook on one of its own site (storybook_domain) and the gateway on a
-# Cloud Run domain mapping (api_domain), as in
-# bonanaaaaaa-org/personal-finance's infra/domains.tf. The web.app and run.app
-# URLs keep working beside them.
+# Cloud Run domain mapping (api_domain). The web.app and run.app URLs keep
+# working beside them.
 #
 # With dns_zone set (prod: bonanaaaaaa.dev in Cloudflare), Terraform keeps the
 # records the domains need there, all DNS only (not proxied: Google issues the
@@ -60,8 +59,8 @@ data "cloudflare_zone" "this" {
 
 # Search Console: the deploy identity verifies the whole zone with a TXT record
 # at its apex, and so becomes a verified owner of every subdomain. It sits
-# beside personal-finance's own verification TXT (each deploy identity has its
-# own token). Calls the Site Verification API, hence that scope on the provider.
+# beside other identities' verification TXT records (each deploy identity has
+# its own token). Calls the Site Verification API, hence that scope on the provider.
 data "google_site_verification_token" "zone" {
   count = var.dns_zone != "" ? 1 : 0
 

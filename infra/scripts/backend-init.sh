@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Initialize a Terraform root against the R2 state bucket. Copied from
-# bonanaaaaaa-org/personal-finance infra/scripts/backend-init.sh.
+# Initialize a Terraform root against the R2 state bucket.
 #
 # Usage: backend-init.sh <root-dir> [state-key]
 #

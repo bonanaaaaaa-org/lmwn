@@ -150,7 +150,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # One combined Allure report per run, uploaded to the shared report host (repo-management's
+  # One combined Allure report per run, uploaded to the shared report host (the provider repo's
   # allure-reports Worker) as pr-<number> for a pull request and as the branch name for a push.
   # The report carries the test history of earlier runs, read back from the host. Test jobs decide
   # pass or fail: this job runs after failed ones too, and a missing ALLURE_REPORTS_URL, an
@@ -192,7 +192,7 @@ jobs:
           path: allure-artifacts
       # Test history (trends, each test's earlier runs, flaky / new / regressed marks): each report
       # carries its history/history.jsonl, and this reads the previous one back from the report host
-      # (repo-management's README, Test history and flaky tests) into allurerc.mjs's historyPath.
+      # (the provider repo's README, Test history and flaky tests) into allurerc.mjs's historyPath.
       # This report's own name first, then the base branch's (main for a push), so a pull request's
       # history starts from main's. No history, or a host that can't serve it, only means a report
       # without history.
@@ -244,9 +244,9 @@ jobs:
       - name: No report host
         if: ${{ steps.generate.outputs.generated == 'true' && vars.ALLURE_REPORTS_URL == '' }}
         run: |
-          echo "::warning title=Allure report not uploaded::ALLURE_REPORTS_URL is not set for this repository (repo-management, allure.enabled)."
+          echo "::warning title=Allure report not uploaded::ALLURE_REPORTS_URL is not set for this repository (provider repo, allure.enabled)."
           echo "Allure report not uploaded: \`ALLURE_REPORTS_URL\` is not set." >>"$GITHUB_STEP_SUMMARY"
-      # The upload step from repo-management's README (Allure reports). The token request fails on
+      # The upload step from the provider repo's README (Allure reports). The token request fails on
       # a fork's pull request, which gets no id-token permission; that only warns, like a host
       # that is down.
       - name: Upload Allure report
@@ -306,7 +306,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    # Only main may use prod's deploy identity and secrets (repo-management's deployment branch policy).
+    # Only main may use prod's deploy identity and secrets (the provider repo's deployment branch policy).
     environment:
       name: prod
       url: ${{ steps.urls.outputs.web_url }}
