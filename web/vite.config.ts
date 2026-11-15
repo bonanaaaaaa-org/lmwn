@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import { reactRouter } from "@react-router/dev/vite";
+import browserslist from "browserslist";
+import browserslistToEsbuild from "browserslist-to-esbuild";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -39,6 +41,17 @@ function indexHtmlRevision(): string {
     .digest("hex")
     .slice(0, 16);
 }
+
+/**
+ * The browser support policy: the `browserslist` in package.json, the one source of truth for
+ * the build targets (see "Browser support" in docs/design-decisions.md). Read relative to this
+ * file, so the targets don't depend on the directory the build is started from.
+ */
+const BUILD_TARGET = browserslistToEsbuild(
+  browserslist.loadConfig({
+    path: fileURLToPath(new URL(".", import.meta.url)),
+  }),
+);
 
 /** Design tokens (src/styles/globals.css): saffron accent and ink text. */
 const SAFFRON = "#f2b705";
@@ -94,6 +107,9 @@ export default defineConfig({
           "favicon.svg",
           "icons/*.png",
         ],
+        // Only browsers without Temporal (Safari) load the polyfill; the worker caches it at
+        // runtime for them (src/sw.ts) rather than downloading it for everyone.
+        globIgnores: ["assets/temporalPolyfill-*.js"],
       },
       integration: {
         // index.html doesn't exist yet when the worker is built (see indexHtmlRevision).
@@ -125,9 +141,16 @@ export default defineConfig({
       "react-aria-components",
       "zod",
       "clsx",
+      // Only loaded in browsers without Temporal, so Chromium in dev would never discover it.
+      "temporal-polyfill/global",
     ],
   },
   build: {
+    // JS syntax is lowered to the browserslist. CSS follows it too: `build.cssTarget` defaults to
+    // this target, and Lightning CSS minifies the stylesheets with it, lowering nesting and other
+    // newer syntax only as far as the oldest target (Safari 18) needs. `css.lightningcss.targets`
+    // is only read with `css.transformer: "lightningcss"`; the CSS modules go through PostCSS.
+    target: BUILD_TARGET,
     // The app gets one stylesheet (~9 KB gzipped) instead of one per chunk: fewer
     // render-blocking requests on the critical path (Lighthouse, #16). Its first rule may come
     // from a component, so app/root.tsx declares the layer order before it. Storybook keeps

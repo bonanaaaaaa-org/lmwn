@@ -23,12 +23,12 @@ const callLabel = m.restaurantCard_call_label({ phone: "093 916 4541" });
 
 describe("RestaurantCard", () => {
   it("shows today's Working Hours and Open Now, with the week behind a toggle", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.useFakeTimers({ toFake: ["Temporal"] });
     onTestFinished(() => {
       vi.useRealTimers();
     });
     // Wednesday 12:00 in Bangkok; the fixture opens 08:00–17:00 every day.
-    vi.setSystemTime(new Date("2026-11-18T12:00:00+07:00"));
+    vi.setSystemTime(Temporal.Instant.from("2026-11-18T12:00:00+07:00"));
     const user = userEvent.setup();
     render(
       <RestaurantCard item={makeGuideItem()} index={1} parentTestId="guide" />,

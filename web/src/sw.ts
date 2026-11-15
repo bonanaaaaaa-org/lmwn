@@ -8,6 +8,8 @@
  * - The gateway's `GET /guides` and `GET /guides/{guideId}` are network-first with a short
  *   timeout, falling back to the last good response, so Guides the diner opened open offline.
  * - The gateway's photos are cache-first, bounded by entry count and age.
+ * - The Temporal polyfill's chunk isn't precached (browsers with Temporal never load it); it is
+ *   cache-first once a browser without Temporal (Safari) loads it.
  * - Nothing else is cached: other origins (and other gateway routes) go straight to the network.
  *   Only 200 responses are stored, never errors.
  *
@@ -33,7 +35,9 @@ import {
   isGatewayGuidesRequest,
   isGatewayPhotoRequest,
   isShellNavigation,
+  isTemporalPolyfillRequest,
   PHOTO_CACHE,
+  TEMPORAL_POLYFILL_CACHE,
 } from "./lib/swRoutes";
 
 declare const self: ServiceWorkerGlobalScope;
@@ -118,6 +122,21 @@ const photos = new Route(
   }),
 );
 router.registerRoute(photos);
+
+// One hashed file per deploy: a new deploy's chunk replaces the old one.
+router.registerRoute(
+  new Route(
+    ({ request, url }) =>
+      request.method === "GET" && isTemporalPolyfillRequest(url),
+    new CacheFirst({
+      cacheName: TEMPORAL_POLYFILL_CACHE,
+      plugins: [
+        okOnly,
+        new ExpirationPlugin({ maxEntries: 2, purgeOnQuotaError: true }),
+      ],
+    }),
+  ),
+);
 
 router.addFetchListener();
 // `{ type: "CACHE_URLS", payload: { urlsToCache } }`: each URL a route matches is fetched and

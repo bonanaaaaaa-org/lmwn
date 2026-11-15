@@ -32,6 +32,8 @@
 
 ทุกครั้งที่ push เข้า `main` ระบบจะ deploy ขึ้น Google Cloud (Cloud Run สำหรับ gateway และ Data Server, Firebase Hosting สำหรับแอปและ Storybook) ผ่าน Terraform ใน [`infra/`](infra/README.md) gateway ลดจำนวนเครื่องลงเหลือศูนย์ได้เมื่อไม่มีคนใช้ คำขอแรกหลังจากเงียบไปสักพักจึงใช้เวลาไม่กี่วินาที
 
+**เบราว์เซอร์ที่รองรับ:** Chrome (เดสก์ท็อปและ Android), Edge และ Firefox สองเวอร์ชันล่าสุด และ Safari 18 ขึ้นไปบน iOS และ macOS รายการนี้คือ `browserslist` ใน [`web/package.json`](web/package.json) ซึ่งทั้งการ build และ stylelint ใช้ ([การตัดสินใจเรื่องเบราว์เซอร์ที่รองรับ](docs/design-decisions.md#browser-support-62))
+
 ## รันบนเครื่องตัวเอง
 
 สิ่งที่ต้องมี:
@@ -71,7 +73,7 @@ pnpm dev        # Data Server + gateway + web, through Turborepo
 
 ![สถาปัตยกรรมระบบ: เบราว์เซอร์โหลดแอปจาก Firebase Hosting และเรียก gateway บน Cloud Run ซึ่งรัน Data Server ที่โจทย์ให้มาเป็น sidecar](docs/images/system-architecture.svg)
 
-- **web** ([`web/`](web/)) เป็น single-page app: React 19, React Router 8 แบบ SPA, TanStack Query, Zod, React Aria, CSS Modules และ Paraglide JS สำหรับข้อความภาษาไทย มีสองเส้นทางคือ `/` (หน้ารวมไกด์) และ `/guides/:guideId` (หน้าไกด์) สถานะการค้นหา ตัวกรอง และการเรียงลำดับเก็บไว้ใน URL การรีโหลด การกดย้อนกลับ และลิงก์ที่แชร์จึงได้มุมมองเดิม โค้ดจัดกลุ่มตามฟีเจอร์ (`web/src/features/guide-index`, `web/src/features/guides`) ส่วนคอมโพเนนต์ที่ใช้ร่วมกันอยู่ใน `web/src/components` build สำหรับ production จะเพิ่ม service worker (ดู [PWA](#ใช้งานออฟไลน์และติดตั้งเป็นแอป-pwa))
+- **web** ([`web/`](web/)) เป็น single-page app: React 19, React Router 8 แบบ SPA, TanStack Query, Zod, React Aria, CSS Modules และ Paraglide JS สำหรับข้อความภาษาไทย มีสองเส้นทางคือ `/` (หน้ารวมไกด์) และ `/guides/:guideId` (หน้าไกด์) สถานะการค้นหา ตัวกรอง และการเรียงลำดับเก็บไว้ใน URL การรีโหลด การกดย้อนกลับ และลิงก์ที่แชร์จึงได้มุมมองเดิม โค้ดจัดกลุ่มตามฟีเจอร์ (`web/src/features/guide-index`, `web/src/features/guides`) ส่วนคอมโพเนนต์ที่ใช้ร่วมกันอยู่ใน `web/src/components` build สำหรับ production จะเพิ่ม service worker (ดู [PWA](#ใช้งานออฟไลน์และติดตั้งเป็นแอป-pwa)) เวลาใช้ `Temporal` แทน `Date` โดยโหลด polyfill เฉพาะในเบราว์เซอร์ที่ยังไม่มี `Temporal` ([#60](https://github.com/bonanaaaaaa-org/lmwn/issues/60)) ส่วนวันที่และตัวเลขจัดรูปแบบด้วย `Intl` API ที่มีในเบราว์เซอร์ ผ่าน `web/src/lib/format.ts`
 - **api-gateway** ([`api-gateway/`](api-gateway/README.md)) เป็นทางเดียวที่เบราว์เซอร์ขอข้อมูล (ยกเว้นรูปภาพตอนรันบนเครื่อง ซึ่งโหลดตรงจาก Data Server ที่ :7777) gateway แปลงรายการ ID และข้อมูลดิบจาก Data Server เป็นสอง endpoint คือ `GET /guides?q=&tag=` และ `GET /guides/{guideId}` (ไกด์พร้อม Guide Item ทุกรายการและร้านของแต่ละรายการ ในคำตอบเดียว) โดยมี response model ของตัวเองและ error body ที่ปลอดภัย โครงสร้างเป็นแบบ ports and adapters: `app/domain` (ไกด์ เวลาทำการ การค้นหา), `app/application` (use case ทั้งสอง), `app/adapters` (HTTP ขาเข้า และ Data Server ขาออก)
 - **Data Server** คือแพ็กเกจ npm `lmwn-assignment-2025-server` ที่โจทย์ให้มา รันตามที่เผยแพร่โดยไม่แก้ไข มันค้นหาไม่ได้ ไม่มี CORS ตอบ `200 null` เมื่อไม่พบ ID และส่งรายละเอียดภายในของ Mongo ออกมา gateway รับมือเรื่องเหล่านี้ทั้งหมด ([ข้อเท็จจริงที่เราตรวจสอบแล้ว](docs/design-decisions.md#facts-about-the-provided-data-server))
 

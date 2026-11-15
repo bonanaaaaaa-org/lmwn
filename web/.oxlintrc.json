@@ -18,6 +18,13 @@
     "public/**"
   ],
   "rules": {
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "Date",
+        "message": "Use Temporal (Temporal.Instant, Temporal.Now, toZonedDateTimeISO); Safari gets the polyfill from @/lib/temporal."
+      }
+    ],
     "constructor-super": "error",
     "for-direction": "error",
     "getter-return": "error",

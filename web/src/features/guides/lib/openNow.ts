@@ -24,7 +24,7 @@ export interface WeekdayAndMinutes {
 
 /** The weekday and minutes since midnight of `now` on the wall clock in `timeZone`. */
 export function weekdayAndMinutes(
-  now: Date,
+  now: Temporal.Instant,
   timeZone: string,
 ): WeekdayAndMinutes {
   return wallClock(now, timeZone);
@@ -71,7 +71,7 @@ function coveringRange(
  */
 export function isOpenNow(
   workingHours: readonly WorkingDay[],
-  now: Date,
+  now: Temporal.Instant,
   timeZone: string,
 ): boolean {
   return (
@@ -102,7 +102,7 @@ export interface OpenStatusValue {
 
 export function openStatus(
   workingHours: readonly WorkingDay[],
-  now: Date,
+  now: Temporal.Instant,
   timeZone: string,
 ): OpenStatusValue {
   const clock = weekdayAndMinutes(now, timeZone);

@@ -235,7 +235,9 @@ test.describe("Guide Index - search", () => {
     await page.clock.install();
     await openDefault(page);
     // Freeze the page's timers: the 300 ms debounce can't fire, so only Enter can commit.
-    await page.clock.pauseAt(Date.now() + 5_000);
+    await page.clock.pauseAt(
+      Temporal.Now.instant().add({ seconds: 5 }).epochMilliseconds,
+    );
     const lengthBefore = await historyLength(page);
 
     await search(page, "ร้านอาหาร");

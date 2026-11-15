@@ -32,6 +32,8 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 
 Every push to `main` deploys to Google Cloud (Cloud Run for the gateway and Data Server, Firebase Hosting for the app and the Storybook) through Terraform in [`infra/`](infra/README.md). The gateway scales to zero, so the first request after a quiet spell takes a few seconds.
 
+**Browser support:** the last 2 versions of Chrome (desktop and Android), Edge and Firefox, and Safari 18 or newer on iOS and macOS. The list is the `browserslist` in [`web/package.json`](web/package.json); the build and stylelint read it ([browser support decisions](docs/design-decisions.md#browser-support-62)).
+
 ## Run it locally
 
 You need:
@@ -71,7 +73,7 @@ Or in a container: [`.devcontainer/`](.devcontainer/devcontainer.json) works in 
 
 ![System architecture: the browser loads the app from Firebase Hosting and calls the gateway on Cloud Run, which runs the provided Data Server as a sidecar](docs/images/system-architecture.svg)
 
-- **web** ([`web/`](web/)) is a single-page app: React 19, React Router 8 in SPA mode, TanStack Query, Zod, React Aria, CSS Modules, and Paraglide JS for the Thai copy. Routes are `/` (the Guide Index) and `/guides/:guideId` (a Guide). Search, filter and sort state lives in the URL, so reload, Back and shared links restore the same view. Code is grouped by feature (`web/src/features/guide-index`, `web/src/features/guides`) with shared components in `web/src/components`. Production builds add a service worker (see [PWA](#offline-and-install-pwa)).
+- **web** ([`web/`](web/)) is a single-page app: React 19, React Router 8 in SPA mode, TanStack Query, Zod, React Aria, CSS Modules, and Paraglide JS for the Thai copy. Routes are `/` (the Guide Index) and `/guides/:guideId` (a Guide). Search, filter and sort state lives in the URL, so reload, Back and shared links restore the same view. Code is grouped by feature (`web/src/features/guide-index`, `web/src/features/guides`) with shared components in `web/src/components`. Production builds add a service worker (see [PWA](#offline-and-install-pwa)). Times are `Temporal` values rather than `Date`, with a polyfill loaded only in browsers that lack `Temporal` ([#60](https://github.com/bonanaaaaaa-org/lmwn/issues/60)), and dates and numbers are formatted with the built-in `Intl` API in `web/src/lib/format.ts`.
 - **api-gateway** ([`api-gateway/`](api-gateway/README.md)) is the only thing the browser asks for data. (Locally, photos are the one exception: they load straight from the Data Server on :7777.) It turns the Data Server's ID lists and raw records into two endpoints, `GET /guides?q=&tag=` and `GET /guides/{guideId}` (the Guide with every Guide Item and its Restaurant, in one response), with its own response models and safe error bodies. It is built as ports and adapters: `app/domain` (Guides, Working Hours, search), `app/application` (the two use cases), `app/adapters` (HTTP in, the Data Server out).
 - **Data Server** is the provided `lmwn-assignment-2025-server` npm package, run as published. It has no search, no CORS, returns `200 null` for unknown IDs and leaks Mongo internals; the gateway absorbs all of that ([the facts we verified](docs/design-decisions.md#facts-about-the-provided-data-server)).
 

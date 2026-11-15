@@ -2,7 +2,12 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // The newest ES level every browserslist target fully supports: ES2024 (Object.groupBy,
+    // Promise.withResolvers and ArrayBuffer.transfer are in Safari 17.4; ES2025's Iterator helpers
+    // only in Safari 18.4). Change it with the browserslist. Anything newer is a deliberate
+    // polyfill decision (ESNext.Temporal: @/lib/temporal). See "Browser support" in
+    // docs/design-decisions.md.
+    "lib": ["ES2024", "ESNext.Temporal", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "moduleDetection": "force",
