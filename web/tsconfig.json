@@ -2,6 +2,9 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2022",
+    // The ES level the oldest browserslist target (Safari 16.4) supports: change the two together.
+    // Anything newer is a deliberate polyfill decision (ESNext.Temporal: @/lib/temporal).
+    // See "Browser support" in docs/design-decisions.md.
     "lib": ["ES2022", "ESNext.Temporal", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
