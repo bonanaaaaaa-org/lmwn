@@ -23,6 +23,7 @@
 
 | | URL |
 | --- | --- |
+| Repository | https://github.com/bonanaaaaaa-org/lmwn |
 | Issues | https://github.com/bonanaaaaaa-org/lmwn/issues |
 | ผลการรัน CI (GitHub Actions) | https://github.com/bonanaaaaaa-org/lmwn/actions |
 
