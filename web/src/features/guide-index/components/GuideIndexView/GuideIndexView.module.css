@@ -100,7 +100,6 @@
     width: 1px;
     height: 1px;
     overflow: hidden;
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- partial support is for SVG and shape references; inset() works in every target */
     clip-path: inset(50%);
     white-space: nowrap;
 
@@ -109,7 +108,6 @@
       width: auto;
       height: auto;
       overflow: visible;
-      /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- partial support is for SVG and shape references; inset() works in every target */
       clip-path: none;
       font-size: var(--font-size-500);
     }

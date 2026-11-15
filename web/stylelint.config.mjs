@@ -22,16 +22,27 @@ export default {
   ],
   ignoreFiles: ["build/**", "node_modules/**", "public/**", "coverage/**"],
   rules: {
-    // Checked against the package.json browserslist. Each allowed feature has a reason:
+    // Checked against the package.json browserslist. Only features a target lacks entirely are
+    // reported (`ignorePartialSupport`): caniuse's partial-support notes (clip-path shapes,
+    // multi-column details, ...) don't match how the stylesheets use these properties, and every
+    // target is Safari 18+ or an evergreen browser. The features allowed anyway, each with a reason:
     // - css3-cursors, css3-cursors-newer: iOS has no mouse pointer; the cursor is a desktop hint.
     // - css-scrollbar: `scrollbar-width: none` only hides scrollbars on rails that scroll anyway;
-    //   iOS Safari draws overlay scrollbars and older Safari shows one, which is harmless.
-    // Other findings are allowed in place, with a stylelint-disable comment giving the reason.
+    //   iOS Safari draws overlay scrollbars, which is harmless.
+    // - css-touch-action: only desktop Safari lacks it, and it has no touch input; iOS Safari and
+    //   the other targets need it for the Lightbox swipe.
+    // No stylelint-disable comments for this rule: allow a feature here, with its reason.
     "plugin/no-unsupported-browser-features": [
       true,
       {
         severity: "error",
-        ignore: ["css3-cursors", "css3-cursors-newer", "css-scrollbar"],
+        ignorePartialSupport: true,
+        ignore: [
+          "css3-cursors",
+          "css3-cursors-newer",
+          "css-scrollbar",
+          "css-touch-action",
+        ],
       },
     ],
     "declaration-property-value-disallowed-list": [
