@@ -33,7 +33,9 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 | --- | --- |
 | Web app | http://localhost:3000 |
 | API gateway | http://localhost:4000: `/health` answers `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
-| Data Server (provided) | http://localhost:8888/guides (guides), :9999 (restaurants), :7777 (images) |
+| Data Server: guides | http://localhost:8888 (`/guides`, `/guides/{id}`) |
+| Data Server: restaurants | http://localhost:9999 (`/restaurants/{id}`) |
+| Data Server: images | http://localhost:7777 (`/r/{width}/{height}/{file}`) |
 | Storybook | http://localhost:6006, with `pnpm --filter web storybook` or `./dev.sh --storybook` |
 
 `pnpm test:e2e` also starts a production preview on :4173 and a second gateway on :4300 for the PWA specs.

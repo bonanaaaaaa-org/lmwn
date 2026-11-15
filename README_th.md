@@ -33,7 +33,9 @@
 | --- | --- |
 | เว็บแอป | http://localhost:3000 |
 | API gateway | http://localhost:4000: `/health` ตอบกลับ `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
-| Data Server (ที่โจทย์ให้มา) | http://localhost:8888/guides (ไกด์), :9999 (ร้าน), :7777 (รูปภาพ) |
+| Data Server: ไกด์ | http://localhost:8888 (`/guides`, `/guides/{id}`) |
+| Data Server: ร้าน | http://localhost:9999 (`/restaurants/{id}`) |
+| Data Server: รูปภาพ | http://localhost:7777 (`/r/{width}/{height}/{file}`) |
 | Storybook | http://localhost:6006 ด้วย `pnpm --filter web storybook` หรือ `./dev.sh --storybook` |
 
 `pnpm test:e2e` เปิด production preview ที่ :4173 และ gateway ตัวที่สองที่ :4300 สำหรับ spec ของ PWA ด้วย
