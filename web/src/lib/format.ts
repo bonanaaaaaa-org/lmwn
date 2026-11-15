@@ -32,7 +32,6 @@ const DATE_FIELD_OPTIONS = [
   "timeStyle",
 ] as const satisfies readonly (keyof Intl.DateTimeFormatOptions)[];
 
-const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 const numberFormatters = new Map<string, Intl.NumberFormat>();
 
 /** Creating `Intl` formatters is costly; keep one per locale and options. */
@@ -46,95 +45,62 @@ function cached<T>(cache: Map<string, T>, key: unknown, create: () => T): T {
   return formatter;
 }
 
-function toDate(date: Date | string | number): Date {
-  return date instanceof Date ? date : new Date(date);
+/** A moment in time: a `Temporal.Instant`, or an ISO 8601 string with an offset (`…Z`, `…+07:00`). */
+export type InstantLike = Temporal.Instant | string;
+
+function toInstant(instant: InstantLike): Temporal.Instant {
+  return typeof instant === "string" ? Temporal.Instant.from(instant) : instant;
 }
 
 /**
  * Formats a date for the UI in the Buddhist calendar, by default in Thailand time. Without
  * date fields in `options` it shows day, short Thai month and Buddhist year (2024-03-10 → day
  * 10, March, 2567; see `formattedDates` in the test fixtures). Pass `timeZone` to take the day in
- * another zone (e.g. a Guide's own `timeZone`). Accepts a `Date`, an ISO 8601 string or a
- * timestamp in milliseconds.
+ * another zone (e.g. a Guide's own `timeZone`).
  */
 export function formatDate(
-  date: Date | string | number,
+  instant: InstantLike,
   options: Intl.DateTimeFormatOptions = {},
 ): string {
   const hasFields = DATE_FIELD_OPTIONS.some(
     (key) => options[key] !== undefined,
   );
-  const resolved: Intl.DateTimeFormatOptions = {
+  // `Instant#toLocaleString` rather than a cached `Intl.DateTimeFormat`: the browser's own Intl
+  // can't format the polyfill's Temporal values (Safari; see `@/lib/temporal`).
+  return toInstant(instant).toLocaleString(intlLocale, {
     calendar: "buddhist",
     timeZone: DEFAULT_TIME_ZONE,
     ...(hasFields ? {} : DEFAULT_DATE_FIELDS),
     ...options,
-  };
-  const formatter = cached(
-    dateFormatters,
-    [intlLocale, resolved],
-    () => new Intl.DateTimeFormat(intlLocale, resolved),
-  );
-  return formatter.format(toDate(date));
+  });
+}
+
+/** The wall clock of `instant` in `timeZone`. */
+function zoned(instant: InstantLike, timeZone: string): Temporal.ZonedDateTime {
+  return toInstant(instant).toZonedDateTimeISO(timeZone);
 }
 
 /**
- * The calendar date (YYYY-MM-DD, Gregorian) of `date` in `timeZone`, for `<time dateTime>`.
+ * The calendar date (YYYY-MM-DD, Gregorian) of `instant` in `timeZone`, for `<time dateTime>`.
  * Machine-readable, so it doesn't follow the UI locale.
  */
 export function toIsoDate(
-  date: Date | string | number,
+  instant: InstantLike,
   timeZone: string = DEFAULT_TIME_ZONE,
 ): string {
-  // en-CA formats as YYYY-MM-DD.
-  const formatter = cached(
-    dateFormatters,
-    ["en-CA", { timeZone }],
-    () => new Intl.DateTimeFormat("en-CA", { timeZone }),
-  );
-  return formatter.format(toDate(date));
+  return zoned(instant, timeZone).toPlainDate().toString();
 }
 
-const ISO_WEEKDAY: Record<string, number> = {
-  Mon: 1,
-  Tue: 2,
-  Wed: 3,
-  Thu: 4,
-  Fri: 5,
-  Sat: 6,
-  Sun: 7,
-};
-
 /**
- * The wall clock of `date` in `timeZone`: ISO weekday (1 = Monday … 7 = Sunday) and minutes
- * since midnight. Machine-readable, so it doesn't follow the UI locale; `h23` keeps midnight
- * at hour 0, never 24.
+ * The wall clock of `instant` in `timeZone`: ISO weekday (1 = Monday … 7 = Sunday) and minutes
+ * since midnight.
  */
 export function wallClock(
-  date: Date | string | number,
+  instant: InstantLike,
   timeZone: string = DEFAULT_TIME_ZONE,
 ): { day: number; minutes: number } {
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone,
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  };
-  const formatter = cached(
-    dateFormatters,
-    ["en-US", options],
-    () => new Intl.DateTimeFormat("en-US", options),
-  );
-  let day = 0;
-  let hour = 0;
-  let minute = 0;
-  for (const part of formatter.formatToParts(toDate(date))) {
-    if (part.type === "weekday") day = ISO_WEEKDAY[part.value] ?? 0;
-    else if (part.type === "hour") hour = Number(part.value);
-    else if (part.type === "minute") minute = Number(part.value);
-  }
-  return { day, minutes: hour * 60 + minute };
+  const { dayOfWeek, hour, minute } = zoned(instant, timeZone);
+  return { day: dayOfWeek, minutes: hour * 60 + minute };
 }
 
 /** Formats a number for the UI (`th-TH` grouping and decimals); `options` go to `Intl.NumberFormat`. */

@@ -6,6 +6,10 @@ import { INITIAL_VIEWPORTS } from "storybook/viewport";
 import "@/styles/globals.css";
 
 import { LocaleProvider } from "@/lib/Providers";
+import { ensureTemporal } from "@/lib/temporal";
+
+// Stories render times with Temporal; the deployed Storybook may be opened in Safari.
+await ensureTemporal();
 
 // Every story gets a QueryClient, so components using TanStack Query render without a
 // per-story decorator. Stories seed data via props or `queryClient.setQueryData`, never the network.

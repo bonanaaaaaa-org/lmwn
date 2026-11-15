@@ -14,6 +14,13 @@
     "test-results/**"
   ],
   "rules": {
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "Date",
+        "message": "Use Temporal (Temporal.Instant, Temporal.Now, toZonedDateTimeISO)."
+      }
+    ],
     "constructor-super": "error",
     "for-direction": "error",
     "getter-return": "error",

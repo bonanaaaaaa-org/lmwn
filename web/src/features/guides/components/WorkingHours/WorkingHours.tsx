@@ -25,7 +25,7 @@ export interface WorkingHoursProps {
   /** The gateway's `timeZone`: "today" and Open Now are judged on its wall clock. */
   timeZone: string;
   /** A fixed clock for stories and tests; defaults to the live clock, which ticks each minute. */
-  now?: Date;
+  now?: Temporal.Instant;
   /** Start with the full week shown. */
   defaultExpanded?: boolean;
   className?: string;

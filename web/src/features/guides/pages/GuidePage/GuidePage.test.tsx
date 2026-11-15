@@ -253,10 +253,10 @@ describe("GuidePage", () => {
 
   describe("filtering and sorting", () => {
     /** 2026-11-16 12:00 in Bangkok, a Monday: the fixture Restaurants (08:00–17:00) are open. */
-    const NOON = new Date("2026-11-16T12:00:00+07:00");
+    const NOON = Temporal.Instant.from("2026-11-16T12:00:00+07:00");
 
     beforeEach(() => {
-      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.useFakeTimers({ toFake: ["Temporal"] });
       vi.setSystemTime(NOON);
     });
     afterEach(() => {
@@ -402,9 +402,9 @@ describe("GuidePage", () => {
     });
 
     /** Moves the shared minute clock on: useNow re-reads the time when the tab is shown. */
-    const advanceClockTo = (date: Date) =>
+    const advanceClockTo = (instant: Temporal.Instant) =>
       act(() => {
-        vi.setSystemTime(date);
+        vi.setSystemTime(instant);
         document.dispatchEvent(new Event("visibilitychange"));
       });
 
@@ -419,7 +419,7 @@ describe("GuidePage", () => {
       await screen.findAllByTestId("guide/restaurant-card");
       expect(names()).toEqual(["ONIBUS", "KFC", "%"]);
 
-      await advanceClockTo(new Date("2026-11-16T12:31:00+07:00"));
+      await advanceClockTo(Temporal.Instant.from("2026-11-16T12:31:00+07:00"));
 
       expect(names()).toEqual(["ONIBUS", "%"]);
       expect(count(2)).toBeInTheDocument();
@@ -442,8 +442,12 @@ describe("GuidePage", () => {
         renderRoutedPage(`#item-${target.id}`);
         await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
 
-        await advanceClockTo(new Date("2026-11-16T12:01:00+07:00"));
-        await advanceClockTo(new Date("2026-11-16T12:02:00+07:00"));
+        await advanceClockTo(
+          Temporal.Instant.from("2026-11-16T12:01:00+07:00"),
+        );
+        await advanceClockTo(
+          Temporal.Instant.from("2026-11-16T12:02:00+07:00"),
+        );
 
         expect(scrollIntoView).toHaveBeenCalledTimes(1);
       } finally {

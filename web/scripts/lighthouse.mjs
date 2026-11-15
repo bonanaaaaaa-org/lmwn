@@ -98,7 +98,7 @@ const apiUrl = (
 ).replace(/\/$/, "");
 
 async function waitFor(url, timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
+  const deadline = Temporal.Now.instant().add({ milliseconds: timeoutMs });
   for (;;) {
     try {
       const response = await fetch(url);
@@ -106,7 +106,8 @@ async function waitFor(url, timeoutMs) {
     } catch {
       // not up yet
     }
-    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${url}`);
+    if (Temporal.Instant.compare(Temporal.Now.instant(), deadline) > 0)
+      throw new Error(`Timed out waiting for ${url}`);
     await new Promise((done) => setTimeout(done, 250));
   }
 }

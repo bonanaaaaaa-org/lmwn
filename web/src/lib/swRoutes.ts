@@ -7,6 +7,8 @@
 export const GATEWAY_CACHE = "gateway-guides";
 /** Gateway photos (cache-first, bounded). */
 export const PHOTO_CACHE = "gateway-photos";
+/** The Temporal polyfill, for browsers without Temporal (cache-first; never precached). */
+export const TEMPORAL_POLYFILL_CACHE = "temporal-polyfill";
 
 /** The gateway path under `apiBaseUrl` for `url`, or `undefined` for any other origin or path. */
 function gatewayPath(url: URL, apiBaseUrl: string): string | undefined {
@@ -54,4 +56,19 @@ export function isShellNavigation(
   if (url.pathname.startsWith("/assets/")) return false;
   const lastSegment = url.pathname.split("/").pop() ?? "";
   return !lastSegment.includes(".");
+}
+
+/**
+ * The Temporal polyfill's chunk (`/assets/temporalPolyfill-*.js`, see `@/lib/temporal`) on this
+ * origin. Kept out of the precache so browsers with Temporal never download it; cached when a
+ * browser without it (Safari) loads it, so the app still opens offline there.
+ */
+export function isTemporalPolyfillRequest(
+  url: URL,
+  origin: string = globalThis.location.origin,
+): boolean {
+  return (
+    url.origin === origin &&
+    /^\/assets\/temporalPolyfill-[\w-]+\.js$/.test(url.pathname)
+  );
 }
