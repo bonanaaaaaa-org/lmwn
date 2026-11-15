@@ -34,6 +34,21 @@
       color: var(--color-text-on-accent);
     }
 
+    /* The filter it turns on is already on: like a selected FilterTag. */
+    &[data-selected] {
+      gap: var(--space-50);
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: var(--color-text-on-accent);
+      font-weight: var(--font-weight-semibold);
+
+      &[data-hovered],
+      &[data-pressed] {
+        border-color: var(--color-accent-hover);
+        background: var(--color-accent-hover);
+      }
+    }
+
     &[data-focus-visible] {
       outline: var(--focus-ring);
       outline-offset: var(--focus-ring-offset);
@@ -42,6 +57,10 @@
     @media (prefers-reduced-motion: reduce) {
       transition: none;
     }
+  }
+
+  .TagLink__Check {
+    flex: none;
   }
 
   .TagLink__Hash {

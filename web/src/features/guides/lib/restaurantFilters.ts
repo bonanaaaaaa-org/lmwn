@@ -108,6 +108,45 @@ export function toggleCategory(
     : [...categories, category];
 }
 
+/** One filter a Restaurant card links to: one of its Categories, or one of its badges. */
+export type RestaurantFilterToggle =
+  | { category: string }
+  | "delivery"
+  | "pickup"
+  | "official";
+
+/** Whether the filter `toggle` names is on. */
+export function isRestaurantFilterOn(
+  filters: RestaurantFilters,
+  toggle: RestaurantFilterToggle,
+): boolean {
+  return typeof toggle === "string"
+    ? filters[toggle]
+    : filters.categories.includes(toggle.category);
+}
+
+/** Turns the filter `toggle` names on, or off when it is on; the other filters and the sort stay. */
+export function toggleRestaurantFilter(
+  filters: RestaurantFilters,
+  toggle: RestaurantFilterToggle,
+): RestaurantFilters {
+  return typeof toggle === "string"
+    ? { ...filters, [toggle]: !filters[toggle] }
+    : {
+        ...filters,
+        categories: toggleCategory(filters.categories, toggle.category),
+      };
+}
+
+/** The Guide page URL at `pathname` with `filters` (no `?` when every filter is off). */
+export function restaurantFiltersHref(
+  pathname: string,
+  filters: RestaurantFilters,
+): string {
+  const search = toRestaurantSearchParams(filters).toString();
+  return search ? `${pathname}?${search}` : pathname;
+}
+
 /** Every filter off; the sort stays. */
 export function clearRestaurantFilters(
   filters: RestaurantFilters,

@@ -120,6 +120,16 @@
     color: var(--color-text-muted);
   }
 
+  /* Category and badge filter links: 32px chips (TagLink `filled`). */
+  .RestaurantCard__Chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
   .RestaurantCard__Badges {
     display: flex;
     flex-wrap: wrap;

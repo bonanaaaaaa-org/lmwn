@@ -54,6 +54,8 @@ type MessageKey =
 
 /** The interpolated catalog messages the e2e specs assert on, with their params. */
 interface FormatParams {
+  restaurantCard_filterLink_ariaLabel: { filter: string };
+  restaurantCard_filterLink_selectedAriaLabel: { filter: string };
   themeToggle_trigger_ariaLabel: { theme: string };
   guideIndex_resultCount_body: { count: number };
   guideIndex_emptyState_searchTitle: { query: string };

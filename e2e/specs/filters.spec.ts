@@ -404,6 +404,133 @@ test.describe("Filters - Official", () => {
   });
 });
 
+test.describe("Filters - Restaurant card links", () => {
+  const card = (page: Page, name: string) =>
+    cards(page).filter({
+      has: page.getByRole("heading", {
+        level: 2,
+        name: new RegExp(`^${escapeRegExp(name)}`),
+      }),
+    });
+  const cardCategory = (page: Page, name: string, category: string) =>
+    card(page, name)
+      .getByTestId("guide/restaurant-card/category")
+      .filter({ hasText: new RegExp(`^${escapeRegExp(category)}$`) });
+  const cardBadge = (
+    page: Page,
+    name: string,
+    badge: "delivery" | "pickup" | "official",
+  ) => card(page, name).getByTestId(`guide/restaurant-card/badge-${badge}`);
+
+  async function expectSelected(link: Locator, selected: boolean) {
+    if (selected) await expect(link).toHaveAttribute("aria-current", "true");
+    else await expect(link).not.toHaveAttribute("aria-current");
+  }
+
+  test("a Category chip and the badges toggle their filters, keeping the sort; Back undoes", async ({
+    page,
+  }, testInfo) => {
+    await openGuide(page, `?${params([["sort", "rating"]])}`);
+    const fastFood = cardCategory(page, R.kfc, FAST_FOOD);
+    await expect(fastFood).toHaveAccessibleName(
+      format("restaurantCard_filterLink_ariaLabel", { filter: FAST_FOOD }),
+    );
+    await expectSelected(fastFood, false);
+
+    await fastFood.click();
+    await expectRestaurants(page, [R.kfc]);
+    await expectCount(page, 1);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["sort", "rating"],
+      ]),
+    );
+    await expectSelected(fastFood, true);
+    await expect(fastFood).toHaveAccessibleName(
+      format("restaurantCard_filterLink_selectedAriaLabel", {
+        filter: FAST_FOOD,
+      }),
+    );
+    // The card and the toolbar agree.
+    await expectPressed(categoryChip(page, FAST_FOOD), true);
+
+    await cardBadge(page, R.kfc, "delivery").click();
+    await expectSelected(cardBadge(page, R.kfc, "delivery"), true);
+    await expectPressed(deliveryChip(page), true);
+    await cardBadge(page, R.kfc, "official").click();
+    await expectSelected(cardBadge(page, R.kfc, "official"), true);
+    await expectPressed(officialChip(page), true);
+    await expectRestaurants(page, [R.kfc]);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["delivery", "1"],
+        ["official", "1"],
+        ["sort", "rating"],
+      ]),
+    );
+    await screenshot(page, testInfo, "01-card-chip-and-badges-selected", 65);
+    await expectNoAxeViolations(page);
+    await page.emulateMedia({ colorScheme: "dark" });
+    await screenshot(
+      page,
+      testInfo,
+      "02-card-chip-and-badges-selected-dark",
+      65,
+    );
+    await expectNoAxeViolations(page);
+    await page.emulateMedia({ colorScheme: "light" });
+
+    // A second press turns each off.
+    await cardBadge(page, R.kfc, "delivery").click();
+    await expectSelected(cardBadge(page, R.kfc, "delivery"), false);
+    await expectPressed(deliveryChip(page), false);
+    await cardBadge(page, R.kfc, "official").click();
+    await expectPressed(officialChip(page), false);
+    await fastFood.click();
+    await expectRestaurants(page, RATING_ORDER);
+    await expectCount(page, TOTAL);
+    expect(query(page)).toBe(params([["sort", "rating"]]));
+    await expectSelected(fastFood, false);
+
+    await page.goBack();
+    await expectRestaurants(page, [R.kfc]);
+    await expectSelected(fastFood, true);
+    expect(query(page)).toBe(
+      params([
+        ["category", FAST_FOOD],
+        ["sort", "rating"],
+      ]),
+    );
+  });
+
+  test("the pickup badge filters the list, even when its own card stays", async ({
+    page,
+  }) => {
+    await openGuide(page);
+    const pickup = cardBadge(page, R.onibus, "pickup");
+
+    await pickup.click();
+    await expectRestaurants(page, [
+      R.onibus,
+      R.lmwn,
+      R.keen,
+      R.rise,
+      R.riseBkk,
+    ]);
+    await expectCount(page, 5);
+    expect(query(page)).toBe(params([["pickup", "1"]]));
+    await expectSelected(pickup, true);
+    await expectPressed(pickupChip(page), true);
+
+    await page.goBack();
+    await expectRestaurants(page, GUIDE_ORDER);
+    await expectSelected(pickup, false);
+    expect(query(page)).toBe("");
+  });
+});
+
 test.describe("Filters - Sort", () => {
   test("by Rating puts the best first and Unrated last, also within a filter", async ({
     page,
