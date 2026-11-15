@@ -324,7 +324,11 @@ oxlint also bans importing `@/test-utils/**` from production code (anything but 
 - `features` — `src/features/**` except pages: may restyle common and layout components
 - `pages` — `src/features/*/pages/**`: may restyle its feature's components as well as common and layout ones
 
-To restyle a common component from a feature, pass a `className` and write a plain single-class rule (`.SkeletonCard__Cover { border-radius: 0; }`): never double a selector to win on specificity. A feature that overrides a property the component also sets in a state (`[data-hovered]`, `[data-pressed]`) owns that property's states too, since the feature rule beats the component's state rule. Stylelint's `custom/enforce-css-layer` rule (`stylelint-plugins/enforce-css-layer.mjs`, folder map in `stylelint.config.mjs`) rejects a stylesheet in the wrong layer or with rules outside its layer; a new top-level folder with stylesheets gets a layer in all three places.
+**Why this order:** the component that renders another one decides where it goes, so the parent's layer sits above the child's. Pages beat features, features beat layout and common components, and layout beats common components. Example: `GuidePage` passes `GuidePage__Top` to `GuideHeader` to pull the cover flush under the app header on phones; only the page knows that. `!important` stays banned, so the layer order alone decides.
+
+**Convention: a parent styles only the child's outside.** A `className` a parent passes to a child component may set only the child's outside: margin, alignment (`align-self`, `justify-self`), grid or flex placement, and width or size constraints. It never sets the child's inside: colours, padding, typography, borders. Anything inside the child becomes a prop or variant on the child. Write the parent's rule as a plain single class (`.GuidePage__Top { margin-top: ... }`); never double a selector to win on specificity.
+
+Stylelint's `custom/enforce-css-layer` rule (`stylelint-plugins/enforce-css-layer.mjs`, folder map in `stylelint.config.mjs`) rejects a stylesheet in the wrong layer or with rules outside its layer; a new top-level folder with stylesheets gets a layer in all three places.
 
 `base` defines tokens as custom properties on `:root` in `base`. Add new tokens there (kebab-case, e.g. `--color-text-muted`, `--space-200`, `--radius-100`) rather than hard-coding values in components.
 
