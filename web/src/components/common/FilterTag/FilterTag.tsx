@@ -7,8 +7,6 @@ import {
   type Selection,
 } from "react-aria-components";
 
-import { Icon } from "@/components/common/Icon";
-
 import styles from "./FilterTag.module.css";
 
 export interface FilterTagProps {
@@ -20,7 +18,7 @@ export interface FilterTagProps {
 }
 
 /**
- * One selectable Tag: a 40px pill. Selected is a saffron fill, weight 600 and a trailing
+ * One selectable Tag: a 40px pill. Selected is a saffron fill and weight 600, with no
  * check. Use inside `FilterTagGroup` (a React Aria TagGroup row, so `aria-selected`).
  */
 export function FilterTag({ tag, isDisabled, testId }: FilterTagProps) {
@@ -32,19 +30,7 @@ export function FilterTag({ tag, isDisabled, testId }: FilterTagProps) {
       className={styles.FilterTag__Root}
       data-testid={testId}
     >
-      {({ isSelected }) => (
-        <>
-          <span>#{tag}</span>
-          {isSelected && (
-            <Icon
-              name="check"
-              size={14}
-              strokeWidth={2.4}
-              className={styles.FilterTag__Check}
-            />
-          )}
-        </>
-      )}
+      <span>#{tag}</span>
     </Tag>
   );
 }

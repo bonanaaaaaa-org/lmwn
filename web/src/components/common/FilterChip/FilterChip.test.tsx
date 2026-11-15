@@ -41,32 +41,25 @@ describe("FilterChip", () => {
     expect(chip()).toHaveAttribute("data-testid", "page/filters/open-now");
   });
 
-  it("shows as pressed with a check when selected", () => {
+  it("shows as pressed with no check when selected", () => {
     renderChip({ selected: true });
 
     expect(chip()).toHaveAttribute("aria-pressed", "true");
-    expect(icon()).toBe("check");
+    expect(icon()).toBeNull();
   });
 
-  it("shows the clock only while unselected", () => {
-    renderChip({ icon: "clock" });
-    expect(icon()).toBe("clock");
-  });
-
-  it("drops the clock for the check once selected", () => {
-    renderChip({ icon: "clock", selected: true });
-    expect(icon()).toBe("check");
-  });
-
-  it("shows the badge check only while unselected", () => {
-    renderChip({ icon: "badge-check" });
-    expect(icon()).toBe("badge-check");
-  });
-
-  it("drops the badge check for the check once selected", () => {
-    renderChip({ icon: "badge-check", selected: true });
-    expect(icon()).toBe("check");
-  });
+  it.each([
+    ["clock", false],
+    ["clock", true],
+    ["badge-check", false],
+    ["badge-check", true],
+  ] as const)(
+    "keeps its %s icon whether selected or not (selected: %s)",
+    (leading, selected) => {
+      renderChip({ icon: leading, selected });
+      expect(icon()).toBe(leading);
+    },
+  );
 
   it("asks the group to toggle it when pressed", async () => {
     const user = userEvent.setup();

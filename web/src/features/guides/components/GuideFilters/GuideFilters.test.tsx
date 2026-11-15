@@ -157,19 +157,17 @@ describe("GuideFilters", () => {
     ]);
   });
 
-  it.each([
-    [false, "badge-check"],
-    [true, "check"],
-  ])(
-    "gives Official a badge-check icon, a check once selected (%s)",
-    (official, icon) => {
+  it.each([false, true])(
+    "gives Official a badge-check icon and no check (selected: %s)",
+    (official) => {
       renderFilters({ official });
 
-      expect(
-        screen
-          .getByTestId("guide/filters/official")
-          .querySelector("[data-icon]"),
-      ).toHaveAttribute("data-icon", icon);
+      const icons = screen
+        .getByTestId("guide/filters/official")
+        .querySelectorAll("[data-icon]");
+      expect([...icons].map((icon) => icon.getAttribute("data-icon"))).toEqual([
+        "badge-check",
+      ]);
     },
   );
 

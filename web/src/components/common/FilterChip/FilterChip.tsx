@@ -17,10 +17,7 @@ export interface FilterChipProps extends Omit<
    * (pass the same value so both agree).
    */
   selected?: boolean;
-  /**
-   * A leading icon (a clock for Open Now, a badge check for Official), shown only while
-   * unselected: selected shows the check.
-   */
+  /** A leading icon (a clock for Open Now, a badge check for Official), in both states. */
   icon?: FilterChipIcon;
   className?: string;
   /** The finished `data-testid`, e.g. `guide/filters/open-now`. */
@@ -29,7 +26,7 @@ export interface FilterChipProps extends Omit<
 
 /**
  * A filter toggle: a 40px pill (React Aria ToggleButton, so `aria-pressed`). Selected is a
- * saffron fill, weight 600 and a leading check. Use inside a `ToggleButtonGroup` with an `id`.
+ * saffron fill and weight 600, with no check. Use inside a `ToggleButtonGroup` with an `id`.
  */
 export function FilterChip({
   label,
@@ -46,23 +43,16 @@ export function FilterChip({
       className={clsx(styles.FilterChip__Root, className)}
       data-testid={testId}
     >
-      {({ isSelected }) => {
-        const leading = isSelected ? "check" : icon === "none" ? null : icon;
-        return (
-          <>
-            {leading && (
-              <span className={styles.FilterChip__Icon} data-icon={leading}>
-                <Icon
-                  name={leading}
-                  size={16}
-                  strokeWidth={isSelected ? 2.4 : 2}
-                />
-              </span>
-            )}
-            <span>{label}</span>
-          </>
-        );
-      }}
+      {({ isSelected }) => (
+        <>
+          {icon !== "none" && (
+            <span className={styles.FilterChip__Icon}>
+              <Icon name={icon} size={16} strokeWidth={isSelected ? 2.4 : 2} />
+            </span>
+          )}
+          <span>{label}</span>
+        </>
+      )}
     </ToggleButton>
   );
 }

@@ -33,10 +33,9 @@ describe("FilterTagGroup", () => {
       `#${t.cafe}`,
       `#${t.restaurant}`,
     ]);
-    expect(screen.getByRole("row", { name: `#${t.cafe}` })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    const selected = screen.getByRole("row", { name: `#${t.cafe}` });
+    expect(selected).toHaveAttribute("aria-selected", "true");
+    expect(selected.querySelector("[data-icon]")).toBeNull();
     expect(screen.getByRole("row", { name: `#${t.coffee}` })).toHaveAttribute(
       "aria-selected",
       "false",

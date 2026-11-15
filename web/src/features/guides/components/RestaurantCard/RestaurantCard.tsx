@@ -128,7 +128,7 @@ function FilterChip({
   links: FilterLinks;
   toggle: RestaurantFilterToggle;
   label: string;
-  icon?: "check";
+  icon?: "badge-check";
   testId: string;
 }) {
   const isSelected = isRestaurantFilterOn(links.filters, toggle);
@@ -138,8 +138,7 @@ function FilterChip({
       href={links.href(toggleRestaurantFilter(links.filters, toggle))}
       variant="filled"
       hash={false}
-      // Selected chips end in a check, so the Official one drops its leading check.
-      icon={isSelected ? undefined : icon}
+      icon={icon}
       isSelected={isSelected}
       aria-label={
         isSelected
@@ -228,7 +227,7 @@ function Badges({
               links={links}
               toggle={badge.key}
               label={badge.label}
-              icon={badge.variant === "official" ? "check" : undefined}
+              icon={badge.variant === "official" ? "badge-check" : undefined}
               testId={`${links.testId}/badge-${badge.key}`}
             />
           ) : (

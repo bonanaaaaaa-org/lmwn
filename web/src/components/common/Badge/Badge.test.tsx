@@ -5,7 +5,7 @@ import { m } from "@/paraglide/messages.js";
 import { Badge } from "./Badge";
 
 describe("Badge", () => {
-  it("shows its label; the official check is decorative", () => {
+  it("shows its label; the official badge check is decorative", () => {
     const { container } = render(
       <Badge variant="official">
         {m.restaurantCard_badges_official_label()}
@@ -14,10 +14,9 @@ describe("Badge", () => {
     expect(
       screen.getByText(m.restaurantCard_badges_official_label()),
     ).toBeInTheDocument();
-    expect(container.querySelector("svg")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
+    const icon = container.querySelector("svg");
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+    expect(icon).toHaveAttribute("data-icon", "badge-check");
   });
 
   it("has no icon when neutral", () => {
