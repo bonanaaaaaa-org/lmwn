@@ -1,6 +1,6 @@
 # Guide to Hidden Gems
 
-**English** | [ไทย](README.th.md)
+**English** | [ไทย](README_th.md)
 
 LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gateway. Diners browse and search editor-written **Guides**, then read each Guide's restaurants with photos, Working Hours, Open Now, filters and share links. The UI is in Thai, follows the system's light or dark theme, and installs as an app that reopens visited Guides offline.
 
