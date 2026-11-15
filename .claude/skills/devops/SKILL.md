@@ -17,7 +17,7 @@ Use this skill when changing workspace or tooling configuration, editing root sc
 | **Python workspace** | `pyproject.toml` (uv workspace), `.python-version`, `uv.lock` |
 | **Web tooling** | `web/vite.config.ts`, `web/react-router.config.ts`, `web/vitest.config.ts`, `web/vitest.setup.tsx`, `web/tsconfig.json`, `web/.oxlintrc.json`, `web/stylelint.config.mjs`, `web/stylelint-plugins/`, `web/scripts/` (UI copy guard), `web/project.inlang/` (Paraglide settings + config), `web/messages/` |
 | **Gateway tooling** | `[tool.ruff]`, `[tool.pyrefly]`, `[tool.pytest.ini_options]`, `[tool.coverage]` in `api-gateway/pyproject.toml`; `api-gateway/package.json` scripts |
-| **Local dev** | Root `pnpm dev` (turbo) → `api-gateway` dev (uvicorn :4000 + the provided data server :8888/:9999/:7777) and `web` dev (:3000); `.claude/launch.json` |
+| **Local dev** | Root `pnpm dev` (turbo) → `api-gateway` dev (uvicorn :4000 + the provided data server :8888/:9999/:7777) and `web` dev (:3000); `.claude/launch.json`; `setup.sh` (idempotent prerequisite checks and installs, writes `node_modules/.lmwn-setup-stamp`; `--with-deps` apt-installs Chromium's and mongod's libraries via sudo) and `dev.sh` (checks the stamp and ports, runs `pnpm dev --ui=stream`, `--storybook`, `--e2e`) sharing `scripts/dev-common.sh` (bash 3.2 compatible); `.devcontainer/` (linux/amd64, Node/uv pinned to `.nvmrc` and `api-gateway/Dockerfile`, `postCreateCommand: ./setup.sh --with-deps`) |
 | **CI/CD** | `.github/workflows/*.yml` |
 | **Runtime** | `api-gateway/Dockerfile` (gateway), `api-gateway/data-server.Dockerfile` (the provided data server, MongoDB binary baked in), root `.dockerignore` |
 | **Infrastructure** | `infra/` (Terraform: Cloud Run, Artifact Registry, Firebase Hosting, custom domains, Cloudflare DNS; `infra/scripts/` deploy scripts; `infra/tests/`), `web/firebase.json` |
@@ -52,6 +52,8 @@ curl -s localhost:4000/health            # {"status":"ok"}
 curl -s localhost:8888/guides            # data server
 curl -s -o /dev/null -w "%{http_code}" localhost:3000/   # 200
 ```
+
+For `setup.sh`, `dev.sh` or `.devcontainer/`: `shellcheck -x setup.sh dev.sh scripts/dev-common.sh`; run `./setup.sh` twice in a fresh clone (the second run changes nothing), then `./dev.sh` and the curls above. Build the dev container for linux/amd64 (`docker build --platform linux/amd64 -f .devcontainer/Dockerfile .`), run `./setup.sh --with-deps` and `./dev.sh` in it.
 
 ### Lint/format rule changes
 

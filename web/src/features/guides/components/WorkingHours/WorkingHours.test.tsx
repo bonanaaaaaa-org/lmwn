@@ -60,7 +60,28 @@ describe("WorkingHours", () => {
     ).toBeInTheDocument();
   });
 
-  it("says when it opens while closed, and closed today on a closed day", () => {
+  it("says it's closed for a break, and when it opens again, between split hours", () => {
+    inList(
+      <WorkingHours
+        workingHours={[
+          {
+            day: 4,
+            ranges: [
+              { opensAt: 660, closesAt: 840 },
+              { opensAt: 1020, closesAt: 1320 },
+            ],
+          },
+        ]}
+        timeZone={BANGKOK}
+        now={thursday("15:00:00")}
+      />,
+    );
+    expect(
+      screen.getByText(m.openStatus_closed_opensAtLabel({ time: "17:00" })),
+    ).toBeInTheDocument();
+  });
+
+  it("says when it opens while not open yet, and closed today on a closed day", () => {
     const { unmount } = inList(
       <WorkingHours
         workingHours={weekdays}
@@ -69,7 +90,7 @@ describe("WorkingHours", () => {
       />,
     );
     expect(
-      screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+      screen.getByText(m.openStatus_closed_notOpenYetLabel({ time: "09:00" })),
     ).toBeInTheDocument();
     unmount();
 
@@ -245,7 +266,9 @@ describe("WorkingHours", () => {
       vi.setSystemTime(thursday("08:59:00"));
       inList(<WorkingHours workingHours={weekdays} timeZone={BANGKOK} />);
       expect(
-        screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+        screen.getByText(
+          m.openStatus_closed_notOpenYetLabel({ time: "09:00" }),
+        ),
       ).toBeInTheDocument();
 
       act(() => {
@@ -257,7 +280,7 @@ describe("WorkingHours", () => {
         vi.advanceTimersByTime(8 * 60 * 60_000);
       });
       expect(
-        screen.getByText(m.openStatus_closed_todayLabel()),
+        screen.getByText(m.openStatus_closed_forTheDayLabel()),
       ).toBeInTheDocument();
     });
 
@@ -269,7 +292,9 @@ describe("WorkingHours", () => {
       });
       // Friday now; still Tuesday–Saturday hours.
       expect(
-        screen.getByText(m.openStatus_closed_opensAtLabel({ time: "09:00" })),
+        screen.getByText(
+          m.openStatus_closed_notOpenYetLabel({ time: "09:00" }),
+        ),
       ).toBeInTheDocument();
     });
   });

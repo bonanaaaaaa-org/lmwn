@@ -41,8 +41,9 @@
   }
 
   .WorkingHours__Day {
+    /* Every day has the same inset as today's band, so the day names and hours line up. */
     & > * {
-      padding: var(--space-50) 0;
+      padding: var(--space-50) var(--space-100);
     }
 
     &[data-state="closed"] {
@@ -54,10 +55,6 @@
       background: var(--color-surface-subtle);
       color: var(--color-text);
       font-weight: var(--font-weight-title);
-
-      & > * {
-        padding-inline: var(--space-100);
-      }
 
       /* Phones show the details on a grey box already: a darker band keeps today visible. */
       [data-layout="phone"] & {

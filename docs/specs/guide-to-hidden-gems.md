@@ -104,6 +104,7 @@ Everything is **required** unless marked _Deferred_.
 - **Given** hours that run past midnight (e.g. 18:00–02:00 on Monday), **then** the Restaurant counts as open at 01:00 on Tuesday.
 - **Given** a day missing from the Working Hours, **then** the Restaurant is closed all that day.
 - **Given** the page stays open across an opening or closing time, **then** Open Now reflects the current time, not the time the data was loaded.
+- **Given** a closed Restaurant, **then** its badge says which kind of closed it is: today's hours haven't started yet ("ยังไม่เปิด · เปิด {time}"), it's between today's hours ("ปิดอยู่ · เปิด {time}"), today's hours are already over ("ปิดแล้ว"), or it has no hours today at all ("ปิดวันนี้").
 
 ### Gateway contract
 

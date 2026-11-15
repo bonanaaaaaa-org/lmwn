@@ -40,6 +40,15 @@ Then open:
 
 On a new machine, `pnpm install` also downloads the MongoDB binary the Data Server uses for its in-memory store (into `~/.cache/mongodb-binaries`, about 160 MB), and `pnpm dev` takes a few seconds to seed it before the gateway has data. Stop everything with Ctrl+C. No `.env` is needed: the web app defaults to the gateway on `http://localhost:4000` ([`web/.env.example`](web/.env.example)), and the gateway's settings are in [`api-gateway/README.md`](api-gateway/README.md).
 
+Or let the scripts do it (macOS and Linux):
+
+```bash
+./setup.sh   # checks prerequisites (prints a fix for each), installs deps, Playwright Chromium, hooks, web/.env, the Data Server's MongoDB; safe to re-run
+./dev.sh     # checks setup and free ports, starts the stack, prints the URLs; Ctrl-C stops it (--storybook, --e2e)
+```
+
+Or in a container: [`.devcontainer/`](.devcontainer/devcontainer.json) works in VS Code Dev Containers and GitHub Codespaces (linux/amd64, since the Data Server's MongoDB has no Linux arm64 build). It runs `./setup.sh` on creation and forwards the ports; run `./dev.sh` in its terminal. The app calls the gateway at `localhost:4000`, so in Codespaces use VS Code desktop rather than the browser editor.
+
 ## Architecture
 
 ```text
@@ -160,7 +169,9 @@ Every suite also writes [Allure](https://allurereport.org/) results into its own
 
 A failed e2e test keeps its Playwright trace, screenshot and video, and the report attaches them. CI retries a failed e2e test twice, and Allure marks a test that passed on a retry as flaky; its trace is kept too (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)). Traces replay in Allure's trace viewer. Passing tests keep no trace, which keeps the single-file report small enough to upload.
 
-**CI's reports** are at https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ (the list), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the host is down, that job only warns: the test jobs alone decide whether CI passes.
+**CI's reports** are at https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ (the list), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, that job only warns: the test jobs alone decide whether CI passes.
+
+Reports keep a test history ([#55](https://github.com/bonanaaaaaa-org/lmwn/pull/55)): trend charts and each test's last runs, with flaky, new and regressed tests marked. `allure generate` reads `allure-history/history.jsonl` (git-ignored, the last 5 runs) and appends the run it reports, so `pnpm allure` builds up your own runs locally. In CI each report uploads its history, and the next run reads it back with its OIDC token: a pull request's report continues its own earlier runs, starting from `main`'s. No history yet, or a host that can't serve it, only means a report without history.
 
 ## Repository layout
 
