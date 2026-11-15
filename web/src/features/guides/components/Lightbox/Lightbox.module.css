@@ -48,6 +48,7 @@
         "prev stage next" minmax(0, 1fr)
         "thumbs thumbs thumbs" auto
         / auto minmax(0, 1fr) auto;
+      /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- a grid gap, not multi-column layout */
       column-gap: var(--space-300);
       position: relative;
       padding: var(--space-200) var(--space-300);
@@ -117,6 +118,7 @@
     place-items: center;
     min-height: 0;
     container-type: size;
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- only desktop Safari lacks it, and it has no touch input; iOS Safari supports it */
     touch-action: pan-y pinch-zoom;
 
     /* Edge to edge, under the controls (out of the grid, so the dialog is its box). */

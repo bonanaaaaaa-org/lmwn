@@ -11,6 +11,8 @@ LMWN Frontend Assignment 2025 — a restaurant guide web app with an API gateway
 `pnpm dev` in `api-gateway` also starts the provided data server
 (guides `:8888`, restaurants `:9999`, images `:7777`).
 
+**Browser support:** the last 2 versions of Chrome (desktop and Android), Edge and Firefox, and Safari 16.4 or newer on iOS and macOS. The list is the `browserslist` in [`web/package.json`](web/package.json); the build and stylelint read it (see [Browser support](docs/design-decisions.md#browser-support)).
+
 ## Deployed
 
 - Web app: https://hidden-gems.bonanaaaaaa.dev

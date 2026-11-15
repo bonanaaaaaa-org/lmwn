@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
  * - CSS Module classes follow {ComponentName}__{ElementName} (PascalCase)
  * - colours come from tokens: colour literals only in src/styles/globals.css, so every colour
  *   has a light and a dark value (dark mode, #47)
+ * - CSS features must be supported by every browser in the package.json browserslist (#62)
  */
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,11 +16,31 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 export default {
   extends: ["stylelint-config-standard"],
   plugins: [
+    "stylelint-no-unsupported-browser-features",
     path.join(dir, "stylelint-plugins/enforce-rem-unit.mjs"),
     path.join(dir, "stylelint-plugins/enforce-component-class-pattern.mjs"),
   ],
   ignoreFiles: ["build/**", "node_modules/**", "public/**", "coverage/**"],
   rules: {
+    // Checked against the package.json browserslist. Each allowed feature has a reason:
+    // - css-nesting: the build lowers it (Lightning CSS minifies to the browserslist targets),
+    //   so Safari 16.4 gets flat rules.
+    // - css3-cursors, css3-cursors-newer: iOS has no mouse pointer; the cursor is a desktop hint.
+    // - css-scrollbar: `scrollbar-width: none` only hides scrollbars on rails that scroll anyway;
+    //   iOS Safari draws overlay scrollbars and older Safari shows one, which is harmless.
+    // Other findings are allowed in place, with a stylelint-disable comment giving the reason.
+    "plugin/no-unsupported-browser-features": [
+      true,
+      {
+        severity: "error",
+        ignore: [
+          "css-nesting",
+          "css3-cursors",
+          "css3-cursors-newer",
+          "css-scrollbar",
+        ],
+      },
+    ],
     "declaration-property-value-disallowed-list": [
       { "z-index": ["/./"] },
       { reportDisables: true },

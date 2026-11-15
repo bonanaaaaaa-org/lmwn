@@ -60,6 +60,15 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
 
+## Browser support (#62)
+
+- **Policy:** the last 2 versions of Chrome (desktop and Android), Edge and Firefox, plus Safari 16.4 or newer on iOS and macOS. It is the `browserslist` in `web/package.json`, the one source of truth. In Thailand these cover about 82% of users (`npx browserslist --coverage=TH` in `web/`).
+- **Why Safari 16.4:** many Thai diners are on iPhones, and Safari can't be updated apart from iOS, so iOS sets the floor. 16.4 (March 2023) runs on every iPhone from the 8 and X onwards; it is also Vite's "baseline widely available" Safari floor, the first Safari that installs web apps with web push, and the first with CSS range media queries (`width >= 48rem`), which the stylesheets use. Chromium and Firefox update themselves, so the last 2 versions is enough there.
+- **Build:** `vite.config.ts` turns the browserslist into `build.target` with `browserslist-to-esbuild`. JS syntax is lowered to it, and `build.cssTarget` follows it, so Lightning CSS (Vite's CSS minifier) lowers CSS nesting and other newer syntax only as far as the oldest target needs: the built stylesheet has no nesting left, for Safari 16.4. `css.lightningcss.targets` isn't used: Vite reads it only when Lightning CSS also replaces PostCSS as the CSS transformer, and the CSS modules go through PostCSS.
+- **Stylelint:** `plugin/no-unsupported-browser-features` (stylelint-no-unsupported-browser-features, from caniuse) checks every stylesheet against the browserslist. Features allowed anyway are listed with a reason in `stylelint.config.mjs` (nesting, which the build lowers; cursors and scrollbar styling, which are harmless hints), or in a `stylelint-disable` comment next to the declaration.
+- **Out of scope:** JavaScript API support. Oxlint has no compatibility rule, so missing APIs are handled case by case with tests and an explicit polyfill decision (Temporal, #60/#61).
+- **Changing the policy:** edit the `browserslist`, run `pnpm build` and `pnpm lint` in `web/`, and update this section and the README.
+
 ## PWA (#43)
 
 The web app is an installable Progressive Web App, and Guides a diner has opened reopen offline.
