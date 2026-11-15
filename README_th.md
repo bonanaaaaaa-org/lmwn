@@ -8,6 +8,36 @@
 - **สร้างอย่างไรและทำไม:** [การตัดสินใจด้านการออกแบบ](docs/design-decisions.md)
 - **ศัพท์แต่ละคำหมายถึงอะไร:** [GLOSSARY.md](GLOSSARY.md) (Guide, Guide Item, Unavailable Restaurant, Open Now, …) ทั้งโค้ดและข้อความบนหน้าเว็บใช้คำเหล่านี้
 
+## ลิงก์และ URL
+
+**ที่ deploy แล้ว** (จากการ push เข้า `main` ล่าสุด):
+
+| | URL |
+| --- | --- |
+| เว็บแอป | https://hidden-gems.bonanaaaaaa.dev |
+| API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (ไกด์ทั้งหมด), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
+| Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (ทุกคอมโพเนนต์ในทุกสถานะ ใช้ข้อมูลจำลองเท่านั้น) |
+| รายงานผลทดสอบ Allure | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ รวมทุกรายงาน: `main` สำหรับการ push เข้า `main` ล่าสุด และ `pr-<number>` สำหรับ pull request ต้องลงชื่อเข้าใช้ผ่าน Cloudflare Access ([ใครเข้าดูได้](#รายงานผลทดสอบ-allure)) |
+
+**โปรเจกต์:**
+
+| | URL |
+| --- | --- |
+| Project board | https://github.com/orgs/bonanaaaaaa-org/projects/7 |
+| Issues | https://github.com/bonanaaaaaa-org/lmwn/issues |
+| ผลการรัน CI (GitHub Actions) | https://github.com/bonanaaaaaa-org/lmwn/actions |
+
+**บนเครื่อง** (หลังรัน `pnpm dev` หรือ `./dev.sh` ดู [รันบนเครื่องตัวเอง](#รันบนเครื่องตัวเอง)):
+
+| | URL |
+| --- | --- |
+| เว็บแอป | http://localhost:3000 |
+| API gateway | http://localhost:4000: `/health` ตอบกลับ `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
+| Data Server (ที่โจทย์ให้มา) | http://localhost:8888/guides (ไกด์), :9999 (ร้าน), :7777 (รูปภาพ) |
+| Storybook | http://localhost:6006 ด้วย `pnpm --filter web storybook` หรือ `./dev.sh --storybook` |
+
+`pnpm test:e2e` เปิด production preview ที่ :4173 และ gateway ตัวที่สองที่ :4300 สำหรับ spec ของ PWA ด้วย
+
 ## ฟีเจอร์
 
 - **หน้ารวมไกด์** (`/`): แสดงทุกไกด์เป็นการ์ด พร้อมรูปปก ชื่อ คำอธิบายสั้น แท็ก และจำนวนร้าน ค้นหาจากชื่อ คำอธิบาย หรือแท็ก (ข้อความภาษาไทยค้นเจอแม้อยู่กลางคำ) และกรองด้วยแท็กได้หลายแท็ก ระหว่างที่กำลังค้นหา ผลลัพธ์เดิมยังแสดงอยู่
@@ -22,15 +52,9 @@
 - **UI ภาษาไทยที่เข้าถึงได้:** ข้อความทั้งหมดเป็นภาษาไทย ใช้งานด้วยคีย์บอร์ดและ screen reader ได้ผ่าน React Aria และตรวจด้วย axe ตาม WCAG 2.2 AA ในทุกสถานะของหน้าและทุก story ใน Storybook
 - **API gateway:** สอง endpoint แบบ JSON ครอบ Data Server ที่โจทย์ให้มา พร้อมการค้นหา การรับมือเมื่อโหลดไม่สำเร็จบางส่วน error body ที่ปลอดภัย และแคช 60 วินาที
 
-## ลองใช้โดยไม่ต้อง clone
+## การ deploy และเบราว์เซอร์ที่รองรับ
 
-| | URL |
-| --- | --- |
-| เว็บแอป | https://hidden-gems.bonanaaaaaa.dev |
-| API gateway | https://api-hidden-gems.bonanaaaaaa.dev ([`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs)) |
-| Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (ทุกคอมโพเนนต์ในทุกสถานะ ใช้ข้อมูลจำลองเท่านั้น) |
-
-ทุกครั้งที่ push เข้า `main` ระบบจะ deploy ขึ้น Google Cloud (Cloud Run สำหรับ gateway และ Data Server, Firebase Hosting สำหรับแอปและ Storybook) ผ่าน Terraform ใน [`infra/`](infra/README.md) gateway ลดจำนวนเครื่องลงเหลือศูนย์ได้เมื่อไม่มีคนใช้ คำขอแรกหลังจากเงียบไปสักพักจึงใช้เวลาไม่กี่วินาที
+ทุกครั้งที่ push เข้า `main` ระบบจะ deploy ขึ้น Google Cloud (Cloud Run สำหรับ gateway และ Data Server, Firebase Hosting สำหรับแอปและ Storybook) ผ่าน Terraform ใน [`infra/`](infra/README.md) (ที่อยู่ต่างๆ อยู่ใน[ลิงก์และ URL](#ลิงก์และ-url)) gateway ลดจำนวนเครื่องลงเหลือศูนย์ได้เมื่อไม่มีคนใช้ คำขอแรกหลังจากเงียบไปสักพักจึงใช้เวลาไม่กี่วินาที
 
 **เบราว์เซอร์ที่รองรับ:** Chrome (เดสก์ท็อปและ Android), Edge และ Firefox สองเวอร์ชันล่าสุด และ Safari 18 ขึ้นไปบน iOS และ macOS รายการนี้คือ `browserslist` ใน [`web/package.json`](web/package.json) ซึ่งการ build ใช้เป็นเป้าหมาย `plugin/no-unsupported-browser-features` ของ stylelint ตรวจ CSS เทียบกับรายการนี้ และ `lib` ของ TypeScript อยู่ที่ ES2024 ซึ่งเป็นระดับใหม่สุดที่ทุกเบราว์เซอร์ในรายการรองรับครบ ([การตัดสินใจเรื่องเบราว์เซอร์ที่รองรับ](docs/design-decisions.md#browser-support-62))
 
@@ -51,10 +75,7 @@ uv sync         # the gateway's Python environment (.venv)
 pnpm dev        # Data Server + gateway + web, through Turborepo
 ```
 
-จากนั้นเปิด:
-
-- http://localhost:3000: ตัวแอป (หน้ารวมไกด์ เลือกไกด์จากหน้านี้)
-- http://localhost:4000/docs: เอกสาร OpenAPI ของ gateway ส่วน http://localhost:4000/health ตอบกลับ `{"status":"ok"}`
+จากนั้นเปิด http://localhost:3000 ซึ่งเป็นหน้ารวมไกด์ แล้วเลือกไกด์จากหน้านั้น URL อื่นบนเครื่อง (gateway, Data Server, Storybook) อยู่ใน[ลิงก์และ URL](#ลิงก์และ-url)
 
 บนเครื่องใหม่ `pnpm install` จะดาวน์โหลดไบนารี MongoDB ที่ Data Server ใช้เป็นที่เก็บข้อมูลในหน่วยความจำด้วย (ไว้ที่ `~/.cache/mongodb-binaries` ประมาณ 160 MB) และ `pnpm dev` ใช้เวลาไม่กี่วินาทีในการใส่ข้อมูลตัวอย่างก่อนที่ gateway จะมีข้อมูล กด Ctrl+C เพื่อหยุดทั้งหมด ไม่ต้องมีไฟล์ `.env`: เว็บแอปเรียก gateway ที่ `http://localhost:4000` เป็นค่าเริ่มต้น ([`web/.env.example`](web/.env.example)) ส่วนการตั้งค่าของ gateway อยู่ใน [`api-gateway/README.md`](api-gateway/README.md)
 
@@ -192,7 +213,7 @@ node scripts/lighthouse.mjs --base-url https://hidden-gems.bonanaaaaaa.dev \
 
 เทส e2e ที่ไม่ผ่านจะเก็บ trace, ภาพหน้าจอ และวิดีโอของ Playwright ไว้ และรายงานแนบไฟล์เหล่านี้ CI ลองเทส e2e ที่ไม่ผ่านใหม่สองครั้ง และ Allure ทำเครื่องหมายเทสที่ผ่านในรอบลองใหม่ว่า flaky โดยเก็บ trace ไว้ด้วย (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)) trace เปิดดูซ้ำได้ใน trace viewer ของ Allure เทสที่ผ่านไม่เก็บ trace รายงานไฟล์เดียวจึงเล็กพอจะอัปโหลด
 
-**รายงานของ CI** อยู่ที่ https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ (หน้ารวม) โดย `pr-<number>` สำหรับ pull request และ `main` สำหรับการ push เข้า `main` ล่าสุด job **Allure report** ของแต่ละรอบลิงก์ไปยังรายงานของรอบนั้น โฮสต์อยู่หลัง Cloudflare Access: สมาชิกขององค์กร GitHub `bonanaaaaaa-org` ลงชื่อเข้าใช้ด้วย GitHub ส่วนสมาชิกบัญชี Cloudflare ของเจ้าของ หรืออีเมลที่เจ้าของเพิ่มไว้ ลงชื่อเข้าใช้ด้วย one-time PIN CI สร้างรายงานแม้รอบนั้นไม่ผ่าน และอัปโหลดด้วย GitHub OIDC token ของรอบนั้น โดยไม่ต้องเก็บ secret ถ้าไม่มีตัวแปร `ALLURE_REPORTS_URL` หรือโฮสต์ล่ม job นั้นจะแค่เตือน: CI ผ่านหรือไม่ขึ้นกับ job ทดสอบเท่านั้น
+**รายงานของ CI** อยู่ที่ลิงก์ Allure ใน[ลิงก์และ URL](#ลิงก์และ-url) โดย `pr-<number>` สำหรับ pull request และ `main` สำหรับการ push เข้า `main` ล่าสุด job **Allure report** ของแต่ละรอบลิงก์ไปยังรายงานของรอบนั้น โฮสต์อยู่หลัง Cloudflare Access: สมาชิกขององค์กร GitHub `bonanaaaaaa-org` ลงชื่อเข้าใช้ด้วย GitHub ส่วนสมาชิกบัญชี Cloudflare ของเจ้าของ หรืออีเมลที่เจ้าของเพิ่มไว้ ลงชื่อเข้าใช้ด้วย one-time PIN CI สร้างรายงานแม้รอบนั้นไม่ผ่าน และอัปโหลดด้วย GitHub OIDC token ของรอบนั้น โดยไม่ต้องเก็บ secret ถ้าไม่มีตัวแปร `ALLURE_REPORTS_URL` หรือโฮสต์ล่ม job นั้นจะแค่เตือน: CI ผ่านหรือไม่ขึ้นกับ job ทดสอบเท่านั้น
 
 รายงานเก็บประวัติการทดสอบ ([#55](https://github.com/bonanaaaaaa-org/lmwn/pull/55)): กราฟแนวโน้มและผลรอบล่าสุดของแต่ละเทส พร้อมทำเครื่องหมายเทสที่ flaky, ใหม่ และถดถอย `allure generate` อ่าน `allure-history/history.jsonl` (อยู่ใน git-ignore เก็บ 5 รอบล่าสุด) แล้วต่อท้ายด้วยรอบที่กำลังสร้างรายงาน `pnpm allure` จึงสะสมประวัติจากการรันบนเครื่องของคุณ ใน CI แต่ละรายงานอัปโหลดประวัติของตัวเอง และรอบถัดไปอ่านกลับมาด้วย OIDC token: รายงานของ pull request ต่อจากรอบก่อนหน้าของตัวเอง โดยเริ่มจากประวัติของ `main` ถ้ายังไม่มีประวัติ หรือโฮสต์ส่งประวัติให้ไม่ได้ ก็แค่ได้รายงานที่ไม่มีประวัติ
 

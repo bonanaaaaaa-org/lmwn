@@ -8,6 +8,36 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 - **How it's built and why:** [design decisions](docs/design-decisions.md)
 - **What the words mean:** [GLOSSARY.md](GLOSSARY.md) (Guide, Guide Item, Unavailable Restaurant, Open Now, …). The code and UI copy use these terms.
 
+## URLs
+
+**Deployed** (from the latest push to `main`):
+
+| | URL |
+| --- | --- |
+| Web app | https://hidden-gems.bonanaaaaaa.dev |
+| API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (every Guide), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
+| Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (every component and its states, with fixtures only) |
+| Allure test reports | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ lists every report: `main` for the latest push to `main`, `pr-<number>` for a pull request. Sign-in through Cloudflare Access ([who can view](#test-reports-allure)). |
+
+**Project:**
+
+| | URL |
+| --- | --- |
+| Project board | https://github.com/orgs/bonanaaaaaa-org/projects/7 |
+| Issues | https://github.com/bonanaaaaaa-org/lmwn/issues |
+| CI runs (GitHub Actions) | https://github.com/bonanaaaaaa-org/lmwn/actions |
+
+**Local** (after `pnpm dev` or `./dev.sh`; see [Run it locally](#run-it-locally)):
+
+| | URL |
+| --- | --- |
+| Web app | http://localhost:3000 |
+| API gateway | http://localhost:4000: `/health` answers `{"status":"ok"}`, `/guides`, `/docs` (OpenAPI) |
+| Data Server (provided) | http://localhost:8888/guides (guides), :9999 (restaurants), :7777 (images) |
+| Storybook | http://localhost:6006, with `pnpm --filter web storybook` or `./dev.sh --storybook` |
+
+`pnpm test:e2e` also starts a production preview on :4173 and a second gateway on :4300 for the PWA specs.
+
 ## Features
 
 - **Guide Index** (`/`): every Guide as a card with its cover, title, short description, Tags and restaurant count. Search by title, description or Tag (Thai text matches inside words) and filter by one or more Tags; the previous results stay on screen while a search loads.
@@ -22,15 +52,9 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 - **Thai UI, accessible:** all copy in Thai; keyboard and screen-reader support through React Aria; axe checks against WCAG 2.2 AA on every page state and every Storybook story.
 - **API gateway:** two JSON endpoints over the provided Data Server, with search, partial-failure handling, safe error bodies and a 60 s cache.
 
-## Try it without cloning
+## Deployment and browser support
 
-| | URL |
-| --- | --- |
-| Web app | https://hidden-gems.bonanaaaaaa.dev |
-| API gateway | https://api-hidden-gems.bonanaaaaaa.dev ([`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs)) |
-| Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (every component and its states, with fixtures only) |
-
-Every push to `main` deploys to Google Cloud (Cloud Run for the gateway and Data Server, Firebase Hosting for the app and the Storybook) through Terraform in [`infra/`](infra/README.md). The gateway scales to zero, so the first request after a quiet spell takes a few seconds.
+Every push to `main` deploys to Google Cloud (Cloud Run for the gateway and Data Server, Firebase Hosting for the app and the Storybook) through Terraform in [`infra/`](infra/README.md); the addresses are in [URLs](#urls). The gateway scales to zero, so the first request after a quiet spell takes a few seconds.
 
 **Browser support:** the last 2 versions of Chrome (desktop and Android), Edge and Firefox, and Safari 18 or newer on iOS and macOS. The list is the `browserslist` in [`web/package.json`](web/package.json); the build reads it, stylelint's `plugin/no-unsupported-browser-features` checks the CSS against it, and TypeScript's `lib` stays at ES2024, the newest level every target fully supports ([browser support decisions](docs/design-decisions.md#browser-support-62)).
 
@@ -51,10 +75,7 @@ uv sync         # the gateway's Python environment (.venv)
 pnpm dev        # Data Server + gateway + web, through Turborepo
 ```
 
-Then open:
-
-- http://localhost:3000: the app (the Guide Index; open a Guide from there)
-- http://localhost:4000/docs: the gateway's OpenAPI docs. http://localhost:4000/health answers `{"status":"ok"}`.
+Then open http://localhost:3000, the Guide Index, and open a Guide from there. The other local URLs (gateway, Data Server, Storybook) are in [URLs](#urls).
 
 On a new machine, `pnpm install` also downloads the MongoDB binary the Data Server uses for its in-memory store (into `~/.cache/mongodb-binaries`, about 160 MB), and `pnpm dev` takes a few seconds to seed it before the gateway has data. Stop everything with Ctrl+C. No `.env` is needed: the web app defaults to the gateway on `http://localhost:4000` ([`web/.env.example`](web/.env.example)), and the gateway's settings are in [`api-gateway/README.md`](api-gateway/README.md).
 
@@ -192,7 +213,7 @@ Every suite also writes [Allure](https://allurereport.org/) results into its own
 
 A failed e2e test keeps its Playwright trace, screenshot and video, and the report attaches them. CI retries a failed e2e test twice, and Allure marks a test that passed on a retry as flaky; its trace is kept too (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)). Traces replay in Allure's trace viewer. Passing tests keep no trace, which keeps the single-file report small enough to upload.
 
-**CI's reports** are at https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ (the list), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, that job only warns: the test jobs alone decide whether CI passes.
+**CI's reports** are listed at the Allure link in [URLs](#urls), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, that job only warns: the test jobs alone decide whether CI passes.
 
 Reports keep a test history ([#55](https://github.com/bonanaaaaaa-org/lmwn/pull/55)): trend charts and each test's last runs, with flaky, new and regressed tests marked. `allure generate` reads `allure-history/history.jsonl` (git-ignored, the last 5 runs) and appends the run it reports, so `pnpm allure` builds up your own runs locally. In CI each report uploads its history, and the next run reads it back with its OIDC token: a pull request's report continues its own earlier runs, starting from `main`'s. No history yet, or a host that can't serve it, only means a report without history.
 
