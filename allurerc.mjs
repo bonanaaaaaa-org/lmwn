@@ -12,8 +12,8 @@ export default defineConfig({
   // Allure report); locally it collects your own runs. Git-ignored.
   historyPath: "./allure-history/history.jsonl",
   // The single-file report embeds the history it read (roughly 2 MB per run for every suite), so
-  // keep the last 10 runs: enough for the trends, small enough to upload and open quickly.
-  historyLimit: 10,
+  // keep the last 5 runs: enough for the trends, small enough to upload and open quickly.
+  historyLimit: 5,
   resultsDir: [
     "./e2e/allure-results",
     "./web/allure-results/unit",
