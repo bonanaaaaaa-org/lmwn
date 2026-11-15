@@ -19,10 +19,9 @@
     "gen:css-types": "tcm -p \"{app,src}/**/*.module.css\" --silent",
     "gen:i18n": "paraglide-js compile --project ./project.inlang --silent",
     "type-check": "pnpm gen:i18n && react-router typegen && tsc --noEmit",
-    "test": "rm -rf allure-results/unit && vitest run",
+    "test": "rm -rf allure-results/unit && vitest run --coverage",
     "test:watch": "vitest",
     "test:scripts": "node --test scripts/",
-    "test:coverage": "vitest run --coverage",
     "storybook": "STORYBOOK=true storybook dev -p 6006 --no-open",
     "build-storybook": "STORYBOOK=true storybook build --quiet",
     "test:storybook": "rm -rf allure-results/storybook && STORYBOOK=true vitest run --config vitest.storybook.config.ts --passWithNoTests"

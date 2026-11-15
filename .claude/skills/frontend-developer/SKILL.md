@@ -521,9 +521,8 @@ Rules: one test at a time. Only enough code to pass the current test. Don't anti
 ### Commands
 
 ```bash
-pnpm test                  # Run unit tests (vitest run)
+pnpm test                  # Run unit tests with coverage; fails below 90% (statements, branches, functions, lines)
 pnpm test:watch            # Watch mode
-pnpm test:coverage         # With coverage
 ```
 
 ### Test conventions
