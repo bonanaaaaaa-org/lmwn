@@ -194,7 +194,6 @@
     flex: none;
     width: var(--control-height);
     padding: 0;
-    overflow: hidden;
     border: 0;
     border-radius: var(--radius-200);
     background: none;

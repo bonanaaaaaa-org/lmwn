@@ -240,6 +240,7 @@ export function Lightbox({
                       >
                         <ResponsiveImage
                           sources={photoSources(thumb).slice(0, 1)}
+                          radius="200"
                           alt=""
                           aspectRatio="1 / 1"
                           sizes="3rem"
