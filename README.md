@@ -1,5 +1,7 @@
 # Guide to Hidden Gems
 
+**English** | [ไทย](README.th.md)
+
 LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gateway. Diners browse and search editor-written **Guides**, then read each Guide's restaurants with photos, Working Hours, Open Now, filters and share links. The UI is in Thai, follows the system's light or dark theme, and installs as an app that reopens visited Guides offline.
 
 - **What it does and why:** [the spec](docs/specs/guide-to-hidden-gems.md) (acceptance criteria, edge cases, success criteria)
@@ -79,7 +81,7 @@ The reasoning for each is in the [design decisions](docs/design-decisions.md).
 - Pagination, and searching restaurants across Guides.
 - A database, user accounts, and saved or favourite restaurants. The PWA's offline copy of Guides already opened is a cache, not a saved list.
 - For the PWA: push notifications, background sync, app-store packaging (TWA), and offline access to Guides never opened.
-- i18n beyond Thai: Thai only; no second locale or language switcher.
+- i18n beyond Thai: Thai only; no second locale or language switcher in the app. (This README also comes in Thai.)
 - Per-Guide or per-photo theming, high-contrast themes, and syncing the theme choice across devices.
 - Replacing, modifying or testing the provided Data Server.
 - LINE MAN or Wongnai branding.
@@ -113,7 +115,7 @@ A husky pre-commit hook (lint-staged) lints with auto-fix and then formats the s
 pnpm format:check     # oxfmt (web, e2e), ruff format (gateway)
 pnpm lint             # oxlint, stylelint and the Thai copy guard (web), oxlint (e2e), ruff (gateway)
 pnpm type-check       # tsc (web, e2e), pyrefly (gateway)
-pnpm test             # Vitest (web), pytest with a 90% coverage gate (gateway)
+pnpm test             # Vitest (web) and pytest (gateway), each with a 90% coverage gate
 pnpm test:e2e         # Playwright + axe, desktop and mobile; starts pnpm dev, or reuses one already running,
                       #   plus the PWA specs against a production build on :4173 with a second gateway on :4300
                       #   (first run: pnpm --filter e2e exec playwright install chromium)
