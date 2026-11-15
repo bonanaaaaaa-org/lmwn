@@ -3,6 +3,9 @@
   "globalEnv": [
     "VITE_*"
   ],
+  "globalPassThroughEnv": [
+    "DEV_HOST"
+  ],
   "tasks": {
     "build": {
       "dependsOn": [

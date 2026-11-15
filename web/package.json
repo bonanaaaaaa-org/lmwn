@@ -22,7 +22,7 @@
     "test": "rm -rf allure-results/unit && vitest run --coverage",
     "test:watch": "vitest",
     "test:scripts": "node --test scripts/",
-    "storybook": "STORYBOOK=true storybook dev -p 6006 --no-open",
+    "storybook": "STORYBOOK=true storybook dev -p 6006 ${DEV_HOST:+--host $DEV_HOST} --no-open",
     "build-storybook": "STORYBOOK=true storybook build --quiet",
     "test:storybook": "rm -rf allure-results/storybook && STORYBOOK=true vitest run --config vitest.storybook.config.ts --passWithNoTests"
   },

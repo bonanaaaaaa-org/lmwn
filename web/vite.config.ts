@@ -159,5 +159,8 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // Unset locally (Vite's default, localhost). The dev container sets DEV_HOST=0.0.0.0 so its
+    // published port reaches the server from the host.
+    host: process.env.DEV_HOST,
   },
 });

@@ -3,7 +3,7 @@
 #
 #   ./setup.sh               check prerequisites, install dependencies, browsers, hooks, web/.env
 #   ./setup.sh --with-deps   Linux only: also install Chromium's and MongoDB's system libraries
-#                            (apt, through sudo; the dev container does this)
+#                            (apt, through sudo; the dev container image has them already)
 #
 # It never uses sudo unless --with-deps is given, and changes nothing outside this clone except the
 # tool caches (pnpm store, uv cache, Playwright browsers, ~/.cache/mongodb-binaries).

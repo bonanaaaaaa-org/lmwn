@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "run-p start:api-gw start:service",
-    "start:api-gw": "uv run uvicorn app.main:app --reload --port 4000",
+    "start:api-gw": "uv run uvicorn app.main:app --reload --host ${DEV_HOST:-127.0.0.1} --port 4000",
     "start:service": "node node_modules/lmwn-assignment-2025-server/main.js",
     "format": "uv run ruff format",
     "format:check": "uv run ruff format --check",
