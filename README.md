@@ -8,6 +8,20 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 - **How it's built and why:** [design decisions](docs/design-decisions.md)
 - **What the words mean:** [GLOSSARY.md](GLOSSARY.md) (Guide, Guide Item, Unavailable Restaurant, Open Now, …). The code and UI copy use these terms.
 
+## Features
+
+- **Guide Index** (`/`): every Guide as a card with its cover, title, short description, Tags and restaurant count. Search by title, description or Tag (Thai text matches inside words) and filter by one or more Tags; the previous results stay on screen while a search loads.
+- **Guide page** (`/guides/:guideId`): the cover, description, Tags and date (Thai Buddhist calendar), then every Restaurant in the editor's order.
+- **Restaurant cards:** a photo strip with a full-screen lightbox (swipe, arrow keys, Esc), Rating and review count, Categories, today's hours with the full week, the editor's write-up with "read more", the address with a Google Maps link, call, LINE, Instagram, Facebook and Wongnai links, and delivery, pickup and official badges.
+- **Filter and sort** a Guide by Category, Open Now, delivery and pickup, and sort by guide order or Rating (Unrated Restaurants last), with an "N of M" count.
+- **Open Now in Thailand time**, kept current while the page stays open, with overnight hours and four kinds of closed: "ยังไม่เปิด" (not open yet), "ปิดอยู่" (closed for now), "ปิดแล้ว" (closed for the day), "ปิดวันนี้" (closed today).
+- **Links that keep the view:** search, Tags, filters and sort live in the URL, so reload, Back and shared links restore it. Share a Guide or a single card through the device's share sheet, or copy the link; a card link scrolls to that card and highlights it.
+- **Resilient loading:** skeletons shaped like the page, automatic retries on network and server errors, a "try again" panel, a not-found page, image placeholders, and Unavailable Restaurants that keep the editor's write-up when one Restaurant fails to load.
+- **Dark mode** that follows the system, with a system, light or dark toggle and no flash on load.
+- **Installable PWA:** Guides and searches already opened reopen offline.
+- **Thai UI, accessible:** all copy in Thai; keyboard and screen-reader support through React Aria; axe checks against WCAG 2.2 AA on every page state and every Storybook story.
+- **API gateway:** two JSON endpoints over the provided Data Server, with search, partial-failure handling, safe error bodies and a 60 s cache.
+
 ## Try it without cloning
 
 | | URL |
@@ -53,16 +67,21 @@ Or in a container: [`.devcontainer/`](.devcontainer/devcontainer.json) works in 
 
 ## Architecture
 
-```text
-Browser ──► web (React Router SPA, :3000) ──► api-gateway (FastAPI, :4000) ──► Data Server (provided, unchanged)
-                                                                                guides :8888 · restaurants :9999 · images :7777
-```
+### System architecture
+
+![System architecture: the browser loads the app from Firebase Hosting and calls the gateway on Cloud Run, which runs the provided Data Server as a sidecar](docs/images/system-architecture.svg)
 
 - **web** ([`web/`](web/)) is a single-page app: React 19, React Router 8 in SPA mode, TanStack Query, Zod, React Aria, CSS Modules, and Paraglide JS for the Thai copy. Routes are `/` (the Guide Index) and `/guides/:guideId` (a Guide). Search, filter and sort state lives in the URL, so reload, Back and shared links restore the same view. Code is grouped by feature (`web/src/features/guide-index`, `web/src/features/guides`) with shared components in `web/src/components`. Production builds add a service worker (see [PWA](#offline-and-install-pwa)).
 - **api-gateway** ([`api-gateway/`](api-gateway/README.md)) is the only thing the browser asks for data. (Locally, photos are the one exception: they load straight from the Data Server on :7777.) It turns the Data Server's ID lists and raw records into two endpoints, `GET /guides?q=&tag=` and `GET /guides/{guideId}` (the Guide with every Guide Item and its Restaurant, in one response), with its own response models and safe error bodies. It is built as ports and adapters: `app/domain` (Guides, Working Hours, search), `app/application` (the two use cases), `app/adapters` (HTTP in, the Data Server out).
 - **Data Server** is the provided `lmwn-assignment-2025-server` npm package, run as published. It has no search, no CORS, returns `200 null` for unknown IDs and leaks Mongo internals; the gateway absorbs all of that ([the facts we verified](docs/design-decisions.md#facts-about-the-provided-data-server)).
 
 When deployed, the gateway and the Data Server run as one Cloud Run service (the Data Server is a sidecar on `localhost`), and the gateway also serves the photos. See [Deployment](docs/design-decisions.md#deployment).
+
+### Software architecture
+
+![Software architecture: the web app's layers and the gateway's ports and adapters](docs/images/software-architecture.svg)
+
+The web app imports downward: routes, then features, then shared components, then `src/lib`. The gateway's dependencies point inward: the HTTP adapters call the two use cases, the use cases work with the domain and see only ports, and the Data Server and cache adapters implement those ports. [`composition.py`](api-gateway/app/composition.py) wires them together.
 
 ## Key trade-offs
 

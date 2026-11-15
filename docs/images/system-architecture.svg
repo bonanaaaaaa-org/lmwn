@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img" aria-labelledby="title desc">
+  <title id="title">System architecture</title>
+  <desc id="desc">The diner's browser loads the static app from Firebase Hosting and calls the API gateway on Cloud Run. The gateway runs with the provided Data Server as a sidecar in the same Cloud Run service and talks to it over localhost.</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .t { fill: #1f2328; font: 13px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .h { font-weight: 600; font-size: 15px; }
+    .title { font-weight: 700; font-size: 18px; }
+    .m { fill: #59636e; }
+    .s { font-size: 12px; }
+    .xs { font-size: 11px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .web { fill: #ddf4ff; stroke: #54aeff; stroke-width: 1.5; }
+    .host { fill: #f6f8fa; stroke: #afb8c1; stroke-width: 1.5; }
+    .gw { fill: #fff8c5; stroke: #d4a72c; stroke-width: 1.5; }
+    .ds { fill: #ffebe9; stroke: #ff8182; stroke-width: 1.5; }
+    .inner { fill: #ffffff; stroke: #54aeff; stroke-width: 1; }
+    .group { fill: none; stroke: #8250df; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .gl { fill: #8250df; font-weight: 600; }
+    .a { stroke: #59636e; stroke-width: 1.5; fill: none; }
+    .ah { fill: #59636e; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .t { fill: #e6edf3; }
+      .m { fill: #9198a1; }
+      .web { fill: #0c2d6b; stroke: #4493f8; }
+      .host { fill: #151b23; stroke: #3d444d; }
+      .gw { fill: #3b2e0a; stroke: #bb8009; }
+      .ds { fill: #3c1618; stroke: #da3633; }
+      .inner { fill: #0d1117; stroke: #4493f8; }
+      .group { stroke: #ab7df8; }
+      .gl { fill: #ab7df8; }
+      .a { stroke: #9198a1; }
+      .ah { fill: #9198a1; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="ah" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="520" rx="8"/>
+  <text class="t title" x="24" y="36">System architecture (deployed)</text>
+
+  <!-- Browser -->
+  <rect class="web" x="24" y="64" width="240" height="320" rx="10"/>
+  <text class="t h" x="40" y="92">Diner's browser</text>
+  <text class="t" x="40" y="118">React Router 8 SPA (no SSR)</text>
+  <text class="t" x="40" y="140">TanStack Query cache</text>
+  <text class="t" x="40" y="162">Search, filters, sort in the URL</text>
+  <rect class="inner" x="40" y="180" width="208" height="128" rx="8"/>
+  <text class="t s" x="52" y="202" font-weight="600">Service worker (production)</text>
+  <text class="t s" x="52" y="224">App shell: precached</text>
+  <text class="t s" x="52" y="244">Gateway JSON: network-first</text>
+  <text class="t s" x="52" y="264">Photos: cache-first</text>
+  <text class="t s m" x="52" y="290">Visited Guides open offline</text>
+  <text class="t s m" x="40" y="336">Theme choice in localStorage</text>
+  <text class="t s m" x="40" y="356">Thai UI (Paraglide JS)</text>
+
+  <!-- Firebase Hosting -->
+  <rect class="host" x="340" y="64" width="300" height="112" rx="10"/>
+  <text class="t h" x="356" y="92">Firebase Hosting</text>
+  <text class="t code" x="356" y="118">hidden-gems.bonanaaaaaa.dev</text>
+  <text class="t s m" x="356" y="136">static SPA build, manifest, sw.js</text>
+  <text class="t code" x="356" y="160">storybook-hidden-gems…</text>
+  <text class="t s m" x="540" y="160">Storybook</text>
+
+  <!-- Cloud Run group -->
+  <rect class="group" x="332" y="200" width="604" height="208" rx="12"/>
+  <text class="t gl" x="348" y="224">Cloud Run service</text>
+  <text class="t code m" x="486" y="224">api-hidden-gems.bonanaaaaaa.dev</text>
+
+  <rect class="gw" x="348" y="240" width="250" height="152" rx="10"/>
+  <text class="t h" x="364" y="266">api-gateway</text>
+  <text class="t s m" x="364" y="284">FastAPI, :4000</text>
+  <text class="t code" x="364" y="308">GET /guides?q=&amp;tag=</text>
+  <text class="t code" x="364" y="326">GET /guides/{guideId}</text>
+  <text class="t code" x="364" y="344">photos · /health · /docs</text>
+  <text class="t s" x="364" y="370">60 s in-memory cache</text>
+
+  <rect class="ds" x="670" y="240" width="250" height="152" rx="10"/>
+  <text class="t h" x="686" y="266">Data Server sidecar</text>
+  <text class="t s m" x="686" y="284">provided npm package, unchanged</text>
+  <text class="t code" x="686" y="308">guides</text><text class="t code" x="800" y="308">:8888</text>
+  <text class="t code" x="686" y="326">restaurants</text><text class="t code" x="800" y="326">:9999</text>
+  <text class="t code" x="686" y="344">images</text><text class="t code" x="800" y="344">:7777</text>
+  <text class="t s" x="686" y="370">MongoDB in memory, seeded</text>
+
+  <!-- Arrows -->
+  <path class="a" d="M264 120 H338" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="301" y="112" text-anchor="middle">static files</text>
+  <path class="a" d="M264 316 H346" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="305" y="308" text-anchor="middle">API</text>
+  <text class="t xs m" x="305" y="334" text-anchor="middle">CORS</text>
+  <path class="a" d="M598 316 H668" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="633" y="308" text-anchor="middle">localhost</text>
+
+  <!-- Footer -->
+  <text class="t s" x="24" y="444"><tspan font-weight="600">Deploy:</tspan> a push to main runs GitHub Actions, which deploys infra/ (Terraform and scripts) to Cloud Run and Firebase Hosting. DNS: Cloudflare.</text>
+  <text class="t s" x="24" y="468"><tspan font-weight="600">Locally:</tspan> pnpm dev runs the same three pieces: web on :3000, the gateway on :4000 and the Data Server on :8888, :9999 and :7777.</text>
+  <text class="t s m" x="24" y="492">Locally, photos load straight from :7777; deployed, the gateway serves them.</text>
+</svg>

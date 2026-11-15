@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="960" height="620" role="img" aria-labelledby="title desc">
+  <title id="title">Software architecture</title>
+  <desc id="desc">The web app is layered from routes to features to shared components and libraries, and its API client calls the gateway. The gateway uses ports and adapters: inbound HTTP adapters call application use cases, which use the domain and depend on ports that the outbound Data Server and cache adapters implement.</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .t { fill: #1f2328; font: 13px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .h { font-weight: 600; font-size: 14px; }
+    .col { font-weight: 700; font-size: 15px; }
+    .title { font-weight: 700; font-size: 18px; }
+    .m { fill: #59636e; }
+    .s { font-size: 12px; }
+    .xs { font-size: 11px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .web { fill: #ddf4ff; stroke: #54aeff; stroke-width: 1.5; }
+    .copy { fill: #f6f8fa; stroke: #54aeff; stroke-width: 1.5; stroke-dasharray: 5 3; }
+    .adp { fill: #fff8c5; stroke: #d4a72c; stroke-width: 1.5; }
+    .app { fill: #fff1e5; stroke: #fb8f44; stroke-width: 1.5; }
+    .dom { fill: #dafbe1; stroke: #4ac26b; stroke-width: 1.5; }
+    .ds { fill: #ffebe9; stroke: #ff8182; stroke-width: 1.5; }
+    .a { stroke: #59636e; stroke-width: 1.5; fill: none; }
+    .ah { fill: #59636e; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .t { fill: #e6edf3; }
+      .m { fill: #9198a1; }
+      .web { fill: #0c2d6b; stroke: #4493f8; }
+      .copy { fill: #151b23; stroke: #4493f8; }
+      .adp { fill: #3b2e0a; stroke: #bb8009; }
+      .app { fill: #3d1d0a; stroke: #db6d28; }
+      .dom { fill: #0f2f1a; stroke: #2ea043; }
+      .ds { fill: #3c1618; stroke: #da3633; }
+      .a { stroke: #9198a1; }
+      .ah { fill: #9198a1; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="ah" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="620" rx="8"/>
+  <text class="t title" x="24" y="36">Software architecture</text>
+
+  <!-- web column -->
+  <text class="t col" x="24" y="70">web/</text>
+  <text class="t s m" x="70" y="70">React SPA, grouped by feature</text>
+
+  <rect class="web" x="24" y="84" width="400" height="64" rx="8"/>
+  <text class="t h" x="40" y="108">Routes <tspan class="code m">app/routes</tspan></text>
+  <text class="t code" x="40" y="132">/  ·  /guides/:guideId  ·  * (not found)</text>
+
+  <rect class="web" x="24" y="164" width="400" height="96" rx="8"/>
+  <text class="t h" x="40" y="188">Features <tspan class="code m">src/features</tspan></text>
+  <text class="t s" x="40" y="212"><tspan class="code">guide-index</tspan>  search, Tag filters, Guide cards</text>
+  <text class="t s" x="40" y="232"><tspan class="code">guides</tspan>  header, restaurant cards, filters, sort,</text>
+  <text class="t s" x="84" y="250">Open Now, Working Hours, lightbox, share</text>
+
+  <rect class="web" x="24" y="276" width="400" height="64" rx="8"/>
+  <text class="t h" x="40" y="300">Shared UI <tspan class="code m">src/components</tspan></text>
+  <text class="t s" x="40" y="324">layout and common parts: React Aria, CSS Modules</text>
+
+  <rect class="web" x="24" y="356" width="400" height="96" rx="8"/>
+  <text class="t h" x="40" y="380">Lib <tspan class="code m">src/lib</tspan></text>
+  <text class="t s" x="40" y="404"><tspan class="code">apiClient</tspan> + Zod schemas, TanStack Query client</text>
+  <text class="t s" x="40" y="424"><tspan class="code">format</tspan> (Thai dates), <tspan class="code">theme</tspan>, service worker</text>
+  <text class="t s" x="40" y="444"><tspan class="code">preloadPageData</tspan> (fetch before React loads)</text>
+
+  <rect class="copy" x="24" y="468" width="400" height="56" rx="8"/>
+  <text class="t h" x="40" y="492">Thai copy <tspan class="code m">web/messages/th.json</tspan></text>
+  <text class="t s" x="40" y="512">compiled by Paraglide JS into typed <tspan class="code">m.key()</tspan> calls</text>
+
+  <path class="a" d="M224 148 V162" marker-end="url(#arrow)"/>
+  <path class="a" d="M224 260 V274" marker-end="url(#arrow)"/>
+  <path class="a" d="M224 340 V354" marker-end="url(#arrow)"/>
+
+  <!-- web to gateway -->
+  <path class="a" d="M424 404 H452 V124 H478" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="446" y="270" text-anchor="middle" transform="rotate(-90 446 270)">HTTP JSON</text>
+
+  <!-- gateway column -->
+  <text class="t col" x="480" y="70">api-gateway/</text>
+  <text class="t s m" x="580" y="70">ports and adapters, wired in composition.py</text>
+
+  <rect class="adp" x="480" y="84" width="420" height="80" rx="8"/>
+  <text class="t h" x="496" y="108">Inbound adapters <tspan class="code m">app/adapters/inbound/http</tspan></text>
+  <text class="t code" x="496" y="130">router_guides · router_photos · router_health</text>
+  <text class="t s" x="496" y="150">response schemas · errors mapped to a safe {detail}</text>
+
+  <rect class="app" x="480" y="188" width="420" height="96" rx="8"/>
+  <text class="t h" x="496" y="212">Application <tspan class="code m">app/application</tspan></text>
+  <text class="t s" x="496" y="236">use cases: <tspan class="code">list_guides</tspan> · <tspan class="code">get_guide_detail</tspan></text>
+  <text class="t s" x="496" y="258">ports: <tspan class="code">GuideSource</tspan> · <tspan class="code">RestaurantSource</tspan> · <tspan class="code">PhotoSource</tspan></text>
+
+  <rect class="dom" x="480" y="308" width="420" height="80" rx="8"/>
+  <text class="t h" x="496" y="332">Domain <tspan class="code m">app/domain</tspan></text>
+  <text class="t code" x="496" y="354">Guide · Restaurant · WorkingHours · guide_search</text>
+  <text class="t s m" x="496" y="374">plain Python: no HTTP, no framework</text>
+
+  <rect class="adp" x="480" y="412" width="420" height="80" rx="8"/>
+  <text class="t h" x="496" y="436">Outbound adapters <tspan class="code m">app/adapters/outbound</tspan></text>
+  <text class="t s" x="496" y="458"><tspan class="code">data_server</tspan>  guide, restaurant and photo clients</text>
+  <text class="t s" x="496" y="478"><tspan class="code">cache</tspan>  60 s TTL in front of each source</text>
+
+  <rect class="ds" x="480" y="524" width="420" height="44" rx="8"/>
+  <text class="t h" x="496" y="551">Data Server <tspan class="t s m" font-weight="400">provided, unchanged ·</tspan> <tspan class="code">:8888 :9999 :7777</tspan></text>
+
+  <!-- gateway arrows -->
+  <path class="a" d="M600 164 V186" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="608" y="180">calls</text>
+  <path class="a" d="M600 284 V306" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="608" y="300">uses</text>
+  <path class="a" d="M900 452 H924 V236 H902" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="940" y="344" text-anchor="middle" transform="rotate(-90 940 344)">implements the ports</text>
+  <path class="a" d="M600 492 V522" marker-end="url(#arrow)"/>
+  <text class="t xs m" x="608" y="512">HTTP</text>
+
+  <text class="t s m" x="24" y="600">Arrows show dependencies. Inner layers never import outer ones: the domain knows nothing of HTTP, and the use cases only see ports.</text>
+</svg>
