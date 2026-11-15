@@ -16,8 +16,8 @@ locals {
   storybook_site_id = "${var.project_id}-storybook"
 }
 
-# APIs this configuration uses. repo-management enables them up front in the
-# prod project; enabling them here as well keeps the module self-contained.
+# APIs this configuration uses. The provider repo enables them up front in
+# the prod project; enabling them here as well keeps the module self-contained.
 # Never disabled on destroy.
 resource "google_project_service" "enabled" {
   for_each = toset([

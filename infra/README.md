@@ -1,6 +1,6 @@
 # Infrastructure
 
-Terraform for lmwn's prod Google Cloud project, and the scripts CI runs to deploy it. It follows [bonanaaaaaa-org/personal-finance's `infra/`](https://github.com/bonanaaaaaa-org/personal-finance/tree/main/infra): Terraform state on R2, the web app on a Firebase Hosting custom domain, the API on a Cloud Run domain mapping, and Cloudflare DNS records with zone verification.
+Terraform for lmwn's prod Google Cloud project, and the scripts CI runs to deploy it. It covers Terraform state on R2, the web app on a Firebase Hosting custom domain, the API on a Cloud Run domain mapping, and Cloudflare DNS records with zone verification.
 
 - Web app: https://hidden-gems.bonanaaaaaa.dev (Firebase Hosting)
 - Gateway: https://api-hidden-gems.bonanaaaaaa.dev (Cloud Run)
@@ -8,7 +8,7 @@ Terraform for lmwn's prod Google Cloud project, and the scripts CI runs to deplo
 
 ## Who provides what
 
-[bonanaaaaaa-org/repo-management](https://github.com/bonanaaaaaa-org/repo-management) (bonanaaaaaa-org/repo-management#76, #77, #81) provides:
+A provider repo, which manages this organization's repositories and cloud setup, provides:
 
 - the projects `lmwn-prod-df7136` (billed) and `lmwn-pr-df7136` (not billed) in `asia-southeast1`;
 - a deploy service account per project with `roles/owner` on its own project only. A job reaches it through workload identity federation only if it declares `environment: prod` (or `pr`). No key exists. Owner rather than Editor because Terraform creates the runtime service account and makes the service public;
@@ -28,7 +28,7 @@ This directory defines the rest, as one root module applied to prod:
 | `domains.tf` | The custom domains, their Cloudflare records and the zone's Search Console verification (below) |
 | `env/prod.tfvars` | The domains and zone |
 | `tests/` | `terraform test` with mock providers: what prod plans, without cloud access |
-| `scripts/` | `backend-init.sh` (copied from personal-finance), `ensure-registry.sh`, `build-images.sh`, `apply.sh`, `deploy-hosting.sh`, `smoke-test.sh` |
+| `scripts/` | `backend-init.sh`, `ensure-registry.sh`, `build-images.sh`, `apply.sh`, `deploy-hosting.sh`, `smoke-test.sh` |
 
 ## Cloud Run: the gateway and the data server as a sidecar
 
@@ -58,7 +58,7 @@ Terraform creates the Hosting custom domains (`web_domain`, `storybook_domain`),
 - `hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136"` (Firebase Hosting);
 - `storybook-hidden-gems`: `A 199.36.158.100` and `TXT "hosting-site=lmwn-prod-df7136-storybook"` (Firebase Hosting, the Storybook's site);
 - `api-hidden-gems`: `CNAME ghs.googlehosted.com` (Cloud Run);
-- a `google-site-verification=…` TXT at the apex, for lmwn's deploy identity. It sits beside personal-finance's own TXT. With it, the identity verifies `bonanaaaaaa.dev` through the Site Verification API, which Cloud Run requires before it maps `api-hidden-gems`.
+- a `google-site-verification=…` TXT at the apex, for lmwn's deploy identity. It sits beside any other identity's TXT. With it, the identity verifies `bonanaaaaaa.dev` through the Site Verification API, which Cloud Run requires before it maps `api-hidden-gems`.
 
 The output `custom_domain_dns_records` lists what Hosting and Cloud Run ask for, so you can compare it with these records. A domain mapping's name is the domain, so it can't be replaced in place: `scripts/apply.sh` untaints a mapping that a failed apply left tainted. To change the domain, delete the old mapping first.
 
