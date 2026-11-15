@@ -23,7 +23,6 @@
 
 | | URL |
 | --- | --- |
-| Project board | https://github.com/orgs/bonanaaaaaa-org/projects/7 |
 | Issues | https://github.com/bonanaaaaaa-org/lmwn/issues |
 | ผลการรัน CI (GitHub Actions) | https://github.com/bonanaaaaaa-org/lmwn/actions |
 

@@ -23,7 +23,6 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 
 | | URL |
 | --- | --- |
-| Project board | https://github.com/orgs/bonanaaaaaa-org/projects/7 |
 | Issues | https://github.com/bonanaaaaaa-org/lmwn/issues |
 | CI runs (GitHub Actions) | https://github.com/bonanaaaaaa-org/lmwn/actions |
 
