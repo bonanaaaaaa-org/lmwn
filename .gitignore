@@ -27,9 +27,10 @@ web/.firebaserc
 playwright-report/
 test-results/
 blob-report/
-# Allure: each suite's results and the combined report (`pnpm allure`)
+# Allure: each suite's results, the combined report (`pnpm allure`) and its run history
 allure-results/
 allure-report/
+allure-history/
 # Paraglide JS: compiled message functions and the compiler cache (generated from web/messages)
 web/src/paraglide/
 web/project.inlang/cache/
