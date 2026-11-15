@@ -23,8 +23,6 @@ export default {
   ignoreFiles: ["build/**", "node_modules/**", "public/**", "coverage/**"],
   rules: {
     // Checked against the package.json browserslist. Each allowed feature has a reason:
-    // - css-nesting: the build lowers it (Lightning CSS minifies to the browserslist targets),
-    //   so Safari 16.4 gets flat rules.
     // - css3-cursors, css3-cursors-newer: iOS has no mouse pointer; the cursor is a desktop hint.
     // - css-scrollbar: `scrollbar-width: none` only hides scrollbars on rails that scroll anyway;
     //   iOS Safari draws overlay scrollbars and older Safari shows one, which is harmless.
@@ -33,12 +31,7 @@ export default {
       true,
       {
         severity: "error",
-        ignore: [
-          "css-nesting",
-          "css3-cursors",
-          "css3-cursors-newer",
-          "css-scrollbar",
-        ],
+        ignore: ["css3-cursors", "css3-cursors-newer", "css-scrollbar"],
       },
     ],
     "declaration-property-value-disallowed-list": [

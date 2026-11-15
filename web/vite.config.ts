@@ -148,7 +148,7 @@ export default defineConfig({
   build: {
     // JS syntax is lowered to the browserslist. CSS follows it too: `build.cssTarget` defaults to
     // this target, and Lightning CSS minifies the stylesheets with it, lowering nesting and other
-    // newer syntax only as far as the oldest target (Safari 16.4) needs. `css.lightningcss.targets`
+    // newer syntax only as far as the oldest target (Safari 18) needs. `css.lightningcss.targets`
     // is only read with `css.transformer: "lightningcss"`; the CSS modules go through PostCSS.
     target: BUILD_TARGET,
     // The app gets one stylesheet (~9 KB gzipped) instead of one per chunk: fewer
