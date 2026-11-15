@@ -1,4 +1,4 @@
-@layer features {
+@layer pages {
   .GuidePage__Root {
     display: flex;
     flex-direction: column;

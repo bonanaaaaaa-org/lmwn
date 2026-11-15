@@ -16,10 +16,12 @@ const meta = { url: "" };
  * Each folder's CSS Modules sit in their own cascade layer, so a higher folder can restyle a
  * lower one through `className` without winning on specificity or bundle order (#69).
  *
- * The primary option maps a folder under `src/` to its layer, e.g.
- * `{ "components/common": "components", "features": "features" }`. A `.module.css` file under
- * one of those folders must hold only comments and `@layer <its layer> { ... }` blocks at its
- * top level. Files outside every listed folder are not checked.
+ * The primary option maps a folder under `src/` to its layer, e.g. "components/common" to
+ * "components" and "features" to "features". A `*` in a folder stands for one path segment
+ * (the config maps features, any feature, pages to "pages"). The first folder that matches wins,
+ * so list the narrower folder first. A `.module.css` file under a listed folder must hold only
+ * comments and `@layer <its layer> { ... }` blocks at its top level. Files outside every listed
+ * folder are not checked.
  */
 /** @type {import('stylelint').Rule<Record<string, string>>} */
 const ruleFunction = (primary) => {
@@ -38,7 +40,7 @@ const ruleFunction = (primary) => {
 
     const normalized = filePath.split(path.sep).join("/");
     const folder = Object.keys(primary).find((key) =>
-      normalized.includes(`/src/${key}/`),
+      folderPattern(key).test(normalized),
     );
     if (!folder) return;
     const expected = primary[folder];
@@ -66,6 +68,19 @@ const ruleFunction = (primary) => {
     });
   };
 };
+
+// "features/*/pages" → a regex matching "/src/features/<one segment>/pages/" in a path.
+function folderPattern(folder) {
+  const source = folder
+    .split("/")
+    .map((segment) =>
+      segment === "*"
+        ? "[^/]+"
+        : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+    )
+    .join("/");
+  return new RegExp(`/src/${source}/`);
+}
 
 ruleFunction.ruleName = ruleName;
 ruleFunction.messages = messages;

@@ -27,6 +27,7 @@ describe(ruleName, () => {
     ["src/components/common/Foo/Foo.module.css", "components"],
     ["src/components/layout/Foo/Foo.module.css", "layout"],
     ["src/features/guides/components/Foo/Foo.module.css", "features"],
+    ["src/features/guides/pages/Foo/Foo.module.css", "pages"],
   ])("accepts %s in @layer %s", async (file, layer) => {
     expect(
       await layerWarnings(file, `/* A comment. */\n${sheet(layer)}`),
@@ -41,6 +42,8 @@ describe(ruleName, () => {
     ],
     ["src/components/layout/Foo/Foo.module.css", "features", "layout"],
     ["src/components/common/Foo/Foo.module.css", "layout", "components"],
+    ["src/features/guides/pages/Foo/Foo.module.css", "features", "pages"],
+    ["src/features/pages/Foo/Foo.module.css", "pages", "features"],
   ])("rejects %s in @layer %s", async (file, layer, expected) => {
     const warnings = await layerWarnings(file, sheet(layer));
     expect(warnings).toHaveLength(1);

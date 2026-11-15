@@ -60,7 +60,7 @@ Verified against `lmwn-assignment-2025-server@0.0.0-beta.1` (its source and live
 - **axe:**
   - `@axe-core/playwright` runs in e2e with the WCAG 2.2 A and AA tags, and any violation fails the run.
   - The Storybook a11y addon moves from `test: "todo"` to `test: "error"`, with story tests wired into CI, so component-level violations also fail.
-- **CSS cascade layers (#69):** `@layer reset, base, components, layout, features;`. Common components (`components/common`), layout components (`components/layout`) and features (`features/`) each get their own layer, in that order, so a feature restyling a common component through `className` wins by layer rather than by specificity or bundle order. A Stylelint rule (`custom/enforce-css-layer`) keeps each folder in its layer. Trade-off: a component's own state styles (`[data-hovered]`, `[data-pressed]`) lose to a feature override of the same property, so the feature handles those states too.
+- **CSS cascade layers (#69):** `@layer reset, base, components, layout, features, pages;`. Common components (`components/common`), layout components (`components/layout`), feature components (`features/`) and pages (`features/*/pages`) each get their own layer, in that order, so a page or feature restyling a common component through `className` wins by layer rather than by specificity or bundle order. A Stylelint rule (`custom/enforce-css-layer`) keeps each folder in its layer. Trade-off: a component's own state styles (`[data-hovered]`, `[data-pressed]`) lose to a feature override of the same property, so the feature handles those states too.
 
 ## Browser support (#62)
 

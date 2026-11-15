@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
  *   has a light and a dark value (dark mode, #47)
  * - CSS features must be supported by every browser in the package.json browserslist (#62)
  * - each folder's CSS Modules sit in its own cascade layer: components/common in `components`,
- *   components/layout in `layout`, features in `features` (#69)
+ *   components/layout in `layout`, features/<feature>/pages in `pages`, the rest of features in
+ *   `features` (#69)
  */
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -64,10 +65,11 @@ export default {
     "selector-class-pattern": null,
     "custom/enforce-component-class-pattern": true,
     // Keep in step with CSS_LAYER_ORDER (src/styles/layers.ts): each folder can restyle the ones
-    // listed before it through `className`.
+    // listed before it through `className`. The first matching folder wins (`*` is one segment).
     "custom/enforce-css-layer": {
       "components/common": "components",
       "components/layout": "layout",
+      "features/*/pages": "pages",
       features: "features",
     },
     "at-rule-no-unknown": [true, { ignoreAtRules: ["value"] }],

@@ -5,4 +5,4 @@
  * rank is set where it first appears). A unit test keeps the two in sync.
  */
 export const CSS_LAYER_ORDER =
-  "@layer reset, base, components, layout, features;";
+  "@layer reset, base, components, layout, features, pages;";

@@ -1,4 +1,4 @@
-@layer reset, base, components, layout, features;
+@layer reset, base, components, layout, features, pages;
 
 /*
  * The reset must live in its own layer: unlayered CSS beats every layer, so an
