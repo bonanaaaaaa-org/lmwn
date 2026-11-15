@@ -9,16 +9,13 @@ import { formattedDates } from "@/test-utils/fixtures/sampleContent";
 
 describe("formatDate", () => {
   it("shows day, short Thai month and Buddhist year by default", () => {
-    expect(formatDate(new Date("2024-03-10T12:00:00+07:00"))).toBe(
+    expect(formatDate(Temporal.Instant.from("2024-03-10T12:00:00+07:00"))).toBe(
       formattedDates.march10th2024,
     );
   });
 
-  it("accepts ISO 8601 strings and timestamps", () => {
+  it("accepts ISO 8601 strings with an offset", () => {
     expect(formatDate("2024-03-10T12:00:00.000Z")).toBe(
-      formattedDates.march10th2024,
-    );
-    expect(formatDate(Date.UTC(2024, 2, 10, 5))).toBe(
       formattedDates.march10th2024,
     );
   });
@@ -40,7 +37,9 @@ describe("formatDate", () => {
   });
 
   it("passes other fields through to Intl, keeping the Buddhist calendar", () => {
-    expect(formatDate("2024-03-10", { year: "numeric" })).toContain("2567");
+    expect(
+      formatDate("2024-03-10T12:00:00+07:00", { year: "numeric" }),
+    ).toContain("2567");
   });
 });
 

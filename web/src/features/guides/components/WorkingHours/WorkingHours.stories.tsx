@@ -7,7 +7,8 @@ import type { WorkingDay } from "@/features/guides/lib/types";
 import { WorkingHours } from "./WorkingHours";
 
 /** Thursday 19 November 2026 in Bangkok. */
-const thursday = (time: string) => new Date(`2026-11-19T${time}+07:00`);
+const thursday = (time: string) =>
+  Temporal.Instant.from(`2026-11-19T${time}+07:00`);
 
 /** Tuesday to Saturday 09:00–17:00; closed Sunday and Monday. */
 const tuesdayToSaturday: WorkingDay[] = [2, 3, 4, 5, 6].map((day) => ({
@@ -80,7 +81,7 @@ export const ClosedForTheDay: Story = {
 export const ClosedToday: Story = {
   args: {
     workingHours: tuesdayToSaturday,
-    now: new Date("2026-11-16T12:00:00+07:00"),
+    now: Temporal.Instant.from("2026-11-16T12:00:00+07:00"),
   },
 };
 export const ClosedDaysExpanded: Story = {

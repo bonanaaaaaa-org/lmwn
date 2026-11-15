@@ -116,7 +116,7 @@ export interface PlacedGuideItem {
 }
 
 export interface OpenNowClock {
-  now: Date;
+  now: Temporal.Instant;
   /** The Guide's `timeZone` (Thailand time). */
   timeZone: string;
 }

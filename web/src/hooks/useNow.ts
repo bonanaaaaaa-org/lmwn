@@ -6,18 +6,22 @@ import { useSyncExternalStore } from "react";
  * a tab becomes visible again, since browsers throttle timers in background tabs.
  */
 
-const MINUTE = 60_000;
+const MINUTE_MS = 60_000;
 
-const startOfMinute = (ms: number) => ms - (ms % MINUTE);
+const thisMinute = () =>
+  Temporal.Now.instant().round({
+    smallestUnit: "minute",
+    roundingMode: "floor",
+  });
 
-let current = new Date(startOfMinute(Date.now()));
+let current = thisMinute();
 const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 function refresh() {
-  const minute = startOfMinute(Date.now());
-  if (minute !== current.getTime()) {
-    current = new Date(minute);
+  const minute = thisMinute();
+  if (!minute.equals(current)) {
+    current = minute;
     for (const listener of listeners) listener();
   }
 }
@@ -28,7 +32,7 @@ function scheduleTick() {
       refresh();
       if (listeners.size > 0) scheduleTick();
     },
-    MINUTE - (Date.now() % MINUTE),
+    MINUTE_MS - (Temporal.Now.instant().epochMilliseconds % MINUTE_MS),
   );
 }
 
@@ -54,15 +58,15 @@ function subscribe(listener: () => void) {
 
 function getSnapshot() {
   // A first subscriber may arrive long after the last tick stopped.
-  // Same minute → same Date, so React sees a stable snapshot.
+  // Same minute → same Instant, so React sees a stable snapshot.
   if (listeners.size === 0) {
-    const minute = startOfMinute(Date.now());
-    if (minute !== current.getTime()) current = new Date(minute);
+    const minute = thisMinute();
+    if (!minute.equals(current)) current = minute;
   }
   return current;
 }
 
 /** The current time to the minute; re-renders the caller when the minute changes. */
-export function useNow(): Date {
+export function useNow(): Temporal.Instant {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

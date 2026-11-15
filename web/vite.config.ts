@@ -107,6 +107,9 @@ export default defineConfig({
           "favicon.svg",
           "icons/*.png",
         ],
+        // Only browsers without Temporal (Safari) load the polyfill; the worker caches it at
+        // runtime for them (src/sw.ts) rather than downloading it for everyone.
+        globIgnores: ["assets/temporalPolyfill-*.js"],
       },
       integration: {
         // index.html doesn't exist yet when the worker is built (see indexHtmlRevision).
@@ -138,6 +141,8 @@ export default defineConfig({
       "react-aria-components",
       "zod",
       "clsx",
+      // Only loaded in browsers without Temporal, so Chromium in dev would never discover it.
+      "temporal-polyfill/global",
     ],
   },
   build: {

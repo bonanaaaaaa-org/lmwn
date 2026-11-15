@@ -23,7 +23,8 @@ const TODAY = (day: string) =>
 
 const BANGKOK = "Asia/Bangkok";
 /** 2026-11-19 is a Thursday. */
-const thursday = (time: string) => new Date(`2026-11-19T${time}+07:00`);
+const thursday = (time: string) =>
+  Temporal.Instant.from(`2026-11-19T${time}+07:00`);
 
 /** Tuesday to Saturday 09:00–17:00; closed Sunday and Monday. */
 const weekdays: WorkingDay[] = [2, 3, 4, 5, 6].map((day) => ({
@@ -99,7 +100,7 @@ describe("WorkingHours", () => {
       <WorkingHours
         workingHours={weekdays}
         timeZone={BANGKOK}
-        now={new Date("2026-11-16T12:00:00+07:00")}
+        now={Temporal.Instant.from("2026-11-16T12:00:00+07:00")}
       />,
     );
     expect(

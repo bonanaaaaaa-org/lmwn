@@ -94,7 +94,8 @@ describe("restaurant filters in the URL", () => {
 const BANGKOK = "Asia/Bangkok";
 
 /** 2026-11-16 is a Monday. Bangkok is UTC+7 all year. */
-const bangkok = (isoLocal: string) => new Date(`${isoLocal}+07:00`);
+const bangkok = (isoLocal: string) =>
+  Temporal.Instant.from(`${isoLocal}+07:00`);
 const NOON = bangkok("2026-11-16T12:00");
 
 const item = (id: string, restaurant: Partial<Restaurant> | null): GuideItem =>
@@ -139,7 +140,7 @@ const ITEMS = [cafe, noodles, unavailable, unrated, bakery];
 
 const apply = (
   overrides: Partial<RestaurantFilters>,
-  now: Date = NOON,
+  now: Temporal.Instant = NOON,
   items: readonly GuideItem[] = ITEMS,
 ) =>
   applyRestaurantFilters(items, filters(overrides), { now, timeZone: BANGKOK });
@@ -201,7 +202,9 @@ describe("applyRestaurantFilters", () => {
   it("judges Open Now by the Guide's time zone, not the instant's UTC clock", () => {
     // 02:00 UTC is 09:00 in Bangkok: the day-time Restaurants are open.
     expect(
-      ids(apply({ openNow: true }, new Date("2026-11-16T02:00:00Z"))),
+      ids(
+        apply({ openNow: true }, Temporal.Instant.from("2026-11-16T02:00:00Z")),
+      ),
     ).toEqual(["cafe", "unrated", "bakery"]);
   });
 

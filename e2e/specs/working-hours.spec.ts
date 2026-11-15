@@ -17,10 +17,10 @@ const CAFE_GUIDE_ID = "e1bfd2d3-f0fb-470e-bdd3-be884fdd8dfb";
 const LMWN_CAFE_INDEX = 3;
 
 // Instants as UTC; Bangkok is UTC+7 with no DST.
-const THU_NOON_BANGKOK = new Date("2026-11-12T05:00:00Z"); // Wed 21:00 in Los Angeles
-const TUE_0859_BANGKOK = new Date("2026-11-10T01:59:00Z");
-const MON_NOON_BANGKOK = new Date("2026-11-09T05:00:00Z");
-const TUE_1800_BANGKOK = new Date("2026-11-10T11:00:00Z");
+const THU_NOON_BANGKOK = Temporal.Instant.from("2026-11-12T05:00:00Z"); // Wed 21:00 in Los Angeles
+const TUE_0859_BANGKOK = Temporal.Instant.from("2026-11-10T01:59:00Z");
+const MON_NOON_BANGKOK = Temporal.Instant.from("2026-11-09T05:00:00Z");
+const TUE_1800_BANGKOK = Temporal.Instant.from("2026-11-10T11:00:00Z");
 
 const DAY_NAMES = [
   message("restaurantCard_workingHours_monday_label"),
@@ -86,8 +86,11 @@ const workingHours = (card: Locator) =>
 const toggleOf = (card: Locator) =>
   card.getByTestId("guide/restaurant-card/working-hours/toggle");
 
-async function openGuideAt(page: Page, time: Date): Promise<Locator> {
-  await page.clock.install({ time });
+async function openGuideAt(
+  page: Page,
+  time: Temporal.Instant,
+): Promise<Locator> {
+  await page.clock.install({ time: time.epochMilliseconds });
   await page.goto(`/guides/${CAFE_GUIDE_ID}`);
   const card = cards(page).nth(LMWN_CAFE_INDEX);
   // The dev stack can be slow to serve the first load under many parallel workers.
@@ -116,7 +119,7 @@ test.describe("Working Hours - Open Now in Thailand time", () => {
     const card = await openGuideAt(page, THU_NOON_BANGKOK);
     // Sanity: the browser itself really thinks it is Wednesday.
     expect(
-      await page.evaluate(() => new Date().getDay()),
+      await page.evaluate(() => Temporal.Now.plainDateISO().dayOfWeek),
       "browser-local weekday",
     ).toBe(3);
 
@@ -168,6 +171,38 @@ test.describe("Working Hours - Live update", () => {
     await expect(hours).toContainText(OPEN);
     await expect(badge(hours)).toHaveAttribute("data-state", "open");
     expect(navigations, "no reload").toBe(0);
+  });
+});
+
+test.describe("Working Hours - Browsers without Temporal", () => {
+  test("loads the Temporal polyfill only when the browser lacks Temporal, with the same Open Now", async ({
+    page,
+  }) => {
+    const polyfillRequests: string[] = [];
+    page.on("request", (request) => {
+      if (/\/temporalPolyfill[-.]/.test(new URL(request.url()).pathname))
+        polyfillRequests.push(request.url());
+    });
+
+    // Native Temporal (Chromium): no polyfill download.
+    let card = await openGuideAt(page, TUE_0859_BANGKOK);
+    await expect(workingHours(card)).toContainText(notOpenYet("09:00"));
+    expect(polyfillRequests, "polyfill with native Temporal").toEqual([]);
+
+    // As in Safari, which doesn't ship Temporal yet.
+    await page.addInitScript(() => {
+      Reflect.deleteProperty(globalThis, "Temporal");
+    });
+    await page.reload();
+    card = cards(page).nth(LMWN_CAFE_INDEX);
+    const hours = workingHours(card);
+    await expect(hours).toContainText(notOpenYet("09:00"), { timeout: 15_000 });
+    await expect(hours).toContainText(todayHours("09:00–17:00"));
+    expect(polyfillRequests, "polyfill without Temporal").toHaveLength(1);
+
+    // The polyfill reads the same (fake) clock: the badge still flips at 09:00.
+    await page.clock.runFor(90_000);
+    await expect(badge(hours)).toHaveAttribute("data-state", "open");
   });
 });
 
