@@ -17,7 +17,7 @@
 | เว็บแอป | https://hidden-gems.bonanaaaaaa.dev |
 | API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (ไกด์ทั้งหมด), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
 | Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (ทุกคอมโพเนนต์ในทุกสถานะ ใช้ข้อมูลจำลองเท่านั้น) |
-| รายงานผลทดสอบ Allure | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ รวมทุกรายงาน: `main` สำหรับการ push เข้า `main` ล่าสุด และ `pr-<number>` สำหรับ pull request ต้องลงชื่อเข้าใช้ผ่าน Cloudflare Access ([ใครเข้าดูได้](#รายงานผลทดสอบ-allure)) |
+| รายงานผลทดสอบ Allure | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ รวมทุกรายงาน: `main` สำหรับการ push เข้า `main` ล่าสุด และ `pr-<number>` สำหรับ pull request เปิดดูได้สาธารณะ ไม่ต้องลงชื่อเข้าใช้ |
 
 **โปรเจกต์:**
 
@@ -213,7 +213,7 @@ node scripts/lighthouse.mjs --base-url https://hidden-gems.bonanaaaaaa.dev \
 
 เทส e2e ที่ไม่ผ่านจะเก็บ trace, ภาพหน้าจอ และวิดีโอของ Playwright ไว้ และรายงานแนบไฟล์เหล่านี้ CI ลองเทส e2e ที่ไม่ผ่านใหม่สองครั้ง และ Allure ทำเครื่องหมายเทสที่ผ่านในรอบลองใหม่ว่า flaky โดยเก็บ trace ไว้ด้วย (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)) trace เปิดดูซ้ำได้ใน trace viewer ของ Allure เทสที่ผ่านไม่เก็บ trace รายงานไฟล์เดียวจึงเล็กพอจะอัปโหลด
 
-**รายงานของ CI** อยู่ที่ลิงก์ Allure ใน[ลิงก์และ URL](#ลิงก์และ-url) โดย `pr-<number>` สำหรับ pull request และ `main` สำหรับการ push เข้า `main` ล่าสุด job **Allure report** ของแต่ละรอบลิงก์ไปยังรายงานของรอบนั้น โฮสต์อยู่หลัง Cloudflare Access: สมาชิกขององค์กร GitHub `bonanaaaaaa-org` ลงชื่อเข้าใช้ด้วย GitHub ส่วนสมาชิกบัญชี Cloudflare ของเจ้าของ หรืออีเมลที่เจ้าของเพิ่มไว้ ลงชื่อเข้าใช้ด้วย one-time PIN CI สร้างรายงานแม้รอบนั้นไม่ผ่าน และอัปโหลดด้วย GitHub OIDC token ของรอบนั้น โดยไม่ต้องเก็บ secret ถ้าไม่มีตัวแปร `ALLURE_REPORTS_URL` หรือโฮสต์ล่ม job นั้นจะแค่เตือน: CI ผ่านหรือไม่ขึ้นกับ job ทดสอบเท่านั้น
+**รายงานของ CI** อยู่ที่ลิงก์ Allure ใน[ลิงก์และ URL](#ลิงก์และ-url) โดย `pr-<number>` สำหรับ pull request และ `main` สำหรับการ push เข้า `main` ล่าสุด job **Allure report** ของแต่ละรอบลิงก์ไปยังรายงานของรอบนั้น รายงานเปิดดูได้สาธารณะ ใครมีลิงก์ก็เปิดได้โดยไม่ต้องลงชื่อเข้าใช้ ส่วนการอัปโหลดยังทำได้จาก CI เท่านั้น: CI สร้างรายงานแม้รอบนั้นไม่ผ่าน และอัปโหลดด้วย GitHub OIDC token ของรอบนั้น โดยไม่ต้องเก็บ secret ถ้าไม่มีตัวแปร `ALLURE_REPORTS_URL` หรือโฮสต์ล่ม job นั้นจะแค่เตือน: CI ผ่านหรือไม่ขึ้นกับ job ทดสอบเท่านั้น
 
 รายงานเก็บประวัติการทดสอบ ([#55](https://github.com/bonanaaaaaa-org/lmwn/pull/55)): กราฟแนวโน้มและผลรอบล่าสุดของแต่ละเทส พร้อมทำเครื่องหมายเทสที่ flaky, ใหม่ และถดถอย `allure generate` อ่าน `allure-history/history.jsonl` (อยู่ใน git-ignore เก็บ 5 รอบล่าสุด) แล้วต่อท้ายด้วยรอบที่กำลังสร้างรายงาน `pnpm allure` จึงสะสมประวัติจากการรันบนเครื่องของคุณ ใน CI แต่ละรายงานอัปโหลดประวัติของตัวเอง และรอบถัดไปอ่านกลับมาด้วย OIDC token: รายงานของ pull request ต่อจากรอบก่อนหน้าของตัวเอง โดยเริ่มจากประวัติของ `main` ถ้ายังไม่มีประวัติ หรือโฮสต์ส่งประวัติให้ไม่ได้ ก็แค่ได้รายงานที่ไม่มีประวัติ
 

@@ -17,7 +17,7 @@ LMWN Frontend Assignment 2025: a restaurant guide web app with its own API gatew
 | Web app | https://hidden-gems.bonanaaaaaa.dev |
 | API gateway | https://api-hidden-gems.bonanaaaaaa.dev: [`/health`](https://api-hidden-gems.bonanaaaaaa.dev/health), [`/guides`](https://api-hidden-gems.bonanaaaaaa.dev/guides) (every Guide), [`/docs`](https://api-hidden-gems.bonanaaaaaa.dev/docs) (OpenAPI) |
 | Storybook | https://storybook-hidden-gems.bonanaaaaaa.dev (every component and its states, with fixtures only) |
-| Allure test reports | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ lists every report: `main` for the latest push to `main`, `pr-<number>` for a pull request. Sign-in through Cloudflare Access ([who can view](#test-reports-allure)). |
+| Allure test reports | https://allure-reports.bonanaaaaaa.workers.dev/lmwn/ lists every report: `main` for the latest push to `main`, `pr-<number>` for a pull request. Public, no sign-in needed. |
 
 **Project:**
 
@@ -213,7 +213,7 @@ Every suite also writes [Allure](https://allurereport.org/) results into its own
 
 A failed e2e test keeps its Playwright trace, screenshot and video, and the report attaches them. CI retries a failed e2e test twice, and Allure marks a test that passed on a retry as flaky; its trace is kept too (`retain-on-failure-and-retries`, [#42](https://github.com/bonanaaaaaa-org/lmwn/pull/42)). Traces replay in Allure's trace viewer. Passing tests keep no trace, which keeps the single-file report small enough to upload.
 
-**CI's reports** are listed at the Allure link in [URLs](#urls), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The host is behind Cloudflare Access: members of the `bonanaaaaaa-org` GitHub organization sign in with GitHub, and members of the owner's Cloudflare account or an email the owner adds can sign in with a one-time PIN. CI builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, that job only warns: the test jobs alone decide whether CI passes.
+**CI's reports** are listed at the Allure link in [URLs](#urls), with `pr-<number>` for a pull request and `main` for the latest push to `main`; each run's **Allure report** job links to its own. The reports are public: anyone with the link can open them, with no sign-in. Uploading still needs CI: it builds the report after failed runs too and uploads it with the run's GitHub OIDC token, with no stored secret. If the `ALLURE_REPORTS_URL` variable is missing or the host is down, that job only warns: the test jobs alone decide whether CI passes.
 
 Reports keep a test history ([#55](https://github.com/bonanaaaaaa-org/lmwn/pull/55)): trend charts and each test's last runs, with flaky, new and regressed tests marked. `allure generate` reads `allure-history/history.jsonl` (git-ignored, the last 5 runs) and appends the run it reports, so `pnpm allure` builds up your own runs locally. In CI each report uploads its history, and the next run reads it back with its OIDC token: a pull request's report continues its own earlier runs, starting from `main`'s. No history yet, or a host that can't serve it, only means a report without history.
 
