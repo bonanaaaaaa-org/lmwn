@@ -1,4 +1,4 @@
-@layer components {
+@layer layout {
   .AppShell__Root {
     display: flex;
     flex-direction: column;

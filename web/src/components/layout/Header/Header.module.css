@@ -1,4 +1,4 @@
-@layer components {
+@layer layout {
   .Header__Root {
     border-bottom: 1px solid var(--color-border);
     background: var(--color-surface);

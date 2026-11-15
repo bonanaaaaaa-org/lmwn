@@ -25,7 +25,10 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./vitest.setup.tsx"],
-    include: ["{app,src}/**/*.test.{ts,tsx}"],
+    include: [
+      "{app,src}/**/*.test.{ts,tsx}",
+      "stylelint-plugins/**/*.test.mjs",
+    ],
     reporters: [
       ...reporters,
       [

@@ -38,6 +38,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Square: Story = { args: { aspectRatio: "1 / 1" } };
 export const Priority: Story = { args: { priority: true } };
+/** Clipped to a radius token, e.g. the Guide cover on desktop. */
+export const Rounded: Story = { args: { radius: "400" } };
 
 /** No URL from the gateway: a placeholder of the same size. */
 export const Empty: Story = { args: { sources: [] } };

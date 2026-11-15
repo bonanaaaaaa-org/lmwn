@@ -61,6 +61,7 @@ export function GuideHeader({
     >
       <ResponsiveImage
         className={styles.GuideHeader__Cover}
+        radius={layout === "desktop" ? "400" : "none"}
         sources={photoSources(guide.coverPhoto)}
         alt={guide.title}
         aspectRatio={layout === "desktop" ? "21 / 9" : "4 / 3"}

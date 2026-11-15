@@ -308,7 +308,7 @@ oxlint also bans importing `@/test-utils/**` from production code (anything but 
 
 ### CSS Modules
 
-- File: `ComponentName.module.css`, wrapped in `@layer components { ... }`
+- File: `ComponentName.module.css`, wrapped in the cascade layer of its folder (see Layers below): `@layer components { ... }` under `components/common/`, `@layer layout { ... }` under `components/layout/`, `@layer pages { ... }` under `features/*/pages/`, `@layer features { ... }` everywhere else under `features/`
 - Class names follow `{ComponentName}__{ElementName}` in PascalCase (`.Tag__Root`, `.RestaurantCard__Title`) — Stylelint enforces it, derived from the file name
 - Scoped class naming at build: `generateScopedName: "[local]__[hash:base64:5]"`
 - Use **CSS custom properties** (design tokens) from `globals.css`
@@ -317,7 +317,22 @@ oxlint also bans importing `@/test-utils/**` from production code (anything but 
 
 ### Layers and tokens (globals.css)
 
-`globals.css` declares `@layer reset, base, components;` and defines tokens as custom properties on `:root` in `base`. Add new tokens there (kebab-case, e.g. `--color-text-muted`, `--space-200`, `--radius-100`) rather than hard-coding values in components.
+`globals.css` declares `@layer reset, base, components, layout, features, pages;` (lowest first; `CSS_LAYER_ORDER` in `src/styles/layers.ts` repeats it for the document head, and a unit test keeps the two in sync). Each folder's stylesheets sit in its own layer, so a later layer beats an earlier one whatever the specificity or bundle order:
+
+- `components` — `src/components/common/**` (generic atoms and molecules)
+- `layout` — `src/components/layout/**` (app shell, header): may restyle common components
+- `features` — `src/features/**` except pages: may restyle common and layout components
+- `pages` — `src/features/*/pages/**`: may restyle its feature's components as well as common and layout ones
+
+**Why this order:** the component that renders another one decides where it goes, so the parent's layer sits above the child's. Pages beat features, features beat layout and common components, and layout beats common components. Example: `GuidePage` passes `GuidePage__Top` to `GuideHeader` to pull the cover flush under the app header on phones; only the page knows that. `!important` stays banned, so the layer order alone decides.
+
+**Convention: a parent styles only the child's outside.** A `className` a parent passes to one of the project's components may set only the child's outside: margin, self-alignment (`align-self`, `justify-self`, `place-self`), `order`, position and offsets (`position`, `inset`, `top`/`right`/`bottom`/`left`), grid or flex placement, and width or size constraints (`width`/`height` and their min/max, `aspect-ratio`). It never sets the child's inside: colours, padding, typography, borders, radius, shadows, filters, transforms. Anything inside the child becomes a prop or variant on the child: `Skeleton` and `ResponsiveImage` take `radius` (a `Radius` token from `@/styles/radius`), `Icon` takes `tone`, `Button` takes `iconOnly` and the `floating` variant. Or style an element the parent owns (the button around a photo clips it and dims it on hover). Write the parent's rule as a plain single class (`.GuidePage__Top { margin-top: ... }`); never double a selector to win on specificity.
+
+Stylelint's `custom/enforce-outside-only-classname` rule (`stylelint-plugins/enforce-outside-only-classname.mjs`) enforces it. For each `X.module.css` it reads the sibling `X.tsx` with TypeScript 7's compiler API (`typescript/unstable/sync`), finds the classes passed as `className` (directly or inside `clsx(...)`) to a capitalised element imported from `@/…` or `./…`, and rejects any other property in rules whose subject is one of those classes, through nested `&` rules and `@media`. React Aria primitives (`Button`, `Input`, `Popover` from `react-aria-components`) render the component's own DOM, so the classes it passes them are its own. Disabling the rule is reported.
+
+Stylelint's `custom/enforce-css-layer` rule (`stylelint-plugins/enforce-css-layer.mjs`, folder map in `stylelint.config.mjs`) rejects a stylesheet in the wrong layer or with rules outside its layer; a new top-level folder with stylesheets gets a layer in all three places.
+
+`base` defines tokens as custom properties on `:root` in `base`. Add new tokens there (kebab-case, e.g. `--color-text-muted`, `--space-200`, `--radius-100`) rather than hard-coding values in components.
 
 ### Styling rules
 

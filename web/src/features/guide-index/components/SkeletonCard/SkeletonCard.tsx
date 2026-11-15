@@ -24,34 +24,14 @@ export function SkeletonCard({
       data-layout={layout}
       aria-hidden="true"
     >
-      <Skeleton aspectRatio="16 / 10" className={styles.SkeletonCard__Cover} />
+      <Skeleton aspectRatio="16 / 10" radius="none" />
       <div className={styles.SkeletonCard__Body}>
-        <Skeleton
-          width="30%"
-          height="0.75rem"
-          className={styles.SkeletonCard__Bar}
-        />
-        <Skeleton
-          width="85%"
-          height="1rem"
-          className={styles.SkeletonCard__Bar}
-        />
-        <Skeleton
-          width="65%"
-          height="0.75rem"
-          className={styles.SkeletonCard__Bar}
-        />
+        <Skeleton width="30%" height="0.75rem" radius="100" />
+        <Skeleton width="85%" height="1rem" radius="100" />
+        <Skeleton width="65%" height="0.75rem" radius="100" />
         <div className={styles.SkeletonCard__Tags}>
-          <Skeleton
-            width="3.5rem"
-            height="1.5rem"
-            className={styles.SkeletonCard__Tag}
-          />
-          <Skeleton
-            width="3.5rem"
-            height="1.5rem"
-            className={styles.SkeletonCard__Tag}
-          />
+          <Skeleton width="3.5rem" height="1.5rem" radius="pill" />
+          <Skeleton width="3.5rem" height="1.5rem" radius="pill" />
         </div>
       </div>
     </div>

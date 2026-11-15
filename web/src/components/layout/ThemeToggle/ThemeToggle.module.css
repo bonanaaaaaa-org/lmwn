@@ -1,4 +1,4 @@
-@layer components {
+@layer layout {
   .ThemeToggle__Root {
     display: inline-flex;
     flex: none;
@@ -91,9 +91,5 @@
 
   .ThemeToggle__OptionLabel {
     flex: 1 1 auto;
-  }
-
-  .ThemeToggle__Check {
-    color: var(--color-accent-text);
   }
 }

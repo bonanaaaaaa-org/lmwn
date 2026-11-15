@@ -1,10 +1,6 @@
-import clsx from "clsx";
-
 import { Button, type ButtonVariant } from "@/components/common/Button";
 import { Icon } from "@/components/common/Icon";
 import { type ShareTarget, useShare } from "@/hooks/useShare";
-
-import styles from "./ShareButton.module.css";
 
 export interface ShareButtonProps {
   /** The title, text and link to share, and the toast shown if the link is copied instead. */
@@ -36,8 +32,8 @@ export function ShareButton({
   return (
     <Button
       variant={variant}
-      className={clsx(styles.ShareButton__Root, className)}
-      data-icon-only={iconOnly ? "" : undefined}
+      iconOnly={iconOnly}
+      className={className}
       aria-label={iconOnly ? label : undefined}
       onPress={() => void share(target)}
       testId={testId}

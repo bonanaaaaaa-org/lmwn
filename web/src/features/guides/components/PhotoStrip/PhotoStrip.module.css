@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .PhotoStrip__Root {
     position: relative;
   }
@@ -34,14 +34,25 @@
     scroll-snap-align: start;
   }
 
+  /* Clips the photo to its corners and dims it on hover. */
   .PhotoStrip__PhotoButton {
     display: block;
     width: 100%;
     padding: 0;
+    overflow: hidden;
     border: 0;
     border-radius: var(--radius-300);
     background: none;
     cursor: zoom-in;
+    transition: filter var(--duration-fast) var(--easing-standard);
+
+    &[data-hovered] {
+      filter: brightness(0.92);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
 
     &[data-focus-visible] {
       outline: var(--focus-ring);
@@ -49,26 +60,9 @@
     }
   }
 
-  .PhotoStrip__Photo {
-    border-radius: var(--radius-300);
-    transition: filter var(--duration-fast) var(--easing-standard);
-
-    [data-hovered] > & {
-      filter: brightness(0.92);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
-  }
-
   .PhotoStrip__Next {
     position: absolute;
     top: calc(50% - var(--control-height) / 2);
     right: var(--space-150);
-    width: var(--control-height);
-    padding: 0;
-    border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-300);
   }
 }

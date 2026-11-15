@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .SearchField__Root {
     margin: 0;
   }
@@ -45,7 +45,6 @@
 
   .SearchField__Icon {
     flex: none;
-    color: var(--color-text-muted);
   }
 
   /* 16px text so iOS doesn't zoom in on focus. */

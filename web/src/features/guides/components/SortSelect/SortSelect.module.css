@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .SortSelect__Root {
     display: inline-flex;
     align-items: center;
@@ -53,12 +53,9 @@
     }
   }
 
+  /* Points up while the list is open (the icon name follows Select's isOpen). */
   .SortSelect__Chevron {
     flex: none;
-
-    [data-open] & {
-      transform: rotate(180deg);
-    }
   }
 
   .SortSelect__Popover {

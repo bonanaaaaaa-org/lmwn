@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { ICON_NAMES, Icon } from "./Icon";
+import { ICON_NAMES, Icon, type IconTone } from "./Icon";
+
+const TONES: IconTone[] = ["muted", "accent", "accent-text", "danger-inverse"];
 
 const meta = {
   title: "Components/Common/Icon",
@@ -15,6 +17,25 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/** Each tone; `danger-inverse` is for dark surfaces, so the row sits on one. */
+export const Tones: Story = {
+  render: (args) => (
+    <div
+      style={{
+        display: "flex",
+        gap: "1rem",
+        padding: "1rem",
+        borderRadius: "1rem",
+        background: "var(--color-surface-inverse)",
+      }}
+    >
+      {TONES.map((tone) => (
+        <Icon key={tone} {...args} tone={tone} />
+      ))}
+    </div>
+  ),
+};
 
 /** Every icon on the 24 grid. */
 export const Sheet: Story = {

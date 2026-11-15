@@ -171,6 +171,7 @@ export function GuideIndexView({
               <Skeleton
                 key={i}
                 className={styles.GuideIndexView__TagSkeleton}
+                radius="pill"
                 width="5rem"
                 height="100%"
               />

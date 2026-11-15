@@ -1,4 +1,4 @@
-@layer components {
+@layer features {
   .GuidePageSkeleton__Root {
     width: 100%;
   }
@@ -19,13 +19,11 @@
     gap: var(--space-300);
   }
 
+  /* Full bleed on phones; the radius follows the layout through Skeleton's radius prop. */
   .GuidePageSkeleton__Cover {
-    border-radius: var(--radius-400);
-
     [data-layout="phone"] & {
       width: auto;
       margin-inline: calc(var(--layout-gutter) * -1);
-      border-radius: 0;
     }
   }
 

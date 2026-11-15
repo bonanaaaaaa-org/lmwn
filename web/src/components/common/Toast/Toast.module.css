@@ -51,11 +51,6 @@
 
   .Toast__Icon {
     flex: none;
-    color: var(--color-accent);
-
-    [data-tone="error"] & {
-      color: var(--color-danger-inverse);
-    }
   }
 
   /* Saffron fill under ink text, like a primary button, sized to the pill. */

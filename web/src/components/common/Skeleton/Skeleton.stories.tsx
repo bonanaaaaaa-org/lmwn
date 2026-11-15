@@ -28,6 +28,14 @@ export const Heading: Story = {
   args: { shape: "block", width: "70%", height: "2rem" },
 };
 export const Circle: Story = { args: { shape: "circle" } };
+/** The parent picks the corners, e.g. a tag placeholder. */
+export const Pill: Story = {
+  args: { width: "5rem", height: "1.5rem", radius: "pill" },
+};
+/** Square corners, e.g. a cover flush with its card's edge. */
+export const Square: Story = {
+  args: { aspectRatio: "16 / 10", radius: "none" },
+};
 
 /**
  * A circle beside taller content in a flex row, as in the Guide page's card header. It
