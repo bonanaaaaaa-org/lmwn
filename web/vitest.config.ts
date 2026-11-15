@@ -46,6 +46,13 @@ export default defineConfig({
         "src/**/*.d.ts",
         "src/test-utils/**",
       ],
+      // The same 90% floor as the gateway's pytest gate: `pnpm test` (and CI) fails below it.
+      thresholds: {
+        statements: 90,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+      },
     },
   },
 });
