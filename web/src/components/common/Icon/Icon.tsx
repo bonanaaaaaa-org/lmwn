@@ -90,7 +90,7 @@ export interface IconProps {
 
 /**
  * A decorative stroke icon in `currentColor` (or its `tone`). Always hidden from assistive tech: the
- * control or text next to it carries the meaning.
+ * control or text next to it carries the meaning. `data-icon` names the icon for tests.
  */
 export function Icon({
   name,
@@ -102,6 +102,7 @@ export function Icon({
   return (
     <svg
       className={clsx(styles.Icon__Root, className)}
+      data-icon={name}
       data-tone={tone}
       width={size}
       height={size}

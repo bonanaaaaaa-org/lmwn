@@ -17,11 +17,11 @@ export interface TagLinkProps {
   variant?: "outline" | "filled";
   /** Show the leading "#" (Tags). Off for chips that aren't Tags, e.g. a Category or a badge. */
   hash?: boolean;
-  /** A leading icon, e.g. `check` for the Official badge. */
+  /** A leading icon, e.g. `badge-check` for the Official badge. */
   icon?: IconName;
   /**
-   * The filter this chip turns on is already on: `aria-current`, the saffron fill and a
-   * trailing check (like a selected `FilterTag`). Pressing it turns the filter off.
+   * The filter this chip turns on is already on: `aria-current`, the saffron fill and
+   * weight 600, with no check (like a selected `FilterTag`). Pressing it turns the filter off.
    */
   isSelected?: boolean;
   /** Overrides the visible text as the accessible name; keep the visible text in it. */
@@ -69,14 +69,6 @@ export function TagLink({
       )}
       {icon && <Icon name={icon} size={12} strokeWidth={2.6} />}
       {tag}
-      {isSelected && (
-        <Icon
-          name="check"
-          size={14}
-          strokeWidth={2.4}
-          className={styles.TagLink__Check}
-        />
-      )}
     </Link>
   );
 }

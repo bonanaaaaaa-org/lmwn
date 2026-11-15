@@ -59,10 +59,6 @@
     }
   }
 
-  .TagLink__Check {
-    flex: none;
-  }
-
   .TagLink__Hash {
     color: var(--color-text-muted);
 

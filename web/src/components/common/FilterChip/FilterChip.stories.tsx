@@ -56,7 +56,7 @@ export const Focus: Story = {
   },
 };
 
-/** Selected: saffron fill, weight 600 and a leading check. */
+/** Selected: saffron fill and weight 600, with no check. */
 export const Selected: Story = { args: { selected: true } };
 
 export const SelectedHovered: Story = {
@@ -66,7 +66,7 @@ export const SelectedHovered: Story = {
 
 export const Disabled: Story = { args: { isDisabled: true } };
 
-/** Open Now carries a clock while unselected. */
+/** Open Now carries a clock. */
 export const Clock: Story = {
   args: {
     label: m.guideFilters_openNow_label(),
@@ -75,12 +75,12 @@ export const Clock: Story = {
   },
 };
 
-/** Selected, the check replaces the clock. */
+/** Selected, the clock stays and no check is added. */
 export const ClockSelected: Story = {
   args: { ...Clock.args, selected: true },
 };
 
-/** Official carries a badge check while unselected. */
+/** Official carries a badge check, like the Official chip on a Restaurant card. */
 export const Official: Story = {
   args: {
     label: m.guideFilters_official_label(),
@@ -89,7 +89,7 @@ export const Official: Story = {
   },
 };
 
-/** Selected, the check replaces the badge check. */
+/** Selected, the badge check stays and no check is added. */
 export const OfficialSelected: Story = {
   args: { ...Official.args, selected: true },
 };

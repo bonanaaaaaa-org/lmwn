@@ -9,5 +9,6 @@ describe("Icon", () => {
     expect(svg).toHaveAttribute("aria-hidden", "true");
     expect(svg).toHaveAttribute("viewBox", "0 0 24 24");
     expect(svg).toHaveAttribute("width", "18");
+    expect(svg).toHaveAttribute("data-icon", "phone");
   });
 });

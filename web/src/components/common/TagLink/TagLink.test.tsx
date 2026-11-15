@@ -67,14 +67,31 @@ describe("TagLink", () => {
         tag="Cafe"
         href="/"
         hash={false}
-        icon="check"
         isSelected
         aria-label="Not only Cafe"
       />,
     );
-    expect(screen.getByRole("link", { name: "Not only Cafe" })).toHaveAttribute(
-      "aria-current",
-      "true",
+    const selected = screen.getByRole("link", { name: "Not only Cafe" });
+    expect(selected).toHaveAttribute("aria-current", "true");
+    expect(selected.querySelector("[data-icon]")).toBeNull();
+  });
+
+  it("keeps its leading icon when selected, and adds no check", () => {
+    render(
+      <TagLink
+        tag="Official"
+        href="/"
+        hash={false}
+        icon="badge-check"
+        isSelected
+      />,
     );
+
+    const icons = screen
+      .getByRole("link", { name: "Official" })
+      .querySelectorAll("[data-icon]");
+    expect([...icons].map((icon) => icon.getAttribute("data-icon"))).toEqual([
+      "badge-check",
+    ]);
   });
 });

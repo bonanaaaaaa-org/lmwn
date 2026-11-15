@@ -400,6 +400,20 @@ describe("needsClamp", () => {
       }
     });
 
+    it.each([false, true])(
+      "leads the Official chip with a badge check and no other icon (selected: %s)",
+      (official) => {
+        renderLinked({ ...NO_RESTAURANT_FILTERS, official });
+
+        const icons = screen
+          .getByTestId("guide/restaurant-card/badge-official")
+          .querySelectorAll("[data-icon]");
+        expect(
+          [...icons].map((icon) => icon.getAttribute("data-icon")),
+        ).toEqual(["badge-check"]);
+      },
+    );
+
     it("shows a Category or badge whose filter is on as selected, linking to it off", () => {
       renderLinked(
         { ...NO_RESTAURANT_FILTERS, categories: [coffee], delivery: true },
@@ -411,10 +425,12 @@ describe("needsClamp", () => {
       });
       expect(selected).toHaveAttribute("aria-current", "true");
       expect(selected).toHaveAttribute("href", `/guides/1?delivery=1`);
+      expect(selected.querySelector("[data-icon]")).toBeNull();
       const delivery = screen.getByTestId(
         "guide/restaurant-card/badge-delivery",
       );
       expect(delivery).toHaveAttribute("aria-current", "true");
+      expect(delivery.querySelector("[data-icon]")).toBeNull();
       expect(delivery).toHaveAttribute(
         "href",
         `/guides/1?${new URLSearchParams({ category: coffee }).toString()}`,

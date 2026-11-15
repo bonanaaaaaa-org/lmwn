@@ -28,7 +28,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-/** Selected: saffron fill, weight 600 and a trailing check. */
+/** Selected: saffron fill and weight 600, with no check. */
 export const Selected: Story = {
   args: { selectedTags: [t.restaurant, t.coffee] },
 };

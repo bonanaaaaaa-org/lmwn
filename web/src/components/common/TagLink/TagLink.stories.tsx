@@ -18,13 +18,22 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 /** The 32px grey chip used in the Guide header. */
 export const Filled: Story = { args: { variant: "filled" } };
-/** A filter chip (no "#") whose filter is on: saffron fill and a trailing check. */
+/** A filter chip (no "#") whose filter is on: saffron fill and weight 600, with no check. */
 export const Selected: Story = {
   args: { variant: "filled", hash: false, isSelected: true },
 };
 /** A badge as a filter link, e.g. Official on a Restaurant card. */
 export const WithIcon: Story = {
-  args: { variant: "filled", hash: false, icon: "check", tag: "Official" },
+  args: {
+    variant: "filled",
+    hash: false,
+    icon: "badge-check",
+    tag: "Official",
+  },
+};
+/** The Official badge with its filter on: the badge check stays, with no trailing check. */
+export const WithIconSelected: Story = {
+  args: { ...WithIcon.args, isSelected: true },
 };
 export const Latin: Story = { args: { tag: sampleTags.latin } };
 export const LongTag: Story = {
