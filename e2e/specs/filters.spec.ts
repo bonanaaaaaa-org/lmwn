@@ -335,6 +335,12 @@ test.describe("Filters - Official", () => {
       message("restaurantCard_badges_official_label"),
     );
     await expectPressed(officialChip(page), false);
+    // Right after Open Now (phones then show the Categories, desktop delivery).
+    await expect(
+      toolbar(page).locator(
+        '[data-testid="guide/filters/open-now"] + [data-testid="guide/filters/official"]',
+      ),
+    ).toHaveCount(1);
 
     await officialChip(page).click();
     await expectPressed(officialChip(page), true);

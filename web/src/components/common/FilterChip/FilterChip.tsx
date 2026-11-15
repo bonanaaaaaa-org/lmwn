@@ -5,7 +5,7 @@ import { Icon } from "@/components/common/Icon";
 
 import styles from "./FilterChip.module.css";
 
-export type FilterChipIcon = "none" | "clock";
+export type FilterChipIcon = "none" | "clock" | "badge-check";
 
 export interface FilterChipProps extends Omit<
   ToggleButtonProps,
@@ -17,7 +17,10 @@ export interface FilterChipProps extends Omit<
    * (pass the same value so both agree).
    */
   selected?: boolean;
-  /** A leading clock (Open Now), shown only while unselected: selected shows the check. */
+  /**
+   * A leading icon (a clock for Open Now, a badge check for Official), shown only while
+   * unselected: selected shows the check.
+   */
   icon?: FilterChipIcon;
   className?: string;
   /** The finished `data-testid`, e.g. `guide/filters/open-now`. */
@@ -44,11 +47,7 @@ export function FilterChip({
       data-testid={testId}
     >
       {({ isSelected }) => {
-        const leading = isSelected
-          ? "check"
-          : icon === "clock"
-            ? "clock"
-            : null;
+        const leading = isSelected ? "check" : icon === "none" ? null : icon;
         return (
           <>
             {leading && (

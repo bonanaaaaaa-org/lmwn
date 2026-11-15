@@ -2,7 +2,10 @@ import clsx from "clsx";
 import { useLayoutEffect, useRef, type Ref } from "react";
 import { ToggleButtonGroup, type Key } from "react-aria-components";
 
-import { FilterChip } from "@/components/common/FilterChip";
+import {
+  FilterChip,
+  type FilterChipIcon,
+} from "@/components/common/FilterChip";
 import { SortSelect } from "@/features/guides/components/SortSelect";
 import {
   toggleCategory,
@@ -35,6 +38,13 @@ const TOGGLE_LABEL: Record<Toggle, () => string> = {
   delivery: m.guideFilters_delivery_label,
   pickup: m.guideFilters_pickup_label,
   official: m.guideFilters_official_label,
+};
+
+const TOGGLE_ICON: Record<Toggle, FilterChipIcon> = {
+  openNow: "clock",
+  delivery: "none",
+  pickup: "none",
+  official: "badge-check",
 };
 
 const categoryKey = (category: string) => `category:${category}`;
@@ -72,7 +82,7 @@ export interface GuideFiltersProps {
   /** …out of all the Guide's Items. */
   total: number;
   onChange: (filters: RestaurantFilters) => void;
-  /** `desktop` wraps the chips in a card; `phone` scrolls them in one row, Open Now first. */
+  /** `desktop` wraps the chips in a card; `phone` scrolls them in one row, Open Now and Official first. */
   layout: "desktop" | "phone";
   className?: string;
   /** The toolbar's root; it takes programmatic focus (`tabIndex={-1}`), e.g. after the filters are cleared. */
@@ -82,8 +92,8 @@ export interface GuideFiltersProps {
 }
 
 /**
- * The Guide page toolbar: Category chips (any one matches), Open Now, delivery, pickup and
- * Official toggles, the "N of M" count and the sort.
+ * The Guide page toolbar: Category chips (any one matches), Open Now, Official, delivery and
+ * pickup toggles, the "N of M" count and the sort.
  */
 export function GuideFilters({
   categories,
@@ -118,7 +128,7 @@ export function GuideFilters({
     <FilterChip
       id={TOGGLE_KEY[toggle]}
       label={TOGGLE_LABEL[toggle]()}
-      icon={toggle === "openNow" ? "clock" : "none"}
+      icon={TOGGLE_ICON[toggle]}
       selected={filters[toggle]}
       testId={`${testId}/${TOGGLE_KEY[toggle]}`}
     />
@@ -148,6 +158,7 @@ export function GuideFilters({
         className={styles.GuideFilters__Chips}
       >
         {isPhone && toggleChip("openNow")}
+        {isPhone && toggleChip("official")}
         {!isPhone && categories.length > 0 && (
           <span className={styles.GuideFilters__ChipsTitle}>
             {m.guideFilters_category_title()}
@@ -166,9 +177,9 @@ export function GuideFilters({
           <span aria-hidden="true" className={styles.GuideFilters__Divider} />
         )}
         {!isPhone && toggleChip("openNow")}
+        {!isPhone && toggleChip("official")}
         {toggleChip("delivery")}
         {toggleChip("pickup")}
-        {toggleChip("official")}
       </ToggleButtonGroup>
       <div className={styles.GuideFilters__Summary}>
         <p aria-live="polite" className={styles.GuideFilters__Count}>

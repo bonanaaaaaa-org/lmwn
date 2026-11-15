@@ -58,6 +58,16 @@ describe("FilterChip", () => {
     expect(icon()).toBe("check");
   });
 
+  it("shows the badge check only while unselected", () => {
+    renderChip({ icon: "badge-check" });
+    expect(icon()).toBe("badge-check");
+  });
+
+  it("drops the badge check for the check once selected", () => {
+    renderChip({ icon: "badge-check", selected: true });
+    expect(icon()).toBe("check");
+  });
+
   it("asks the group to toggle it when pressed", async () => {
     const user = userEvent.setup();
     const { onSelectionChange } = renderChip();
