@@ -1,7 +1,15 @@
 import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, http, HttpResponse } from "msw";
-import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router";
+import type { ReactNode } from "react";
+import { RouterProvider as AriaRouterProvider } from "react-aria-components";
+import {
+  createMemoryRouter,
+  MemoryRouter,
+  RouterProvider,
+  useHref,
+  useNavigate,
+} from "react-router";
 
 import {
   everyDay,
@@ -19,6 +27,19 @@ import { server } from "@/test-utils/server";
 import { GuidePage } from "./GuidePage";
 
 const guideUrl = `${env.apiBaseUrl}/guides/${GUIDE_ID}`;
+
+/** React Aria links navigate through React Router, as in `app/root.tsx`. */
+function AriaRouter({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  return (
+    <AriaRouterProvider
+      navigate={(to, options) => void navigate(to, options)}
+      useHref={useHref}
+    >
+      {children}
+    </AriaRouterProvider>
+  );
+}
 
 function serveGuide(guide: Guide = makeGuide()) {
   server.use(http.get(guideUrl, () => HttpResponse.json(toGatewayJson(guide))));
@@ -268,7 +289,11 @@ describe("GuidePage", () => {
         [
           {
             path: "/guides/:guideId",
-            element: <GuidePage guideId={GUIDE_ID} />,
+            element: (
+              <AriaRouter>
+                <GuidePage guideId={GUIDE_ID} />
+              </AriaRouter>
+            ),
           },
         ],
         { initialEntries: [`/guides/${GUIDE_ID}${search}`] },
@@ -508,6 +533,49 @@ describe("GuidePage", () => {
       expect(params().get("pickup")).toBeNull();
       expect(params().get("delivery")).toBe("1");
       expect(names()).toEqual(["ONIBUS", "KFC"]);
+    });
+
+    it("filters from a card's Category chip and badge, toggling off on a second press", async () => {
+      const user = userEvent.setup();
+      serveGuide();
+      const { router, params } = renderRoutedPage("?sort=rating");
+
+      const kfc = (await screen.findAllByTestId("guide/restaurant-card")).find(
+        (card) =>
+          within(card).queryByRole("heading")?.textContent?.startsWith("KFC"),
+      );
+      await user.click(
+        within(kfc!).getByRole("link", {
+          name: m.restaurantCard_filterLink_ariaLabel({ filter: c.fastFood }),
+        }),
+      );
+
+      expect(params().getAll("category")).toEqual([c.fastFood]);
+      expect(params().get("sort")).toBe("rating");
+      expect(names()).toEqual(["KFC"]);
+      expect(count(1)).toBeInTheDocument();
+      const chip = screen.getByRole("link", {
+        name: m.restaurantCard_filterLink_selectedAriaLabel({
+          filter: c.fastFood,
+        }),
+      });
+      expect(chip).toHaveAttribute("aria-current", "true");
+
+      await user.click(
+        screen.getByTestId("guide/restaurant-card/badge-delivery"),
+      );
+      expect(params().get("delivery")).toBe("1");
+      await user.click(
+        screen.getByTestId("guide/restaurant-card/badge-delivery"),
+      );
+      expect(params().get("delivery")).toBeNull();
+
+      await user.click(chip);
+      expect(params().getAll("category")).toEqual([]);
+      expect(names()).toHaveLength(4);
+
+      await act(() => router.navigate(-1));
+      expect(params().getAll("category")).toEqual([c.fastFood]);
     });
 
     it("ignores Categories the Guide doesn't have", async () => {

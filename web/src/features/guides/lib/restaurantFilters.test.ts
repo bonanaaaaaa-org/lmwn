@@ -11,9 +11,12 @@ import {
   categoriesOf,
   clearRestaurantFilters,
   hasRestaurantFilter,
+  isRestaurantFilterOn,
   NO_RESTAURANT_FILTERS,
   parseRestaurantFilters,
+  restaurantFiltersHref,
   toggleCategory,
+  toggleRestaurantFilter,
   toRestaurantSearchParams,
   withKnownCategories,
   type RestaurantFilters,
@@ -329,6 +332,78 @@ describe("toggleCategory", () => {
   it("adds an unselected Category at the end and removes a selected one", () => {
     expect(toggleCategory(["Cafe"], "Bakery")).toEqual(["Cafe", "Bakery"]);
     expect(toggleCategory(["Cafe", "Bakery"], "Cafe")).toEqual(["Bakery"]);
+  });
+});
+
+describe("toggleRestaurantFilter (a card's Category and badge links)", () => {
+  const start = filters({
+    categories: ["Cafe"],
+    openNow: true,
+    pickup: true,
+    sort: "rating",
+  });
+
+  it("adds a Category and keeps the other filters and the sort", () => {
+    expect(toggleRestaurantFilter(start, { category: "Bakery" })).toEqual({
+      ...start,
+      categories: ["Cafe", "Bakery"],
+    });
+  });
+
+  it("removes a selected Category and keeps the rest", () => {
+    expect(toggleRestaurantFilter(start, { category: "Cafe" })).toEqual({
+      ...start,
+      categories: [],
+    });
+  });
+
+  it.each(["delivery", "official"] as const)(
+    "turns %s on and keeps the rest",
+    (toggle) => {
+      expect(toggleRestaurantFilter(start, toggle)).toEqual({
+        ...start,
+        [toggle]: true,
+      });
+    },
+  );
+
+  it("turns an on badge filter off and keeps the rest", () => {
+    expect(toggleRestaurantFilter(start, "pickup")).toEqual({
+      ...start,
+      pickup: false,
+    });
+  });
+
+  it("says which filters are on", () => {
+    expect(isRestaurantFilterOn(start, { category: "Cafe" })).toBe(true);
+    expect(isRestaurantFilterOn(start, { category: "Bakery" })).toBe(false);
+    expect(isRestaurantFilterOn(start, "pickup")).toBe(true);
+    expect(isRestaurantFilterOn(start, "delivery")).toBe(false);
+  });
+});
+
+describe("restaurantFiltersHref", () => {
+  it("is the bare path with every filter off", () => {
+    expect(restaurantFiltersHref("/guides/1", NO_RESTAURANT_FILTERS)).toBe(
+      "/guides/1",
+    );
+  });
+
+  it("adds the toolbar's query string", () => {
+    const href = restaurantFiltersHref(
+      "/guides/1",
+      toggleRestaurantFilter(
+        filters({ categories: ["Cafe"], sort: "rating" }),
+        "official",
+      ),
+    );
+
+    expect(href).toBe("/guides/1?category=Cafe&official=1&sort=rating");
+    expect(
+      parseRestaurantFilters(new URLSearchParams(href.split("?")[1])),
+    ).toEqual(
+      filters({ categories: ["Cafe"], official: true, sort: "rating" }),
+    );
   });
 });
 

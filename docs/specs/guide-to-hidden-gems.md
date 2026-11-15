@@ -74,14 +74,14 @@ Everything is **required** unless marked _Deferred_.
   - photos in a strip that snaps to each photo: 3 visible on desktop, about 1.2 on a phone with the next photo peeking in
   - the Restaurant name and branch, e.g. "ONIBUS COFFEE (สาขา X)" (branch X)
   - the Rating and review count ("4.3 · 6 รีวิว", "6 reviews"), read out as "4.3 จาก 5 ดาว" (4.3 out of 5 stars)
-  - the Categories
+  - the Categories, each a chip that filters the Guide (see filtering and sorting)
   - today's hours with an Open Now or closed badge, plus the full week in an expandable section
   - the Guide Item's write-up, cut to about 4 lines with "อ่านเพิ่มเติม" (read more) to expand
   - the address with a "ดูแผนที่" (view map) link to Google Maps at the Restaurant's location
   - the phone number as a tappable call link
   - LINE, Instagram and Facebook links, each shown only when the Restaurant has one
   - a link to the Restaurant on Wongnai
-  - delivery, pickup and official badges where they apply
+  - delivery, pickup and official badges where they apply, each a link that filters the Guide
 - **Given** an Unrated Restaurant, **then** the card shows "ยังไม่มีรีวิว" (no reviews yet) instead of stars.
 - **When** the diner taps a photo, **then** a lightbox opens on that photo, covering the whole screen at every size with the photo as large as fits without cropping. It can be swiped, used with the keyboard (arrows, Esc) and closed, and focus returns to the photo afterwards.
 - **When** the diner shares a card, **then** the shared link opens that Guide, scrolls to the card and briefly highlights it. The share text includes the Restaurant name and Guide title. Without native sharing, the link is copied with a toast.
@@ -98,6 +98,8 @@ Everything is **required** unless marked _Deferred_.
 - **Given** filters are set, **then** a count shows "N of M" and the state is kept in the URL.
 - **Given** nothing matches, **then** an empty state offers "ล้างตัวกรอง" (clear filters).
 - **Given** a Restaurant-based filter is on, **then** Unavailable Restaurants are hidden. With no such filter on, they're shown.
+- **When** the diner taps a Category chip or a delivery, pickup or official badge on a card, **then** that filter turns on, the other filters and the sort stay, and the URL changes as it does from the toolbar (one history entry, so Back undoes it). The count and the empty state update the same way, and the page doesn't scroll.
+- **Given** a card's Category or badge filter is already on, **then** it shows as selected (`aria-current`), like the toolbar chip, and tapping it turns that filter off. Each link's accessible name says what it does ("แสดงเฉพาะร้าน คาเฟ่", show only คาเฟ่ Restaurants; "เลิกกรอง คาเฟ่", stop filtering by คาเฟ่).
 
 ### Open Now
 

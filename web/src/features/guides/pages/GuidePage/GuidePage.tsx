@@ -20,7 +20,7 @@ import {
   categoriesOf,
   clearRestaurantFilters,
   parseRestaurantFilters,
-  toRestaurantSearchParams,
+  restaurantFiltersHref,
   withKnownCategories,
   type RestaurantFilters,
 } from "@/features/guides/lib/restaurantFilters";
@@ -70,17 +70,18 @@ function useRestaurantFilters(guide: Guide) {
     [guide.items, guide.timeZone, filters, now],
   );
   const setFilters = (next: RestaurantFilters) => {
-    const search = toRestaurantSearchParams(next).toString();
-    void navigate(
-      { pathname, search: search ? `?${search}` : "" },
-      { preventScrollReset: true },
-    );
+    void navigate(restaurantFiltersHref(pathname, next), {
+      preventScrollReset: true,
+    });
   };
-  return { categories, filters, placed, setFilters };
+  // The cards' Category and badge links go to the same URLs the toolbar pushes.
+  const filtersHref = (next: RestaurantFilters) =>
+    restaurantFiltersHref(pathname, next);
+  return { categories, filters, placed, setFilters, filtersHref };
 }
 
 function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
-  const { categories, filters, placed, setFilters } =
+  const { categories, filters, placed, setFilters, filtersHref } =
     useRestaurantFilters(guide);
   // `placed` is recomputed every minute (Open Now); the share-link hook reruns on a new
   // array, so keep the IDs the same array until the cards shown actually change.
@@ -137,6 +138,8 @@ function GuideContent({ guide, layout }: { guide: Guide; layout: Layout }) {
               clamp={needsClamp(item.description, layout)}
               share={guideItemShareTarget(guide, item)}
               highlighted={item.id === highlightedId}
+              filters={filters}
+              filtersHref={filtersHref}
               parentTestId={GUIDE_PAGE_TEST_ID}
             />
           </li>

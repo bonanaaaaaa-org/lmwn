@@ -52,4 +52,29 @@ describe("TagLink", () => {
       screen.getByRole("link", { name: sampleTags.cafe }),
     );
   });
+
+  it("is a plain chip with a caller-given name, and marks a selected one current", () => {
+    const { rerender } = render(
+      <TagLink tag="Cafe" href="/?a=1" hash={false} aria-label="Only Cafe" />,
+    );
+
+    const link = screen.getByRole("link", { name: "Only Cafe" });
+    expect(link.textContent).toBe("Cafe");
+    expect(link).not.toHaveAttribute("aria-current");
+
+    rerender(
+      <TagLink
+        tag="Cafe"
+        href="/"
+        hash={false}
+        icon="check"
+        isSelected
+        aria-label="Not only Cafe"
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Not only Cafe" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+  });
 });
