@@ -13,11 +13,8 @@
       "inputs": ["app/**/*.module.css", "src/**/*.module.css"],
       "outputs": ["app/**/*.module.css.d.ts", "src/**/*.module.css.d.ts"]
     },
-    "test:coverage": {
-      "outputs": ["coverage/**"]
-    },
     "test": {
-      "outputs": ["allure-results/unit/**"]
+      "outputs": ["allure-results/unit/**", "coverage/**"]
     },
     "test:scripts": {
       "inputs": ["scripts/**"],
