@@ -152,8 +152,9 @@ jobs:
 
   # One combined Allure report per run, uploaded to the shared report host (repo-management's
   # allure-reports Worker) as pr-<number> for a pull request and as the branch name for a push.
-  # Test jobs decide pass or fail: this job runs after failed ones too, and a missing
-  # ALLURE_REPORTS_URL or an unreachable host only warns.
+  # The report carries the test history of earlier runs (Actions cache). Test jobs decide pass or
+  # fail: this job runs after failed ones too, and a missing ALLURE_REPORTS_URL, an unreachable
+  # host or a cache miss only warns.
   allure-report:
     name: Allure report
     needs: [verify, e2e]
@@ -164,6 +165,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      # Whose test history this run continues: the report name (pr-<number> or the branch).
+      HISTORY_SCOPE: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -186,8 +190,22 @@ jobs:
         with:
           pattern: allure-results-*
           path: allure-artifacts
+      # Test history (trends, each test's earlier runs, flaky / new / regressed marks): the earlier
+      # runs' allure-history/history.jsonl (allurerc.mjs) comes from the Actions cache. A pull
+      # request starts from its own last run, or else from main's latest; a push from its branch's
+      # last run, or else main's. No cache entry yet just means a report without history.
+      - name: Restore the test history
+        id: history
+        continue-on-error: true
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: allure-history
+          key: allure-history-${{ env.HISTORY_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            allure-history-${{ env.HISTORY_SCOPE }}-
+            allure-history-main-
       # Every directory holding results, wherever an artifact put it. Single-file report
-      # (allurerc.mjs), so the upload is a few requests.
+      # (allurerc.mjs), so the upload is a few requests. Generating appends this run to the history.
       - name: Generate the report
         id: generate
         if: ${{ steps.install.outcome == 'success' && steps.download.outcome == 'success' }}
@@ -203,6 +221,15 @@ jobs:
           printf 'Results: %s\n' "${dirs[@]}"
           pnpm exec allure generate --clean "${dirs[@]}"
           echo "generated=true" >>"$GITHUB_OUTPUT"
+      # Each run saves under its own key (cache entries can't be overwritten); the next run restores
+      # the newest one for its scope. Only after a report was generated, so the history has this run.
+      - name: Save the test history
+        if: ${{ steps.generate.outputs.generated == 'true' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: allure-history
+          key: ${{ steps.history.outputs.cache-primary-key || format('allure-history-{0}-{1}-{2}', env.HISTORY_SCOPE, github.run_id, github.run_attempt) }}
       - name: No report host
         if: ${{ steps.generate.outputs.generated == 'true' && vars.ALLURE_REPORTS_URL == '' }}
         run: |
@@ -218,7 +245,7 @@ jobs:
         timeout-minutes: 5
         env:
           ALLURE_REPORTS_URL: ${{ vars.ALLURE_REPORTS_URL }}
-          REPORT: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
+          REPORT: ${{ env.HISTORY_SCOPE }}
         working-directory: allure-report
         run: |
           set -euo pipefail

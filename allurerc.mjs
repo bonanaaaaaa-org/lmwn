@@ -6,6 +6,14 @@ import { defineConfig } from "allure";
 export default defineConfig({
   name: "Guide to Hidden Gems",
   output: "./allure-report",
+  // Test history: each `allure generate` reads the earlier runs from this file and appends one
+  // line for this run, which gives the report its trend charts and each test's history (and
+  // flaky / new / regressed marks). CI keeps the file between runs in the Actions cache (ci.yml,
+  // Allure report); locally it collects your own runs. Git-ignored.
+  historyPath: "./allure-history/history.jsonl",
+  // The single-file report embeds the history it read (roughly 2 MB per run for every suite), so
+  // keep the last 10 runs: enough for the trends, small enough to upload and open quickly.
+  historyLimit: 10,
   resultsDir: [
     "./e2e/allure-results",
     "./web/allure-results/unit",
