@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
  * - CSS Module classes follow {ComponentName}__{ElementName} (PascalCase)
  * - colours come from tokens: colour literals only in src/styles/globals.css, so every colour
  *   has a light and a dark value (dark mode, #47)
+ * - CSS features must be supported by every browser in the package.json browserslist (#62)
  */
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,11 +16,35 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 export default {
   extends: ["stylelint-config-standard"],
   plugins: [
+    "stylelint-no-unsupported-browser-features",
     path.join(dir, "stylelint-plugins/enforce-rem-unit.mjs"),
     path.join(dir, "stylelint-plugins/enforce-component-class-pattern.mjs"),
   ],
   ignoreFiles: ["build/**", "node_modules/**", "public/**", "coverage/**"],
   rules: {
+    // Checked against the package.json browserslist. Only features a target lacks entirely are
+    // reported (`ignorePartialSupport`): caniuse's partial-support notes (clip-path shapes,
+    // multi-column details, ...) don't match how the stylesheets use these properties, and every
+    // target is Safari 18+ or an evergreen browser. The features allowed anyway, each with a reason:
+    // - css3-cursors, css3-cursors-newer: iOS has no mouse pointer; the cursor is a desktop hint.
+    // - css-scrollbar: `scrollbar-width: none` only hides scrollbars on rails that scroll anyway;
+    //   iOS Safari draws overlay scrollbars, which is harmless.
+    // - css-touch-action: only desktop Safari lacks it, and it has no touch input; iOS Safari and
+    //   the other targets need it for the Lightbox swipe.
+    // No stylelint-disable comments for this rule: allow a feature here, with its reason.
+    "plugin/no-unsupported-browser-features": [
+      true,
+      {
+        severity: "error",
+        ignorePartialSupport: true,
+        ignore: [
+          "css3-cursors",
+          "css3-cursors-newer",
+          "css-scrollbar",
+          "css-touch-action",
+        ],
+      },
+    ],
     "declaration-property-value-disallowed-list": [
       { "z-index": ["/./"] },
       { reportDisables: true },

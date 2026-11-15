@@ -68,6 +68,8 @@
     "@vitest/browser-playwright": "^5.1.0",
     "@vitest/coverage-v8": "^5.1.0",
     "allure-vitest": "^3.14.0",
+    "browserslist": "^4.29.5",
+    "browserslist-to-esbuild": "^2.1.1",
     "chrome-launcher": "^1.2.3",
     "jsdom": "^31.0.0",
     "lighthouse": "^13.6.0",
@@ -78,10 +80,19 @@
     "storybook": "^10.6.7",
     "stylelint": "^18.0.0",
     "stylelint-config-standard": "^41.0.0",
+    "stylelint-no-unsupported-browser-features": "^8.1.2",
     "typed-css-modules": "^0.9.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.0"
-  }
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 ChromeAndroid versions",
+    "last 2 Edge versions",
+    "last 2 Firefox versions",
+    "iOS >= 18",
+    "Safari >= 18"
+  ]
 }
