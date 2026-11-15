@@ -31,6 +31,7 @@ describe("restaurant filters in the URL", () => {
       openNow: false,
       delivery: false,
       pickup: false,
+      official: false,
       sort: "guide",
     });
   });
@@ -39,7 +40,7 @@ describe("restaurant filters in the URL", () => {
     expect(
       parseRestaurantFilters(
         new URLSearchParams(
-          "category=Cafe&category=Bakery&openNow=1&delivery=1&pickup=1&sort=rating",
+          "category=Cafe&category=Bakery&openNow=1&delivery=1&pickup=1&official=1&sort=rating",
         ),
       ),
     ).toEqual({
@@ -47,6 +48,7 @@ describe("restaurant filters in the URL", () => {
       openNow: true,
       delivery: true,
       pickup: true,
+      official: true,
       sort: "rating",
     });
   });
@@ -55,7 +57,7 @@ describe("restaurant filters in the URL", () => {
     expect(
       parseRestaurantFilters(
         new URLSearchParams(
-          "category=&category=Cafe&category=Cafe&openNow=yes&delivery=0&sort=price",
+          "category=&category=Cafe&category=Cafe&openNow=yes&delivery=0&official=true&sort=price",
         ),
       ),
     ).toEqual(filters({ categories: ["Cafe"] }));
@@ -72,10 +74,11 @@ describe("restaurant filters in the URL", () => {
         openNow: true,
         delivery: true,
         pickup: true,
+        official: true,
         sort: "rating",
       }).toString(),
     ).toBe(
-      "category=Cafe&category=Bakery%2FCake&openNow=1&delivery=1&pickup=1&sort=rating",
+      "category=Cafe&category=Bakery%2FCake&openNow=1&delivery=1&pickup=1&official=1&sort=rating",
     );
   });
 
@@ -83,6 +86,7 @@ describe("restaurant filters in the URL", () => {
     const state = filters({
       categories: ["Bakery", "Cafe"],
       pickup: true,
+      official: true,
       sort: "rating",
     });
     expect(parseRestaurantFilters(toRestaurantSearchParams(state))).toEqual(
@@ -112,6 +116,7 @@ const cafe = item("cafe", {
   numberOfReviews: 6,
   delivery: true,
   pickup: true,
+  official: true,
 });
 const noodles = item("noodles", {
   categories: ["Noodles"],
@@ -119,6 +124,7 @@ const noodles = item("noodles", {
   numberOfReviews: 20,
   delivery: true,
   pickup: false,
+  official: true,
   workingHours: everyDay(1080, 1560),
 });
 const unavailable = item("unavailable", null);
@@ -128,6 +134,7 @@ const unrated = item("unrated", {
   numberOfReviews: 0,
   delivery: false,
   pickup: false,
+  official: false,
 });
 const bakery = item("bakery", {
   categories: ["Bakery"],
@@ -135,6 +142,7 @@ const bakery = item("bakery", {
   numberOfReviews: 3,
   delivery: false,
   pickup: true,
+  official: false,
 });
 const ITEMS = [cafe, noodles, unavailable, unrated, bakery];
 
@@ -187,6 +195,10 @@ describe("applyRestaurantFilters", () => {
     expect(ids(apply({ pickup: true }))).toEqual(["cafe", "bakery"]);
   });
 
+  it("keeps Official Restaurants", () => {
+    expect(ids(apply({ official: true }))).toEqual(["cafe", "noodles"]);
+  });
+
   it("keeps Restaurants that are Open Now in Thailand time", () => {
     expect(ids(apply({ openNow: true }))).toEqual([
       "cafe",
@@ -219,6 +231,10 @@ describe("applyRestaurantFilters", () => {
       ),
     ).toEqual(["cafe"]);
     expect(ids(apply({ delivery: true, pickup: true }))).toEqual(["cafe"]);
+    expect(ids(apply({ official: true, pickup: true }))).toEqual(["cafe"]);
+    expect(
+      ids(apply({ categories: ["Bakery", "Noodles"], official: true })),
+    ).toEqual(["cafe", "noodles"]);
   });
 
   it("can match nothing", () => {
@@ -230,6 +246,7 @@ describe("applyRestaurantFilters", () => {
     expect(ids(apply({ sort: "rating" }))).toContain("unavailable");
     expect(ids(apply({ categories: ["Cafe"] }))).not.toContain("unavailable");
     expect(ids(apply({ openNow: true }))).not.toContain("unavailable");
+    expect(ids(apply({ official: true }))).not.toContain("unavailable");
   });
 
   it("ignores Categories none of the Guide's Restaurants have", () => {
@@ -291,6 +308,7 @@ describe("hasRestaurantFilter", () => {
     { openNow: true },
     { delivery: true },
     { pickup: true },
+    { official: true },
   ])("is on for %o", (overrides) => {
     expect(hasRestaurantFilter(filters(overrides))).toBe(true);
   });
@@ -322,6 +340,7 @@ describe("clearRestaurantFilters", () => {
         openNow: true,
         delivery: true,
         pickup: true,
+        official: true,
         sort: "rating",
       }),
     ).toEqual(filters({ sort: "rating" }));

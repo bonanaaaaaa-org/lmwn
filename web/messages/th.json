@@ -130,6 +130,7 @@
   "guideFilters_openNow_label": "เปิดอยู่ตอนนี้",
   "guideFilters_delivery_label": "เดลิเวอรี่",
   "guideFilters_pickup_label": "รับเองที่ร้าน",
+  "guideFilters_official_label": "Official",
   "guideFilters_count_body": "{shown: number} จาก {total: number} ร้าน",
   "sortSelect_label": "เรียงตาม",
   "sortSelect_trigger_ariaLabel": "เรียงตาม: {value}",

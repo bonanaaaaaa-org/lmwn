@@ -13,15 +13,28 @@ import { m } from "@/paraglide/messages.js";
 
 import styles from "./GuideFilters.module.css";
 
-type Toggle = "openNow" | "delivery" | "pickup";
+type Toggle = "openNow" | "delivery" | "pickup" | "official";
 
-const TOGGLES: readonly Toggle[] = ["openNow", "delivery", "pickup"];
+const TOGGLES: readonly Toggle[] = [
+  "openNow",
+  "delivery",
+  "pickup",
+  "official",
+];
 
 /** Toggle keys in the chip group; Categories are keyed `category:{name}`. */
 const TOGGLE_KEY: Record<Toggle, string> = {
   openNow: "open-now",
   delivery: "delivery",
   pickup: "pickup",
+  official: "official",
+};
+
+const TOGGLE_LABEL: Record<Toggle, () => string> = {
+  openNow: m.guideFilters_openNow_label,
+  delivery: m.guideFilters_delivery_label,
+  pickup: m.guideFilters_pickup_label,
+  official: m.guideFilters_official_label,
 };
 
 const categoryKey = (category: string) => `category:${category}`;
@@ -69,8 +82,8 @@ export interface GuideFiltersProps {
 }
 
 /**
- * The Guide page toolbar: Category chips (any one matches), Open Now, delivery and pickup
- * toggles, the "N of M" count and the sort.
+ * The Guide page toolbar: Category chips (any one matches), Open Now, delivery, pickup and
+ * Official toggles, the "N of M" count and the sort.
  */
 export function GuideFilters({
   categories,
@@ -104,13 +117,7 @@ export function GuideFilters({
   const toggleChip = (toggle: Toggle) => (
     <FilterChip
       id={TOGGLE_KEY[toggle]}
-      label={
-        toggle === "openNow"
-          ? m.guideFilters_openNow_label()
-          : toggle === "delivery"
-            ? m.guideFilters_delivery_label()
-            : m.guideFilters_pickup_label()
-      }
+      label={TOGGLE_LABEL[toggle]()}
       icon={toggle === "openNow" ? "clock" : "none"}
       selected={filters[toggle]}
       testId={`${testId}/${TOGGLE_KEY[toggle]}`}
@@ -161,6 +168,7 @@ export function GuideFilters({
         {!isPhone && toggleChip("openNow")}
         {toggleChip("delivery")}
         {toggleChip("pickup")}
+        {toggleChip("official")}
       </ToggleButtonGroup>
       <div className={styles.GuideFilters__Summary}>
         <p aria-live="polite" className={styles.GuideFilters__Count}>

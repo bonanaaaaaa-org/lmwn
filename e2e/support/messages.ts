@@ -45,6 +45,8 @@ type MessageKey =
   | "guideFilters_openNow_label"
   | "guideFilters_delivery_label"
   | "guideFilters_pickup_label"
+  | "guideFilters_official_label"
+  | "restaurantCard_badges_official_label"
   | "sortSelect_guideOrder_label"
   | "sortSelect_rating_label"
   | "guide_emptyState_filteredTitle"

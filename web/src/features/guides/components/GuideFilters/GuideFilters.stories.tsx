@@ -83,6 +83,28 @@ export const NoMatches: Story = {
   },
 };
 
+/** Official on: only Restaurants with the Official badge are counted. */
+export const OfficialSelected: Story = {
+  args: {
+    filters: { ...NO_RESTAURANT_FILTERS, official: true },
+    shown: 2,
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const official = canvas.getByTestId("guide/filters/official");
+    await expect(official).toHaveTextContent(m.guideFilters_official_label());
+    await expect(official).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(official);
+    await expect(official).toHaveAttribute("aria-pressed", "false");
+    await expect(args.onChange).toHaveBeenLastCalledWith(NO_RESTAURANT_FILTERS);
+  },
+};
+
+export const PhoneOfficialSelected: Story = {
+  globals: phone,
+  args: { ...OfficialSelected.args, layout: "phone" },
+};
+
 /** A Guide whose Restaurants have no Categories (or are all Unavailable): toggles only. */
 export const NoCategories: Story = { args: { categories: [] } };
 

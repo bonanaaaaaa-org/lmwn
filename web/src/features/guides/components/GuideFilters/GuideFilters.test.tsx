@@ -36,7 +36,7 @@ function renderFilters(
 const chip = (name: string) => screen.getByRole("button", { name });
 
 describe("GuideFilters", () => {
-  it("offers a chip per Category, then Open Now, delivery and pickup", () => {
+  it("offers a chip per Category, then Open Now, delivery, pickup and Official", () => {
     renderFilters();
 
     const toolbar = screen.getByTestId("guide/filters");
@@ -54,6 +54,9 @@ describe("GuideFilters", () => {
     );
     expect(screen.getByTestId("guide/filters/pickup")).toHaveTextContent(
       m.guideFilters_pickup_label(),
+    );
+    expect(screen.getByTestId("guide/filters/official")).toHaveTextContent(
+      m.guideFilters_official_label(),
     );
     expect(
       within(toolbar).getByText(m.guideFilters_category_title()),
@@ -74,6 +77,7 @@ describe("GuideFilters", () => {
       ...CATEGORIES,
       m.guideFilters_delivery_label(),
       m.guideFilters_pickup_label(),
+      m.guideFilters_official_label(),
     ]);
     expect(
       screen.queryByText(m.guideFilters_category_title()),
@@ -127,6 +131,7 @@ describe("GuideFilters", () => {
     ["openNow", m.guideFilters_openNow_label],
     ["delivery", m.guideFilters_delivery_label],
     ["pickup", m.guideFilters_pickup_label],
+    ["official", m.guideFilters_official_label],
   ] as const)("toggles %s", async (toggle, label) => {
     const user = userEvent.setup();
     const { onChange } = renderFilters({ [toggle]: true });
@@ -134,6 +139,15 @@ describe("GuideFilters", () => {
     await user.click(chip(label()));
 
     expect(onChange).toHaveBeenCalledWith(NO_RESTAURANT_FILTERS);
+  });
+
+  it("labels the Official chip like the card's Official badge", () => {
+    renderFilters({ official: true });
+
+    expect(chip(m.restaurantCard_badges_official_label())).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("changes the sort, keeping the filters", async () => {
