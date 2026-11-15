@@ -59,51 +59,58 @@ export function SortSelect({
       className={clsx(styles.SortSelect__Root, className)}
       data-testid={testId}
     >
-      {showLabel && (
-        <Label className={styles.SortSelect__Label}>
-          {m.sortSelect_label()}
-        </Label>
-      )}
-      <Button
-        className={styles.SortSelect__Trigger}
-        data-label={showLabel ? "shown" : "hidden"}
-        // Without a visible label the trigger reads "sort by: {value}", not "{value} sort by".
-        aria-labelledby={showLabel ? undefined : triggerNameId}
-        data-testid={`${testId}/trigger`}
-      >
-        <SelectValue />
-        <Icon
-          name="chevron-down"
-          size={16}
-          className={styles.SortSelect__Chevron}
-        />
-      </Button>
-      {!showLabel && (
-        <span id={triggerNameId} hidden>
-          {m.sortSelect_trigger_ariaLabel({ value: sortLabel(value) })}
-        </span>
-      )}
-      <Popover className={styles.SortSelect__Popover} placement="bottom end">
-        <ListBox className={styles.SortSelect__List}>
-          {SORTS.map((sort) => (
-            <ListBoxItem
-              key={sort}
-              id={sort}
-              textValue={sortLabel(sort)}
-              className={styles.SortSelect__Option}
-            >
-              {({ isSelected }) => (
-                <>
-                  <span>{sortLabel(sort)}</span>
-                  {isSelected && (
-                    <Icon name="check" size={16} strokeWidth={2.4} />
+      {({ isOpen }) => (
+        <>
+          {showLabel && (
+            <Label className={styles.SortSelect__Label}>
+              {m.sortSelect_label()}
+            </Label>
+          )}
+          <Button
+            className={styles.SortSelect__Trigger}
+            data-label={showLabel ? "shown" : "hidden"}
+            // Without a visible label the trigger reads "sort by: {value}", not "{value} sort by".
+            aria-labelledby={showLabel ? undefined : triggerNameId}
+            data-testid={`${testId}/trigger`}
+          >
+            <SelectValue />
+            <Icon
+              name={isOpen ? "chevron-up" : "chevron-down"}
+              size={16}
+              className={styles.SortSelect__Chevron}
+            />
+          </Button>
+          {!showLabel && (
+            <span id={triggerNameId} hidden>
+              {m.sortSelect_trigger_ariaLabel({ value: sortLabel(value) })}
+            </span>
+          )}
+          <Popover
+            className={styles.SortSelect__Popover}
+            placement="bottom end"
+          >
+            <ListBox className={styles.SortSelect__List}>
+              {SORTS.map((sort) => (
+                <ListBoxItem
+                  key={sort}
+                  id={sort}
+                  textValue={sortLabel(sort)}
+                  className={styles.SortSelect__Option}
+                >
+                  {({ isSelected }) => (
+                    <>
+                      <span>{sortLabel(sort)}</span>
+                      {isSelected && (
+                        <Icon name="check" size={16} strokeWidth={2.4} />
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </ListBoxItem>
-          ))}
-        </ListBox>
-      </Popover>
+                </ListBoxItem>
+              ))}
+            </ListBox>
+          </Popover>
+        </>
+      )}
     </Select>
   );
 }

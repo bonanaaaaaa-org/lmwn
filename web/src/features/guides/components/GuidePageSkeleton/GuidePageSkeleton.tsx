@@ -58,6 +58,7 @@ export function GuidePageSkeleton({
         <div className={styles.GuidePageSkeleton__Header}>
           <Skeleton
             className={styles.GuidePageSkeleton__Cover}
+            radius={layout === "desktop" ? "400" : "none"}
             aspectRatio={layout === "desktop" ? "21 / 9" : "4 / 3"}
           />
           <div className={styles.GuidePageSkeleton__Stack}>

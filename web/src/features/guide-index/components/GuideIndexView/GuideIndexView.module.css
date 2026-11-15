@@ -70,7 +70,6 @@
 
   .GuideIndexView__TagSkeleton {
     flex: none;
-    border-radius: var(--radius-pill);
   }
 
   .GuideIndexView__Results {

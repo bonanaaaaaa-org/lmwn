@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
  * - each folder's CSS Modules sit in its own cascade layer: components/common in `components`,
  *   components/layout in `layout`, features/<feature>/pages in `pages`, the rest of features in
  *   `features` (#69)
+ * - a className a parent passes to a child component sets only the child's outside (#69)
  */
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,6 +24,7 @@ export default {
     path.join(dir, "stylelint-plugins/enforce-rem-unit.mjs"),
     path.join(dir, "stylelint-plugins/enforce-component-class-pattern.mjs"),
     path.join(dir, "stylelint-plugins/enforce-css-layer.mjs"),
+    path.join(dir, "stylelint-plugins/enforce-outside-only-classname.mjs"),
   ],
   ignoreFiles: ["build/**", "node_modules/**", "public/**", "coverage/**"],
   rules: {
@@ -72,6 +74,8 @@ export default {
       "features/*/pages": "pages",
       features: "features",
     },
+    // A className passed to one of the project's components sets only its outside (#69).
+    "custom/enforce-outside-only-classname": [true, { reportDisables: true }],
     "at-rule-no-unknown": [true, { ignoreAtRules: ["value"] }],
     "color-no-hex": true,
     "color-named": "never",

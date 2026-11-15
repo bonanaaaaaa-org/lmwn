@@ -125,7 +125,6 @@ export function PhotoStrip({
               data-testid={`${testId}/photo`}
             >
               <ResponsiveImage
-                className={styles.PhotoStrip__Photo}
                 sources={
                   // Phones get one photo, the small one when it exists: at 78vw it is about 1.5x the box on a
                   // typical phone, and the large one is ~4x the bytes. The lightbox shows the large one.
@@ -147,7 +146,8 @@ export function PhotoStrip({
       {showNext && (
         <Button
           className={styles.PhotoStrip__Next}
-          variant="ghost"
+          variant="floating"
+          iconOnly
           aria-label={
             atEnd
               ? m.restaurantCard_photoStrip_next_atEndAriaLabel()

@@ -71,28 +71,38 @@ const PATHS = {
 export type IconName = keyof typeof PATHS;
 export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 
+/**
+ * The icon's colour: `muted` secondary text · `accent` saffron · `accent-text` the gold that
+ * passes contrast as text · `danger-inverse` red on a dark surface. Without it the icon takes
+ * the text colour around it (`currentColor`).
+ */
+export type IconTone = "muted" | "accent" | "accent-text" | "danger-inverse";
+
 export interface IconProps {
   name: IconName;
   /** Rendered size in px (the canvas uses 12–40). Defaults to 20. */
   size?: number;
   /** Stroke width in grid units. Defaults to 2. */
   strokeWidth?: number;
+  tone?: IconTone;
   className?: string;
 }
 
 /**
- * A decorative stroke icon in `currentColor`. Always hidden from assistive tech: the
+ * A decorative stroke icon in `currentColor` (or its `tone`). Always hidden from assistive tech: the
  * control or text next to it carries the meaning.
  */
 export function Icon({
   name,
   size = 20,
   strokeWidth = 2,
+  tone,
   className,
 }: IconProps) {
   return (
     <svg
       className={clsx(styles.Icon__Root, className)}
+      data-tone={tone}
       width={size}
       height={size}
       viewBox="0 0 24 24"

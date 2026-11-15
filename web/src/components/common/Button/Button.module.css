@@ -39,7 +39,8 @@
       }
     }
 
-    &[data-variant="ghost"] {
+    &[data-variant="ghost"],
+    &[data-variant="floating"] {
       background: var(--color-surface);
       border-color: var(--color-border);
       color: var(--color-text);
@@ -94,10 +95,29 @@
       }
     }
 
+    &[data-variant="floating"] {
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-300);
+    }
+
     &[data-size="compact"]:not([data-variant="text"]) {
       min-height: var(--control-height-compact);
       padding-inline: var(--space-200);
       font-size: var(--font-size-100);
+    }
+
+    /* After the variants and sizes, so the square wins over their padding. */
+    &[data-icon-only] {
+      flex: none;
+      width: var(--control-height);
+      height: var(--control-height);
+      padding: 0;
+    }
+
+    &[data-icon-only][data-size="compact"] {
+      width: var(--control-height-compact);
+      height: var(--control-height-compact);
+      padding: 0;
     }
 
     &[data-pressed]:not([data-variant="text"]) {

@@ -62,6 +62,7 @@ export function ToastRegion({
                 name={tone === "error" ? "alert" : "check"}
                 size={18}
                 strokeWidth={2.4}
+                tone={tone === "error" ? "danger-inverse" : "accent"}
                 className={styles.Toast__Icon}
               />
               <Text slot="title">{toast.content.message}</Text>

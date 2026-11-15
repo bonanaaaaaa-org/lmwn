@@ -11,7 +11,8 @@ import styles from "./Button.module.css";
 /**
  * `primary` saffron fill · `secondary` white with a strong edge · `ghost` white with a light
  * edge (contact links) · `inverse` ink fill (the phone call action) · `text` a gold text link ·
- * `overlay` a round, translucent white control on dark surfaces (the lightbox).
+ * `overlay` a round, translucent white control on dark surfaces (the lightbox) · `floating` a
+ * round white control with a shadow, over photos (the photo strip's next button).
  */
 export type ButtonVariant =
   | "primary"
@@ -19,13 +20,16 @@ export type ButtonVariant =
   | "ghost"
   | "inverse"
   | "text"
-  | "overlay";
+  | "overlay"
+  | "floating";
 /** `default` is 48px tall, `compact` 40px. */
 export type ButtonSize = "default" | "compact";
 
 export interface ButtonProps extends Omit<AriaButtonProps, "className"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** A square as tall as the size, with no padding: for an icon with an `aria-label`. */
+  iconOnly?: boolean;
   className?: string;
   /** The finished `data-testid`, built by the parent component (see `@/lib/testIds`). */
   testId?: string;
@@ -35,6 +39,7 @@ export interface ButtonProps extends Omit<AriaButtonProps, "className"> {
 export function Button({
   variant = "primary",
   size = "default",
+  iconOnly = false,
   className,
   testId,
   ...props
@@ -45,6 +50,7 @@ export function Button({
       className={clsx(styles.Button__Root, className)}
       data-variant={variant}
       data-size={size}
+      data-icon-only={iconOnly ? "" : undefined}
       data-testid={testId}
     />
   );
@@ -53,6 +59,8 @@ export function Button({
 export interface ButtonLinkProps extends Omit<AriaLinkProps, "className"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** A square as tall as the size, with no padding: for an icon with an `aria-label`. */
+  iconOnly?: boolean;
   className?: string;
   /** The finished `data-testid`, built by the parent component (see `@/lib/testIds`). */
   testId?: string;
@@ -62,6 +70,7 @@ export interface ButtonLinkProps extends Omit<AriaLinkProps, "className"> {
 export function ButtonLink({
   variant = "primary",
   size = "default",
+  iconOnly = false,
   className,
   testId,
   ...props
@@ -72,6 +81,7 @@ export function ButtonLink({
       className={clsx(styles.Button__Root, className)}
       data-variant={variant}
       data-size={size}
+      data-icon-only={iconOnly ? "" : undefined}
       data-testid={testId}
     />
   );

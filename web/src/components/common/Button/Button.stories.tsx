@@ -45,6 +45,27 @@ export const Overlay: Story = {
     ),
   ],
 };
+/** A round white control with a shadow, over photos (the photo strip's next button). */
+export const Floating: Story = {
+  args: {
+    variant: "floating",
+    iconOnly: true,
+    "aria-label": m.restaurantCard_photoStrip_next_ariaLabel(),
+    children: <Icon name="chevron-right" size={20} />,
+  },
+};
+/** A square as tall as the size, for an icon with an aria-label. */
+export const IconOnly: Story = {
+  args: {
+    variant: "secondary",
+    iconOnly: true,
+    "aria-label": m.restaurantCard_photoStrip_next_ariaLabel(),
+    children: <Icon name="chevron-right" size={20} />,
+  },
+};
+export const IconOnlyCompact: Story = {
+  args: { ...IconOnly.args, size: "compact" },
+};
 export const Compact: Story = { args: { variant: "ghost", size: "compact" } };
 export const Disabled: Story = { args: { isDisabled: true } };
 export const Pending: Story = { args: { isPending: true } };

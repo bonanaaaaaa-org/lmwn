@@ -104,7 +104,7 @@ export function ThemeToggle({
                         name="check"
                         size={16}
                         strokeWidth={2.4}
-                        className={styles.ThemeToggle__Check}
+                        tone="accent-text"
                       />
                     )}
                   </>

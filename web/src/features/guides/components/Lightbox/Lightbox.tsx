@@ -164,7 +164,6 @@ export function Lightbox({
                   style={{ "--photo-ratio": ratio } as CSSProperties}
                 >
                   <ResponsiveImage
-                    className={styles.Lightbox__Photo}
                     sources={shown ? [shown] : []}
                     alt={photoAlt(index + 1, total, name)}
                     aspectRatio={String(ratio)}
@@ -240,7 +239,6 @@ export function Lightbox({
                         }}
                       >
                         <ResponsiveImage
-                          className={styles.Lightbox__ThumbImage}
                           sources={photoSources(thumb).slice(0, 1)}
                           alt=""
                           aspectRatio="1 / 1"

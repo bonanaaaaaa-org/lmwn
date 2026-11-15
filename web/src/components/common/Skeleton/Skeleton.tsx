@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { VisuallyHidden } from "react-aria";
 
 import { m } from "@/paraglide/messages.js";
+import type { Radius } from "@/styles/radius";
 
 import styles from "./Skeleton.module.css";
 
@@ -17,6 +18,8 @@ export interface SkeletonProps {
   aspectRatio?: string;
   /** Number of text lines when `shape="text"`. */
   lines?: number;
+  /** Corner radius token. Defaults to the shape's own (block 200, text 100, circle round). */
+  radius?: Radius;
   className?: string;
 }
 
@@ -31,6 +34,7 @@ export function Skeleton({
   height,
   aspectRatio,
   lines = 1,
+  radius,
   className,
 }: SkeletonProps) {
   const style = {
@@ -51,6 +55,7 @@ export function Skeleton({
             key={index}
             className={styles.Skeleton__Root}
             data-shape="text"
+            data-radius={radius}
           />
         ))}
       </span>
@@ -61,6 +66,7 @@ export function Skeleton({
     <span
       className={clsx(styles.Skeleton__Root, className)}
       data-shape={shape}
+      data-radius={radius}
       data-fixed-ratio={aspectRatio ? "" : undefined}
       style={style}
       aria-hidden="true"

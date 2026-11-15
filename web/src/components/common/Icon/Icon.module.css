@@ -2,5 +2,21 @@
   .Icon__Root {
     display: block;
     flex: none;
+
+    &[data-tone="muted"] {
+      color: var(--color-text-muted);
+    }
+
+    &[data-tone="accent"] {
+      color: var(--color-accent);
+    }
+
+    &[data-tone="accent-text"] {
+      color: var(--color-accent-text);
+    }
+
+    &[data-tone="danger-inverse"] {
+      color: var(--color-danger-inverse);
+    }
   }
 }

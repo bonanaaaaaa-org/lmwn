@@ -9,10 +9,6 @@
     background: var(--color-surface);
   }
 
-  .SkeletonCard__Cover {
-    border-radius: 0;
-  }
-
   .SkeletonCard__Body {
     display: flex;
     flex-direction: column;
@@ -24,16 +20,8 @@
     }
   }
 
-  .SkeletonCard__Bar {
-    border-radius: var(--radius-100);
-  }
-
   .SkeletonCard__Tags {
     display: flex;
     gap: var(--space-100);
-  }
-
-  .SkeletonCard__Tag {
-    border-radius: var(--radius-pill);
   }
 }

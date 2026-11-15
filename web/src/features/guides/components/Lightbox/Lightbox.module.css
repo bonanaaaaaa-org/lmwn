@@ -143,9 +143,16 @@
     }
   }
 
-  /* As large as fits the stage at the photo's own ratio. */
+  /* As large as fits the stage at the photo's own ratio. Clips the photo to its corners,
+     square once the stage goes edge to edge. */
   .Lightbox__Frame {
     width: min(100cqw, 100cqh * var(--photo-ratio));
+    overflow: hidden;
+    border-radius: var(--radius-200);
+
+    @media (width >= 48rem) {
+      border-radius: 0;
+    }
 
     &[data-direction="next"] {
       animation: slide-from-end var(--duration-base) var(--easing-standard);
@@ -153,14 +160,6 @@
 
     &[data-direction="prev"] {
       animation: slide-from-start var(--duration-base) var(--easing-standard);
-    }
-  }
-
-  .Lightbox__Photo {
-    border-radius: var(--radius-200);
-
-    @media (width >= 48rem) {
-      border-radius: 0;
     }
   }
 
@@ -195,6 +194,7 @@
     flex: none;
     width: var(--control-height);
     padding: 0;
+    overflow: hidden;
     border: 0;
     border-radius: var(--radius-200);
     background: none;
@@ -217,10 +217,6 @@
       outline-color: var(--color-focus-inverse);
       outline-offset: var(--focus-ring-offset);
     }
-  }
-
-  .Lightbox__ThumbImage {
-    border-radius: var(--radius-200);
   }
 
   @media (prefers-reduced-motion: reduce) {

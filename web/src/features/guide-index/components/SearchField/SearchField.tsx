@@ -73,7 +73,11 @@ export function SearchField({
           {label ?? m.searchField_label()}
         </Label>
         <Group className={styles.SearchField__Box}>
-          <Icon name="search" className={styles.SearchField__Icon} />
+          <Icon
+            name="search"
+            tone="muted"
+            className={styles.SearchField__Icon}
+          />
           <Input
             ref={inputRef}
             className={styles.SearchField__Input}

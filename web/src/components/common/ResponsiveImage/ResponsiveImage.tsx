@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { useState, type CSSProperties } from "react";
 
+import type { Radius } from "@/styles/radius";
+
 import styles from "./ResponsiveImage.module.css";
 
 export interface ImageSource {
@@ -26,6 +28,8 @@ export interface ResponsiveImageProps {
    * the hero for bandwidth.
    */
   deferred?: boolean;
+  /** Corner radius token; the image and its placeholder are clipped to it. Defaults to square. */
+  radius?: Radius;
   className?: string;
 }
 
@@ -45,6 +49,7 @@ export function ResponsiveImage({
   sizes = "100vw",
   priority = false,
   deferred = false,
+  radius,
   className,
 }: ResponsiveImageProps) {
   const usable = sources.filter(({ url }) => url.trim() !== "");
@@ -62,6 +67,7 @@ export function ResponsiveImage({
       <span
         className={clsx(styles.ResponsiveImage__Root, className)}
         style={style}
+        data-radius={radius}
         data-state="deferred"
         {...name}
       />
@@ -73,6 +79,7 @@ export function ResponsiveImage({
       <span
         className={clsx(styles.ResponsiveImage__Root, className)}
         style={style}
+        data-radius={radius}
         data-state="placeholder"
         {...name}
       >
@@ -95,6 +102,7 @@ export function ResponsiveImage({
     <span
       className={clsx(styles.ResponsiveImage__Root, className)}
       style={style}
+      data-radius={radius}
       data-state="image"
     >
       <img
